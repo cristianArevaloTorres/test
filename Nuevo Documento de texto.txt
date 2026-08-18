@@ -1,3 +1,18 @@
+{
+    "id": 3541,
+    "idReporte": 3,
+    "nombreReporte": "Sábana de beneficios",
+    "fechaSolicitud": "2026-08-18T14:17:00.000-06:00",
+    "usuarioSolicitud": 25,
+    "idEstatus": 6,
+    "estatus": "Sin datos",
+    "idEmpresa": 2663,
+    "fechaGeneracion": "2026-08-18T14:17:00.000-06:00",
+    "ruta": "",
+    "observaciones": "No existen registros con los parámetros ingresados"
+}
+
+-------------------
 USE [FlexiForbesv2];
 GO
 
