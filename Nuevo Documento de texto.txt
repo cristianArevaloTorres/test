@@ -1,0 +1,22 @@
+USE [FlexiForbesv2];
+GO
+
+SELECT * FROM dbo.ff_Estatus;
+
+SELECT * FROM dbo.bf_CatTipoReportes;
+SELECT * FROM dbo.bf_CatReportesTipoArchivo;
+SELECT * FROM dbo.bf_CatReportesTipoDatos;
+
+SELECT * FROM dbo.bf_CatReportes;
+SELECT * FROM dbo.bf_CatReportesSP;
+SELECT * FROM dbo.bf_CatReportesParams;
+
+SELECT * FROM dbo.bf_RepConf_Tabla;
+SELECT * FROM dbo.bf_RepConf_Columna;
+
+SELECT * FROM dbo.ff_ConfiguracionSabana;
+SELECT * FROM dbo.ff_Parametro;
+
+SELECT * FROM dbo.bf_CatalogoReporteGen;
+SELECT * FROM dbo.bf_CatalogoEstatusReporteGen;
+SELECT * FROM dbo.bf_ConfiguracionReporteGen;
