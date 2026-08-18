@@ -54,3 +54,29 @@ SELECT * FROM dbo.bf_ConfiguraReporteEmpresa;
 - dbo.ff_Sabana_v2
 - Estructura de dbo.ff_Empleado
 La causa raíz es la columna emMunicipioDelegaciónFiscal: los procedimientos la esperan con acento, pero localmente existen EMMunicipioDelegacionFiscal y EMMunicipioDelegacionFisico. Los avisos de procedimientos faltantes son consecuencia de que VIDA y OPC no pudieron compilarse. Los SELECT de datos no solucionarán esta parte.
+
+
+-----------------------------
+
+Hola, buenas tardes.
+Gracias por compartir las incidencias encontradas durante las pruebas del reporte de Sábana.
+Después de revisar la generación del archivo en Legacy (B2) y en la versión migrada (B3), identificamos que el problema no correspondía únicamente a información faltante en las tablas de configuración. Existían diferencias entre la forma en que B2 interpretaba la configuración almacenada en XML y la manera en que B3 procesaba esa misma configuración desde la base de datos.
+Los principales hallazgos fueron los siguientes:
+- Algunos procedimientos almacenados de Vida y Planes Opcionales no se estaban creando correctamente debido a una referencia a una columna con un nombre diferente al existente en el esquema de la base de datos. Esto provocaba que el procedimiento principal continuara ejecutándose sin incluir todos los resultados, generando archivos parciales; este era uno de los motivos por los que ATT solamente mostraba la información de Mascotas.
+- La configuración de los planes opcionales estaba siendo filtrada mediante un indicador que no se utiliza de la misma manera en Legacy. Como consecuencia, empresas como Zurich Santander no incluían las hojas correspondientes a dichos planes.
+- En Vida, B3 estaba utilizando el nombre de cada cobertura como nombre de hoja. Esto generaba una pestaña por cobertura para empresas como Corteva, SSGT y BH. En Legacy, todas estas coberturas se integran en una sola hoja de Vida.
+- La selección de configuraciones por vigencia mezclaba registros actuales e históricos. Se corrigió la lógica para utilizar primero la configuración específica de la vigencia solicitada y aplicar la configuración general solamente cuando no exista una configuración específica.
+- Se encontraron diferencias en la homologación de nombres de columnas, especialmente en columnas dinámicas y consecutivas. Por ejemplo, columnas como Costo1 y Costo_1 podían interpretarse como si fueran la misma columna, provocando omisiones o cambios en el orden del archivo.
+- Algunos encabezados con acentos fueron almacenados incorrectamente durante la carga de configuración, afectando nombres como “Número” y otros campos utilizados por Legacy.
+- También se corrigió la validación de la fecha final en la pantalla de B3. Ahora se valida contra el periodo de la vigencia seleccionada, conservando el comportamiento esperado de B2.
+Para corregirlo se realizaron ajustes en los procedimientos almacenados, en las configuraciones del reporte y en el componente que construye el archivo Excel. Con estos cambios:
+- Las coberturas de Vida se concentran nuevamente en una sola hoja.
+- Los planes opcionales vuelven a incluirse cuando corresponden.
+- Se conserva el orden y nombre de las columnas configuradas en Legacy.
+- Las columnas dinámicas ya no se eliminan ni se combinan incorrectamente.
+- Los errores de los procedimientos ya no se ocultan, evitando que se genere un archivo parcial como si fuera correcto.
+- B3 conserva todas las columnas existentes en B2; puede mantener columnas adicionales propias de la migración, siempre que no afecten las columnas homologadas.
+Como parte de la validación técnica se revisaron 91 configuraciones XML de Legacy, 95 configuraciones de Sábana y 660 combinaciones de configuración y vigencia, correspondientes a 466 empresas activas. La auditoría estructural no reporta actualmente diferencias pendientes en hojas o columnas.
+En este momento las correcciones ya están implementadas. Me encuentro realizando las últimas pruebas de regresión con distintas empresas, vigencias y tipos de plan, incluyendo Zurich Santander, ATT, Corteva, SSGT y BH, antes de enviar la versión a QA.
+En cuanto termine estas validaciones confirmaré el envío a QA junto con los casos revisados y los scripts necesarios para actualizar el ambiente correspondiente.
+Saludos.
