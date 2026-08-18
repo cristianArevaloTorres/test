@@ -80,3 +80,11 @@ Como parte de la validación técnica se revisaron 91 configuraciones XML de Leg
 En este momento las correcciones ya están implementadas. Me encuentro realizando las últimas pruebas de regresión con distintas empresas, vigencias y tipos de plan, incluyendo Zurich Santander, ATT, Corteva, SSGT y BH, antes de enviar la versión a QA.
 En cuanto termine estas validaciones confirmaré el envío a QA junto con los casos revisados y los scripts necesarios para actualizar el ambiente correspondiente.
 Saludos.
+
+
+
+Mens. 468, Nivel 16, Estado 9, Línea 1780
+Cannot resolve the collation conflict between "Modern_Spanish_CI_AI" and "SQL_Latin1_General_CP1_CI_AS" in the equal to operation.
+
+Hora de finalización: 2026-08-18T10:00:33.7793237-06:00
+
