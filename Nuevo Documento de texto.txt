@@ -20,3 +20,27 @@ SELECT * FROM dbo.ff_Parametro;
 SELECT * FROM dbo.bf_CatalogoReporteGen;
 SELECT * FROM dbo.bf_CatalogoEstatusReporteGen;
 SELECT * FROM dbo.bf_ConfiguracionReporteGen;
+
+--------------------
+
+
+SELECT * FROM dbo.ff_Empresa;
+
+-- Configuración asociada mediante ff_Empresa.EMidConfiguracion
+SELECT * FROM dbo.ff_Configuracion;
+SELECT * FROM dbo.bf_ConfiguracionCorporativo;
+
+-- Vigencias de cada configuración
+SELECT * FROM dbo.ff_Vigencia;
+
+-- Perfiles de las empresas
+SELECT * FROM dbo.ff_Perfil;
+
+-- Estructura de beneficios
+SELECT * FROM dbo.ff_Ramo;
+SELECT * FROM dbo.ff_Plan;
+SELECT * FROM dbo.ff_PlanOpcion;
+SELECT * FROM dbo.ff_PlanOpcionPerfil;
+
+-- Reportes habilitados para cada empresa
+SELECT * FROM dbo.bf_ConfiguraReporteEmpresa;
