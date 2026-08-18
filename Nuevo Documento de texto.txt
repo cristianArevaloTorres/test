@@ -44,3 +44,13 @@ SELECT * FROM dbo.ff_PlanOpcionPerfil;
 
 -- Reportes habilitados para cada empresa
 SELECT * FROM dbo.bf_ConfiguraReporteEmpresa;
+
+-----
+- dbo.ff_SabanaVIDA_BF3
+- dbo.ff_SabanaOPC_BF3
+- dbo.ff_SabanaVIDA_v2
+- dbo.ff_SabanaOPC_v2
+- dbo.ff_Sabana_BF3
+- dbo.ff_Sabana_v2
+- Estructura de dbo.ff_Empleado
+La causa raíz es la columna emMunicipioDelegaciónFiscal: los procedimientos la esperan con acento, pero localmente existen EMMunicipioDelegacionFiscal y EMMunicipioDelegacionFisico. Los avisos de procedimientos faltantes son consecuencia de que VIDA y OPC no pudieron compilarse. Los SELECT de datos no solucionarán esta parte.
