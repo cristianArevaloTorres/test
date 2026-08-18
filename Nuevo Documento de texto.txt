@@ -1,3 +1,34 @@
+Set-Location 'C:\repo\reportes\APIREPORTS'
+
+git branch --show-current
+git remote -v
+git status --short
+
+git restore --staged -- .gitignore
+
+git add -- `
+  src/main/java/com/lockton/rpt/services/GeneradorReportesService.java `
+  src/main/java/com/lockton/rpt/util/Excel_Hoja_Multiple.java `
+  src/test/java/com/lockton/rpt/services/GeneradorReportesServiceTest.java `
+  src/test/java/com/lockton/rpt/util/ExcelHojaMultipleHomologacionTest.java
+
+git diff --cached --name-only
+git diff --cached --stat
+
+
+.\mvnw.cmd test
+
+git commit -m "fix(sabana): homologa columnas y planes opcionales con legacy"
+
+git push -u origin HEAD
+
+
+git status
+git log -1 --oneline
+
+
+
+
 {
     "id": 3541,
     "idReporte": 3,
