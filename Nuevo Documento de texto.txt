@@ -88,3 +88,773 @@ Cannot resolve the collation conflict between "Modern_Spanish_CI_AI" and "SQL_La
 
 Hora de finalización: 2026-08-18T10:00:33.7793237-06:00
 
+----------------------------------------------------
+
+PS C:\repo\reportes\FRONT> $proc = Get-NetTCPConnection -LocalPort 4200 -ErrorAction SilentlyContinue |
+>>   Select-Object -ExpandProperty OwningProcess -Unique
+>> if ($proc) { Stop-Process -Id $proc -Force }
+>> 
+>> Set-Location "C:\repo\reportes\FRONT"
+>> npm start
+
+> beflex3@0.0.0 start C:\repo\reportes\FRONT
+> ng serve
+
+"ng" no se reconoce como un comando interno o externo,
+programa o archivo por lotes ejecutable.
+npm ERR! code ELIFECYCLE
+npm ERR! errno 1
+npm ERR! beflex3@0.0.0 start: `ng serve`
+npm ERR! Exit status 1
+npm ERR! 
+npm ERR! Failed at the beflex3@0.0.0 start script.
+npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
+npm WARN Local package.json exists, but node_modules missing, did you mean to install?
+
+npm ERR! A complete log of this run can be found in:
+npm ERR!     C:\Users\consultor.ti40\AppData\Roaming\npm-cache\_logs\2026-08-18T16_28_03_892Z-debug.log
+PS C:\repo\reportes\FRONT> $proc = Get-NetTCPConnection -LocalPort 4200 -ErrorAction SilentlyContinue |
+>>   Select-Object -ExpandProperty OwningProcess -Unique
+>> if ($proc) { Stop-Process -Id $proc -Force }
+>> 
+>> Set-Location "C:\repo\reportes\FRONT"
+>> npm start
+
+> beflex3@0.0.0 start C:\repo\reportes\FRONT
+> ng serve
+
+"ng" no se reconoce como un comando interno o externo,
+programa o archivo por lotes ejecutable.
+npm ERR! code ELIFECYCLE
+npm ERR! errno 1
+npm ERR! beflex3@0.0.0 start: `ng serve`
+npm ERR! Exit status 1
+npm ERR! 
+npm ERR! Failed at the beflex3@0.0.0 start script.
+npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
+npm WARN Local package.json exists, but node_modules missing, did you mean to install?
+
+npm ERR! A complete log of this run can be found in:
+npm ERR!     C:\Users\consultor.ti40\AppData\Roaming\npm-cache\_logs\2026-08-18T16_29_55_922Z-debug.log
+PS C:\repo\reportes\FRONT> Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force
+>> cd "C:\repo\reportes\FRONT"
+>> npm start
+
+> beflex3@0.0.0 start C:\repo\reportes\FRONT
+> ng serve
+
+"ng" no se reconoce como un comando interno o externo,
+programa o archivo por lotes ejecutable.
+npm ERR! code ELIFECYCLE
+npm ERR! errno 1
+npm ERR! beflex3@0.0.0 start: `ng serve`
+npm ERR! Exit status 1
+npm ERR! 
+npm ERR! Failed at the beflex3@0.0.0 start script.
+npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
+npm WARN Local package.json exists, but node_modules missing, did you mean to install?
+
+npm ERR! A complete log of this run can be found in:
+npm ERR!     C:\Users\consultor.ti40\AppData\Roaming\npm-cache\_logs\2026-08-18T16_34_50_032Z-debug.log
+PS C:\repo\reportes\FRONT> Set-Location "C:\repo\reportes\FRONT"
+>> npm install
+>> 
+npm notice This endpoint is being retired. Use the bulk advisory endpoint instead. See the following docs for more info: https://api-docs.npmjs.com/#tag/Audit
+
+> core-js@3.8.3 postinstall C:\repo\reportes\FRONT\node_modules\@angular-devkit\build-angular\node_modules\core-js
+> node -e "try{require('./postinstall')}catch(e){}"
+
+Thank you for using core-js ( https://github.com/zloirock/core-js ) for polyfilling JavaScript standard library!
+
+The project needs your help! Please consider supporting of core-js on Open Collective or Patreon: 
+> https://opencollective.com/core-js 
+> https://www.patreon.com/zloirock 
+
+Also, the author of core-js ( https://github.com/zloirock ) is looking for a good job -)
+
+
+> @angular/cli@11.2.18 postinstall C:\repo\reportes\FRONT\node_modules\@angular\cli
+> node ./bin/postinstall/script.js
+
+
+> beflex3@0.0.0 postinstall C:\repo\reportes\FRONT
+> ngcc
+
+Warning: Entry point 'ngx-dynamic-form-builder' contains deep imports into 'C:/repo/reportes/FRONT/node_modules/class-transformer/ClassTransformer', 'C:/repo/reportes/FRONT/node_modules/class-validator/metadata/ValidationMetadata'. This is probably not a problem, but may cause the compilation of entry points to be out of order.
+Compiling @angular/core : fesm2015 as esm2015
+Compiling @angular/animations : fesm2015 as esm2015
+Compiling primeng/dom : fesm2015 as esm2015
+Compiling @angular/cdk/keycodes : fesm2015 as esm2015
+Compiling @angular/compiler/testing : fesm2015 as esm2015
+Compiling @angular/animations : esm2015 as esm2015
+Compiling @angular/animations : main as umd
+Compiling primeng/dom : fesm5 as esm5
+Compiling primeng/dom : esm2015 as esm2015
+Compiling primeng/dom : esm5 as esm5
+Compiling @angular/cdk/keycodes : esm2015 as esm2015
+Compiling @angular/cdk/keycodes : main as umd
+Compiling primeng/dom : main as umd
+Compiling @angular/compiler/testing : esm2015 as esm2015
+Compiling @angular/compiler/testing : main as umd
+Compiling @angular/animations/browser : fesm2015 as esm2015
+Compiling @angular/cdk/collections : fesm2015 as esm2015
+Compiling @angular/common : fesm2015 as esm2015
+Compiling @angular/cdk/observers : fesm2015 as esm2015
+Compiling @angular/forms : fesm2015 as esm2015
+Compiling @angular/router : fesm2015 as esm2015
+Compiling @angular/cdk/platform : fesm2015 as esm2015
+Compiling @angular/cdk/bidi : fesm2015 as esm2015
+Compiling @angular/platform-browser : fesm2015 as esm2015
+Compiling @angular/cdk/a11y : fesm2015 as esm2015
+Compiling @angular/cdk/scrolling : fesm2015 as esm2015
+Compiling @angular/platform-browser/animations : fesm2015 as esm2015
+Compiling @angular/cdk/portal : fesm2015 as esm2015
+Compiling primeng/api : fesm2015 as esm2015
+Compiling primeng/button : fesm2015 as esm2015
+Compiling @angular/material/core : fesm2015 as esm2015
+Compiling primeng/tooltip : fesm2015 as esm2015
+Compiling primeng/utils : fesm2015 as esm2015
+Compiling @angular/cdk/overlay : fesm2015 as esm2015
+Compiling @angular/common/http : fesm2015 as esm2015
+Compiling primeng/inputtext : fesm2015 as esm2015
+Compiling primeng/dropdown : fesm2015 as esm2015
+Compiling @angular/material/form-field : fesm2015 as esm2015
+Compiling @angular/cdk/layout : fesm2015 as esm2015
+Compiling @angular/material/button : fesm2015 as esm2015
+Compiling primeng/paginator : fesm2015 as esm2015
+Compiling @angular/cdk/text-field : fesm2015 as esm2015
+Compiling @angular/material/icon : fesm2015 as esm2015
+Compiling @angular/material/select : fesm2015 as esm2015
+Compiling @angular/material/tooltip : fesm2015 as esm2015
+Compiling @angular/material/input : fesm2015 as esm2015
+Compiling @progress/kendo-angular-l10n : es2015 as esm2015
+Compiling @progress/kendo-angular-common : es2015 as esm2015
+Compiling primeng/focustrap : fesm2015 as esm2015
+Compiling primeng/messages : fesm2015 as esm2015
+Compiling primeng/progressbar : fesm2015 as esm2015
+Compiling @angular/material/checkbox : fesm2015 as esm2015
+Compiling @angular/material/progress-spinner : fesm2015 as esm2015
+Compiling @angular/material/dialog : fesm2015 as esm2015
+Compiling @angular/cdk/accordion : fesm2015 as esm2015
+Compiling @angular/material/divider : fesm2015 as esm2015
+Compiling @angular/cdk/stepper : fesm2015 as esm2015
+Compiling @angular/cdk/table : fesm2015 as esm2015
+Compiling @angular/material/paginator : fesm2015 as esm2015
+Compiling @angular/material/sort : fesm2015 as esm2015
+Compiling @angular/cdk/tree : fesm2015 as esm2015
+Compiling @angular/core/testing : fesm2015 as esm2015
+Compiling @angular/platform-browser-dynamic : fesm2015 as esm2015
+Compiling @angular/platform-browser/testing : fesm2015 as esm2015
+Compiling @angular/common/testing : fesm2015 as esm2015
+Compiling @ng-bootstrap/ng-bootstrap : fesm2015 as esm2015
+Compiling @ng-select/ng-select : fesm2015 as esm2015
+Compiling @progress/kendo-angular-upload : es2015 as esm2015
+Compiling ng-recaptcha : fesm2015 as esm2015
+Compiling ngx-dynamic-form-builder : fesm2015 as esm2015
+Compiling ngx-mat-select-search : fesm2015 as esm2015
+Compiling ngx-spinner : fesm2015 as esm2015
+Compiling primeng/accordion : fesm2015 as esm2015
+Compiling primeng/autocomplete : fesm2015 as esm2015
+Compiling primeng/blockui : fesm2015 as esm2015
+Compiling primeng/breadcrumb : fesm2015 as esm2015
+Compiling primeng/calendar : fesm2015 as esm2015
+Compiling primeng/captcha : fesm2015 as esm2015
+Compiling primeng/card : fesm2015 as esm2015
+Compiling primeng/carousel : fesm2015 as esm2015
+Compiling primeng/chart : fesm2015 as esm2015
+Compiling primeng/checkbox : fesm2015 as esm2015
+Compiling primeng/chips : fesm2015 as esm2015
+Compiling primeng/codehighlighter : fesm2015 as esm2015
+Compiling primeng/colorpicker : fesm2015 as esm2015
+Compiling primeng/confirmdialog : fesm2015 as esm2015
+Compiling primeng/contextmenu : fesm2015 as esm2015
+Compiling primeng/dataview : fesm2015 as esm2015
+Compiling primeng/defer : fesm2015 as esm2015
+Compiling primeng/dialog : fesm2015 as esm2015
+Compiling primeng/dragdrop : fesm2015 as esm2015
+Compiling primeng/dynamicdialog : fesm2015 as esm2015
+Compiling primeng/editor : fesm2015 as esm2015
+Compiling primeng/fieldset : fesm2015 as esm2015
+Compiling primeng/fileupload : fesm2015 as esm2015
+Compiling primeng/galleria : fesm2015 as esm2015
+Compiling primeng/gmap : fesm2015 as esm2015
+Compiling primeng/inplace : fesm2015 as esm2015
+Compiling primeng/inputmask : fesm2015 as esm2015
+Compiling primeng/inputnumber : fesm2015 as esm2015
+Compiling primeng/inputswitch : fesm2015 as esm2015
+Compiling primeng/inputtextarea : fesm2015 as esm2015
+Compiling primeng/keyfilter : fesm2015 as esm2015
+Compiling primeng/lightbox : fesm2015 as esm2015
+Compiling primeng/listbox : fesm2015 as esm2015
+Compiling primeng/megamenu : fesm2015 as esm2015
+Compiling primeng/menu : fesm2015 as esm2015
+Compiling primeng/menubar : fesm2015 as esm2015
+Compiling primeng/message : fesm2015 as esm2015
+Compiling primeng/multiselect : fesm2015 as esm2015
+Compiling primeng/orderlist : fesm2015 as esm2015
+Compiling primeng/organizationchart : fesm2015 as esm2015
+Compiling primeng/overlaypanel : fesm2015 as esm2015
+Compiling primeng/panel : fesm2015 as esm2015
+Compiling primeng/panelmenu : fesm2015 as esm2015
+Compiling primeng/password : fesm2015 as esm2015
+Compiling primeng/picklist : fesm2015 as esm2015
+Compiling primeng/progressspinner : fesm2015 as esm2015
+Compiling primeng/radiobutton : fesm2015 as esm2015
+Compiling primeng/rating : fesm2015 as esm2015
+Compiling primeng/scrollpanel : fesm2015 as esm2015
+Compiling primeng/selectbutton : fesm2015 as esm2015
+Compiling primeng/sidebar : fesm2015 as esm2015
+Compiling primeng/slidemenu : fesm2015 as esm2015
+Compiling primeng/slider : fesm2015 as esm2015
+Compiling primeng/spinner : fesm2015 as esm2015
+Compiling primeng/splitbutton : fesm2015 as esm2015
+Compiling primeng/steps : fesm2015 as esm2015
+Compiling primeng/table : fesm2015 as esm2015
+Compiling primeng/tabmenu : fesm2015 as esm2015
+Compiling primeng/tabview : fesm2015 as esm2015
+Compiling primeng/terminal : fesm2015 as esm2015
+Compiling primeng/tieredmenu : fesm2015 as esm2015
+Compiling primeng/toast : fesm2015 as esm2015
+Compiling primeng/togglebutton : fesm2015 as esm2015
+Compiling primeng/toolbar : fesm2015 as esm2015
+Compiling primeng/tree : fesm2015 as esm2015
+Compiling primeng/treetable : fesm2015 as esm2015
+Compiling primeng/tristatecheckbox : fesm2015 as esm2015
+Compiling primeng/virtualscroller : fesm2015 as esm2015
+Compiling @angular/animations/browser/testing : fesm2015 as esm2015
+Compiling @angular/cdk/clipboard : fesm2015 as esm2015
+Compiling @angular/cdk/drag-drop : fesm2015 as esm2015
+Compiling @angular/common/http/testing : fesm2015 as esm2015
+Compiling @angular/material/autocomplete : fesm2015 as esm2015
+Compiling @angular/material/badge : fesm2015 as esm2015
+Compiling @angular/material/bottom-sheet : fesm2015 as esm2015
+Compiling @angular/material/button-toggle : fesm2015 as esm2015
+Compiling @angular/material/card : fesm2015 as esm2015
+Compiling @angular/material/chips : fesm2015 as esm2015
+Compiling @angular/material/datepicker : fesm2015 as esm2015
+Compiling @angular/material/expansion : fesm2015 as esm2015
+Compiling @angular/material/grid-list : fesm2015 as esm2015
+Compiling @angular/material/icon/testing : fesm2015 as esm2015
+Compiling @angular/material/list : fesm2015 as esm2015
+Compiling @angular/material/menu : fesm2015 as esm2015
+Compiling @angular/material/progress-bar : fesm2015 as esm2015
+Compiling @angular/material/radio : fesm2015 as esm2015
+Compiling @angular/material/sidenav : fesm2015 as esm2015
+Compiling @angular/material/slide-toggle : fesm2015 as esm2015
+Compiling @angular/material/slider : fesm2015 as esm2015
+Compiling @angular/material/snack-bar : fesm2015 as esm2015
+Compiling @angular/material/stepper : fesm2015 as esm2015
+Compiling @angular/material/table : fesm2015 as esm2015
+Compiling @angular/material/tabs : fesm2015 as esm2015
+Compiling @angular/material/toolbar : fesm2015 as esm2015
+Compiling @angular/material/tree : fesm2015 as esm2015
+Compiling @angular/platform-browser-dynamic/testing : fesm2015 as esm2015
+Compiling @angular/router/testing : fesm2015 as esm2015
+Compiling angular-oauth2-oidc : fesm2015 as esm2015
+Compiling ngx-extended-pdf-viewer : fesm2015 as esm2015
+Compiling ng2-file-upload : main as commonjs
+Compiling @angular/core : esm2015 as esm2015
+Compiling @angular/animations/browser : esm2015 as esm2015
+Compiling @angular/core : main as umd
+Compiling @angular/animations/browser : main as umd
+Compiling @angular/animations/browser/testing : esm2015 as esm2015
+Compiling @angular/animations/browser/testing : main as umd
+Compiling @angular/common : esm2015 as esm2015
+Compiling @angular/common : main as umd
+Compiling @angular/cdk/clipboard : esm2015 as esm2015
+Compiling @angular/cdk/clipboard : main as umd
+Compiling @angular/cdk/platform : esm2015 as esm2015
+Compiling @angular/cdk/platform : main as umd
+Compiling @angular/cdk/bidi : esm2015 as esm2015
+Compiling @angular/cdk/bidi : main as umd
+Compiling @angular/cdk/collections : esm2015 as esm2015
+Compiling @angular/cdk/collections : main as umd
+Compiling @angular/cdk/scrolling : esm2015 as esm2015
+Compiling @angular/cdk/scrolling : main as umd
+Compiling @angular/cdk/drag-drop : esm2015 as esm2015
+Compiling @angular/cdk/drag-drop : main as umd
+Compiling @angular/common/http : esm2015 as esm2015
+Compiling @angular/common/http : main as umd
+Compiling @angular/common/http/testing : esm2015 as esm2015
+Compiling @angular/common/http/testing : main as umd
+Compiling @angular/cdk/observers : esm2015 as esm2015
+Compiling @angular/cdk/observers : main as umd
+Compiling @angular/cdk/a11y : esm2015 as esm2015
+Compiling @angular/cdk/a11y : main as umd
+Compiling @angular/platform-browser : esm2015 as esm2015
+Compiling @angular/platform-browser : main as umd
+Compiling @angular/platform-browser/animations : esm2015 as esm2015
+Compiling @angular/platform-browser/animations : main as umd
+Compiling @angular/forms : esm2015 as esm2015
+Compiling @angular/forms : main as umd
+Compiling @angular/material/core : esm2015 as esm2015
+Compiling @angular/material/core : main as umd
+Compiling @angular/cdk/portal : esm2015 as esm2015
+Compiling @angular/cdk/portal : main as umd
+Compiling @angular/cdk/overlay : esm2015 as esm2015
+Compiling @angular/cdk/overlay : main as umd
+Compiling @angular/material/form-field : esm2015 as esm2015
+Compiling @angular/material/form-field : main as umd
+Compiling @angular/material/autocomplete : esm2015 as esm2015
+Compiling @angular/material/autocomplete : main as umd
+Compiling @angular/material/badge : esm2015 as esm2015
+Compiling @angular/material/badge : main as umd
+Compiling @angular/cdk/layout : esm2015 as esm2015
+Compiling @angular/cdk/layout : main as umd
+Compiling @angular/material/bottom-sheet : esm2015 as esm2015
+Compiling @angular/material/bottom-sheet : main as umd
+Compiling @angular/material/button-toggle : esm2015 as esm2015
+Compiling @angular/material/button-toggle : main as umd
+Compiling @angular/material/card : esm2015 as esm2015
+Compiling @angular/material/card : main as umd
+Compiling @angular/material/chips : esm2015 as esm2015
+Compiling @angular/material/chips : main as umd
+Compiling @angular/material/button : esm2015 as esm2015
+Compiling @angular/material/button : main as umd
+Compiling @angular/material/dialog : esm2015 as esm2015
+Compiling @angular/cdk/text-field : esm2015 as esm2015
+Compiling @angular/material/dialog : main as umd
+Compiling @angular/cdk/text-field : main as umd
+Compiling @angular/material/input : esm2015 as esm2015
+Compiling @angular/material/input : main as umd
+Compiling @angular/material/datepicker : esm2015 as esm2015
+Compiling @angular/material/datepicker : main as umd
+Compiling @angular/cdk/accordion : esm2015 as esm2015
+Compiling @angular/cdk/accordion : main as umd
+Compiling @angular/material/expansion : esm2015 as esm2015
+Compiling @angular/material/expansion : main as umd
+Compiling @angular/material/grid-list : esm2015 as esm2015
+Compiling @angular/material/grid-list : main as umd
+Compiling @angular/material/icon : esm2015 as esm2015
+Compiling @angular/material/icon : main as umd
+Compiling @angular/material/icon/testing : esm2015 as esm2015
+Compiling @angular/material/icon/testing : main as umd
+Compiling @angular/material/divider : esm2015 as esm2015
+Compiling @angular/material/divider : main as umd
+Compiling @angular/material/list : esm2015 as esm2015
+Compiling @angular/material/list : main as umd
+Compiling @angular/material/menu : esm2015 as esm2015
+Compiling @angular/material/menu : main as umd
+Compiling @angular/material/progress-bar : esm2015 as esm2015
+Compiling @angular/material/progress-bar : main as umd
+Compiling @angular/material/radio : esm2015 as esm2015
+Compiling @angular/material/radio : main as umd
+Compiling @angular/material/sidenav : esm2015 as esm2015
+Compiling @angular/material/sidenav : main as umd
+Compiling @angular/material/slide-toggle : esm2015 as esm2015
+Compiling @angular/material/slide-toggle : main as umd
+Compiling @angular/material/slider : esm2015 as esm2015
+Compiling @angular/material/slider : main as umd
+Compiling @angular/material/snack-bar : esm2015 as esm2015
+Compiling @angular/material/snack-bar : main as umd
+Compiling @angular/cdk/stepper : esm2015 as esm2015
+Compiling @angular/cdk/stepper : main as umd
+Compiling @angular/material/stepper : esm2015 as esm2015
+Compiling @angular/cdk/table : esm2015 as esm2015
+Compiling @angular/material/stepper : main as umd
+Compiling @angular/cdk/table : main as umd
+Compiling @angular/material/select : esm2015 as esm2015
+Compiling @angular/material/select : main as umd
+Compiling @angular/material/tooltip : esm2015 as esm2015
+Compiling @angular/material/tooltip : main as umd
+Compiling @angular/material/paginator : esm2015 as esm2015
+Compiling @angular/material/paginator : main as umd
+Compiling @angular/material/sort : esm2015 as esm2015
+Compiling @angular/material/sort : main as umd
+Compiling @angular/material/table : esm2015 as esm2015
+Compiling @angular/material/table : main as umd
+Compiling @angular/material/tabs : esm2015 as esm2015
+Compiling @angular/material/tabs : main as umd
+Compiling @angular/material/toolbar : esm2015 as esm2015
+Compiling @angular/material/toolbar : main as umd
+Compiling @angular/cdk/tree : esm2015 as esm2015
+Compiling @angular/cdk/tree : main as umd
+Compiling @angular/material/tree : esm2015 as esm2015
+Compiling @angular/material/tree : main as umd
+Compiling @angular/core/testing : esm2015 as esm2015
+Compiling @angular/core/testing : main as umd
+Compiling @angular/platform-browser-dynamic : esm2015 as esm2015
+Compiling @angular/platform-browser-dynamic : main as umd
+Compiling @angular/platform-browser/testing : esm2015 as esm2015
+Compiling @angular/platform-browser/testing : main as umd
+Compiling @angular/platform-browser-dynamic/testing : esm2015 as esm2015
+Compiling @angular/platform-browser-dynamic/testing : main as umd
+Compiling @angular/common/testing : esm2015 as esm2015
+Compiling @angular/common/testing : main as umd
+Compiling @angular/router : esm2015 as esm2015
+Compiling @angular/router/testing : esm2015 as esm2015
+Compiling @angular/router : main as umd
+Compiling @angular/router/testing : main as umd
+Compiling @ng-bootstrap/ng-bootstrap : fesm5 as esm5
+Compiling @ng-bootstrap/ng-bootstrap : esm2015 as esm2015
+Compiling @ng-bootstrap/ng-bootstrap : esm5 as esm5
+Compiling @ng-bootstrap/ng-bootstrap : main as umd
+Compiling @ng-select/ng-select : fesm5 as esm5
+Compiling @ng-select/ng-select : esm2015 as esm2015
+Compiling @ng-select/ng-select : esm5 as esm5
+Compiling @ng-select/ng-select : main as umd
+Compiling @progress/kendo-angular-l10n : esm2015 as esm2015
+Compiling @progress/kendo-angular-l10n : esm5 as esm5
+Compiling @progress/kendo-angular-l10n : main as commonjs
+Compiling @progress/kendo-angular-l10n : module as esm5
+Compiling @progress/kendo-angular-common : esm2015 as esm2015
+Compiling @progress/kendo-angular-common : esm5 as esm5
+Compiling @progress/kendo-angular-common : main as commonjs
+Compiling @progress/kendo-angular-common : module as esm5
+Compiling @progress/kendo-angular-upload : esm2015 as esm2015
+Compiling @progress/kendo-angular-upload : esm5 as esm5
+Compiling @progress/kendo-angular-upload : main as commonjs
+Compiling @progress/kendo-angular-upload : module as esm5
+Compiling angular-oauth2-oidc : esm2015 as esm2015
+Compiling ng-recaptcha : fesm5 as esm5
+Compiling angular-oauth2-oidc : main as umd
+Compiling ng-recaptcha : esm2015 as esm2015
+Compiling ng-recaptcha : esm5 as esm5
+Compiling ng-recaptcha : main as umd
+Compiling ng2-file-upload : module as esm5
+Compiling ngx-dynamic-form-builder : fesm5 as esm5
+Compiling ngx-dynamic-form-builder : esm2015 as esm2015
+Compiling ngx-dynamic-form-builder : esm5 as esm5
+Compiling ngx-dynamic-form-builder : main as umd
+Compiling ngx-extended-pdf-viewer : esm2015 as esm2015
+Compiling @angular/material/checkbox : esm2015 as esm2015
+Compiling ngx-extended-pdf-viewer : main as umd
+Compiling @angular/material/checkbox : main as umd
+Compiling @angular/material/progress-spinner : esm2015 as esm2015
+Compiling @angular/material/progress-spinner : main as umd
+Compiling ngx-mat-select-search : fesm5 as esm5
+Compiling ngx-mat-select-search : esm2015 as esm2015
+Compiling ngx-mat-select-search : esm5 as esm5
+Compiling ngx-mat-select-search : main as umd
+Compiling ngx-spinner : fesm5 as esm5
+Compiling ngx-spinner : esm2015 as esm2015
+Compiling ngx-spinner : esm5 as esm5
+Compiling ngx-spinner : main as umd
+Compiling primeng/api : fesm5 as esm5
+Compiling primeng/api : esm2015 as esm2015
+Compiling primeng/api : esm5 as esm5
+Compiling primeng/api : main as umd
+Compiling primeng/accordion : fesm5 as esm5
+Compiling primeng/accordion : esm2015 as esm2015
+Compiling primeng/accordion : esm5 as esm5
+Compiling primeng/accordion : main as umd
+Compiling primeng/inputtext : fesm5 as esm5
+Compiling primeng/inputtext : esm2015 as esm2015
+Compiling primeng/inputtext : esm5 as esm5
+Compiling primeng/inputtext : main as umd
+Compiling primeng/button : fesm5 as esm5
+Compiling primeng/button : esm2015 as esm2015
+Compiling primeng/button : esm5 as esm5
+Compiling primeng/button : main as umd
+Compiling primeng/utils : fesm5 as esm5
+Compiling primeng/utils : esm2015 as esm2015
+Compiling primeng/utils : esm5 as esm5
+Compiling primeng/utils : main as umd
+Compiling primeng/autocomplete : fesm5 as esm5
+Compiling primeng/autocomplete : esm2015 as esm2015
+Compiling primeng/autocomplete : esm5 as esm5
+Compiling primeng/autocomplete : main as umd
+Compiling primeng/blockui : fesm5 as esm5
+Compiling primeng/blockui : esm2015 as esm2015
+Compiling primeng/blockui : esm5 as esm5
+Compiling primeng/blockui : main as umd
+Compiling primeng/breadcrumb : fesm5 as esm5
+Compiling primeng/breadcrumb : esm2015 as esm2015
+Compiling primeng/breadcrumb : esm5 as esm5
+Compiling primeng/breadcrumb : main as umd
+Compiling primeng/calendar : fesm5 as esm5
+Compiling primeng/calendar : esm2015 as esm2015
+Compiling primeng/calendar : esm5 as esm5
+Compiling primeng/calendar : main as umd
+Compiling primeng/captcha : fesm5 as esm5
+Compiling primeng/captcha : esm2015 as esm2015
+Compiling primeng/captcha : esm5 as esm5
+Compiling primeng/captcha : main as umd
+Compiling primeng/card : fesm5 as esm5
+Compiling primeng/card : esm2015 as esm2015
+Compiling primeng/card : esm5 as esm5
+Compiling primeng/card : main as umd
+Compiling primeng/carousel : fesm5 as esm5
+Compiling primeng/carousel : esm2015 as esm2015
+Compiling primeng/carousel : esm5 as esm5
+Compiling primeng/carousel : main as umd
+Compiling primeng/chart : fesm5 as esm5
+Compiling primeng/chart : esm2015 as esm2015
+Compiling primeng/chart : esm5 as esm5
+Compiling primeng/chart : main as umd
+Compiling primeng/checkbox : fesm5 as esm5
+Compiling primeng/checkbox : esm2015 as esm2015
+Compiling primeng/checkbox : esm5 as esm5
+Compiling primeng/checkbox : main as umd
+Compiling primeng/chips : fesm5 as esm5
+Compiling primeng/chips : esm2015 as esm2015
+Compiling primeng/chips : esm5 as esm5
+Compiling primeng/chips : main as umd
+Compiling primeng/codehighlighter : fesm5 as esm5
+Compiling primeng/codehighlighter : esm2015 as esm2015
+Compiling primeng/codehighlighter : esm5 as esm5
+Compiling primeng/codehighlighter : main as umd
+Compiling primeng/colorpicker : fesm5 as esm5
+Compiling primeng/colorpicker : esm2015 as esm2015
+Compiling primeng/colorpicker : esm5 as esm5
+Compiling primeng/colorpicker : main as umd
+Compiling primeng/confirmdialog : fesm5 as esm5
+Compiling primeng/confirmdialog : esm2015 as esm2015
+Compiling primeng/confirmdialog : esm5 as esm5
+Compiling primeng/confirmdialog : main as umd
+Compiling primeng/contextmenu : fesm5 as esm5
+Compiling primeng/contextmenu : esm2015 as esm2015
+Compiling primeng/contextmenu : esm5 as esm5
+Compiling primeng/contextmenu : main as umd
+Compiling primeng/tooltip : fesm5 as esm5
+Compiling primeng/tooltip : esm2015 as esm2015
+Compiling primeng/tooltip : esm5 as esm5
+Compiling primeng/tooltip : main as umd
+Compiling primeng/dropdown : fesm5 as esm5
+Compiling primeng/dropdown : esm2015 as esm2015
+Compiling primeng/dropdown : esm5 as esm5
+Compiling primeng/dropdown : main as umd
+Compiling primeng/paginator : fesm5 as esm5
+Compiling primeng/paginator : esm2015 as esm2015
+Compiling primeng/paginator : esm5 as esm5
+Compiling primeng/paginator : main as umd
+Compiling primeng/dataview : fesm5 as esm5
+Compiling primeng/dataview : esm2015 as esm2015
+Compiling primeng/dataview : esm5 as esm5
+Compiling primeng/dataview : main as umd
+Compiling primeng/defer : fesm5 as esm5
+Compiling primeng/defer : esm2015 as esm2015
+Compiling primeng/defer : esm5 as esm5
+Compiling primeng/defer : main as umd
+Compiling primeng/focustrap : fesm5 as esm5
+Compiling primeng/focustrap : esm2015 as esm2015
+Compiling primeng/focustrap : esm5 as esm5
+Compiling primeng/focustrap : main as umd
+Compiling primeng/dialog : fesm5 as esm5
+Compiling primeng/dialog : esm2015 as esm2015
+Compiling primeng/dialog : esm5 as esm5
+Compiling primeng/dialog : main as umd
+Compiling primeng/dragdrop : fesm5 as esm5
+Compiling primeng/dragdrop : esm2015 as esm2015
+Compiling primeng/dragdrop : esm5 as esm5
+Compiling primeng/dragdrop : main as umd
+Compiling primeng/dynamicdialog : fesm5 as esm5
+Compiling primeng/dynamicdialog : esm2015 as esm2015
+Compiling primeng/dynamicdialog : esm5 as esm5
+Compiling primeng/dynamicdialog : main as umd
+Compiling primeng/editor : fesm5 as esm5
+Compiling primeng/editor : esm2015 as esm2015
+Compiling primeng/editor : esm5 as esm5
+Compiling primeng/editor : main as umd
+Compiling primeng/fieldset : fesm5 as esm5
+Compiling primeng/fieldset : esm2015 as esm2015
+Compiling primeng/fieldset : esm5 as esm5
+Compiling primeng/fieldset : main as umd
+Compiling primeng/messages : fesm5 as esm5
+Compiling primeng/messages : esm2015 as esm2015
+Compiling primeng/messages : esm5 as esm5
+Compiling primeng/messages : main as umd
+Compiling primeng/progressbar : fesm5 as esm5
+Compiling primeng/progressbar : esm2015 as esm2015
+Compiling primeng/progressbar : esm5 as esm5
+Compiling primeng/progressbar : main as umd
+Compiling primeng/fileupload : fesm5 as esm5
+Compiling primeng/fileupload : esm2015 as esm2015
+Compiling primeng/fileupload : esm5 as esm5
+Compiling primeng/fileupload : main as umd
+Compiling primeng/galleria : fesm5 as esm5
+Compiling primeng/galleria : esm2015 as esm2015
+Compiling primeng/galleria : esm5 as esm5
+Compiling primeng/galleria : main as umd
+Compiling primeng/gmap : fesm5 as esm5
+Compiling primeng/gmap : esm2015 as esm2015
+Compiling primeng/gmap : esm5 as esm5
+Compiling primeng/gmap : main as umd
+Compiling primeng/inplace : fesm5 as esm5
+Compiling primeng/inplace : esm2015 as esm2015
+Compiling primeng/inplace : esm5 as esm5
+Compiling primeng/inplace : main as umd
+Compiling primeng/inputmask : fesm5 as esm5
+Compiling primeng/inputmask : esm2015 as esm2015
+Compiling primeng/inputmask : esm5 as esm5
+Compiling primeng/inputmask : main as umd
+Compiling primeng/inputnumber : fesm5 as esm5
+Compiling primeng/inputnumber : esm2015 as esm2015
+Compiling primeng/inputnumber : esm5 as esm5
+Compiling primeng/inputnumber : main as umd
+Compiling primeng/inputswitch : fesm5 as esm5
+Compiling primeng/inputswitch : esm2015 as esm2015
+Compiling primeng/inputswitch : esm5 as esm5
+Compiling primeng/inputswitch : main as umd
+Compiling primeng/inputtextarea : fesm5 as esm5
+Compiling primeng/inputtextarea : esm2015 as esm2015
+Compiling primeng/inputtextarea : esm5 as esm5
+Compiling primeng/inputtextarea : main as umd
+Compiling primeng/keyfilter : fesm5 as esm5
+Compiling primeng/keyfilter : esm2015 as esm2015
+Compiling primeng/keyfilter : esm5 as esm5
+Compiling primeng/lightbox : fesm5 as esm5
+Compiling primeng/keyfilter : main as umd
+Compiling primeng/lightbox : esm2015 as esm2015
+Compiling primeng/lightbox : esm5 as esm5
+Compiling primeng/listbox : fesm5 as esm5
+Compiling primeng/lightbox : main as umd
+Compiling primeng/listbox : esm2015 as esm2015
+Compiling primeng/listbox : esm5 as esm5
+Compiling primeng/listbox : main as umd
+Compiling primeng/megamenu : fesm5 as esm5
+Compiling primeng/megamenu : esm2015 as esm2015
+Compiling primeng/megamenu : esm5 as esm5
+Compiling primeng/megamenu : main as umd
+Compiling primeng/menu : fesm5 as esm5
+Compiling primeng/menu : esm2015 as esm2015
+Compiling primeng/menu : esm5 as esm5
+Compiling primeng/menu : main as umd
+Compiling primeng/menubar : fesm5 as esm5
+Compiling primeng/menubar : esm2015 as esm2015
+Compiling primeng/menubar : esm5 as esm5
+Compiling primeng/menubar : main as umd
+Compiling primeng/message : fesm5 as esm5
+Compiling primeng/message : esm2015 as esm2015
+Compiling primeng/message : esm5 as esm5
+Compiling primeng/message : main as umd
+Compiling primeng/multiselect : fesm5 as esm5
+Compiling primeng/multiselect : esm2015 as esm2015
+Compiling primeng/multiselect : esm5 as esm5
+Compiling primeng/multiselect : main as umd
+Compiling primeng/orderlist : fesm5 as esm5
+Compiling primeng/orderlist : esm2015 as esm2015
+Compiling primeng/orderlist : esm5 as esm5
+Compiling primeng/orderlist : main as umd
+Compiling primeng/organizationchart : fesm5 as esm5
+Compiling primeng/organizationchart : esm2015 as esm2015
+Compiling primeng/organizationchart : esm5 as esm5
+Compiling primeng/organizationchart : main as umd
+Compiling primeng/overlaypanel : fesm5 as esm5
+Compiling primeng/overlaypanel : esm2015 as esm2015
+Compiling primeng/overlaypanel : esm5 as esm5
+Compiling primeng/overlaypanel : main as umd
+Compiling primeng/panel : fesm5 as esm5
+Compiling primeng/panel : esm2015 as esm2015
+Compiling primeng/panel : esm5 as esm5
+Compiling primeng/panel : main as umd
+Compiling primeng/panelmenu : fesm5 as esm5
+Compiling primeng/panelmenu : esm2015 as esm2015
+Compiling primeng/panelmenu : esm5 as esm5
+Compiling primeng/panelmenu : main as umd
+Compiling primeng/password : fesm5 as esm5
+Compiling primeng/password : esm2015 as esm2015
+Compiling primeng/password : esm5 as esm5
+Compiling primeng/password : main as umd
+Compiling primeng/picklist : fesm5 as esm5
+Compiling primeng/picklist : esm2015 as esm2015
+Compiling primeng/picklist : esm5 as esm5
+Compiling primeng/picklist : main as umd
+Compiling primeng/progressspinner : fesm5 as esm5
+Compiling primeng/progressspinner : esm2015 as esm2015
+Compiling primeng/progressspinner : esm5 as esm5
+Compiling primeng/progressspinner : main as umd
+Compiling primeng/radiobutton : fesm5 as esm5
+Compiling primeng/radiobutton : esm2015 as esm2015
+Compiling primeng/radiobutton : esm5 as esm5
+Compiling primeng/radiobutton : main as umd
+Compiling primeng/rating : fesm5 as esm5
+Compiling primeng/rating : esm2015 as esm2015
+Compiling primeng/rating : esm5 as esm5
+Compiling primeng/rating : main as umd
+Compiling primeng/scrollpanel : fesm5 as esm5
+Compiling primeng/scrollpanel : esm2015 as esm2015
+Compiling primeng/scrollpanel : esm5 as esm5
+Compiling primeng/scrollpanel : main as umd
+Compiling primeng/selectbutton : fesm5 as esm5
+Compiling primeng/selectbutton : esm2015 as esm2015
+Compiling primeng/selectbutton : esm5 as esm5
+Compiling primeng/selectbutton : main as umd
+Compiling primeng/sidebar : fesm5 as esm5
+Compiling primeng/sidebar : esm2015 as esm2015
+Compiling primeng/sidebar : esm5 as esm5
+Compiling primeng/sidebar : main as umd
+Compiling primeng/slidemenu : fesm5 as esm5
+Compiling primeng/slidemenu : esm2015 as esm2015
+Compiling primeng/slidemenu : esm5 as esm5
+Compiling primeng/slidemenu : main as umd
+Compiling primeng/slider : fesm5 as esm5
+Compiling primeng/slider : esm2015 as esm2015
+Compiling primeng/slider : esm5 as esm5
+Compiling primeng/slider : main as umd
+Compiling primeng/spinner : fesm5 as esm5
+Compiling primeng/spinner : esm2015 as esm2015
+Compiling primeng/spinner : esm5 as esm5
+Compiling primeng/spinner : main as umd
+Compiling primeng/splitbutton : fesm5 as esm5
+Compiling primeng/splitbutton : esm2015 as esm2015
+Compiling primeng/splitbutton : esm5 as esm5
+Compiling primeng/splitbutton : main as umd
+Compiling primeng/steps : fesm5 as esm5
+Compiling primeng/steps : esm2015 as esm2015
+Compiling primeng/steps : esm5 as esm5
+Compiling primeng/steps : main as umd
+Compiling primeng/table : fesm5 as esm5
+Compiling primeng/table : esm2015 as esm2015
+Compiling primeng/table : esm5 as esm5
+Compiling primeng/table : main as umd
+Compiling primeng/tabmenu : fesm5 as esm5
+Compiling primeng/tabmenu : esm2015 as esm2015
+Compiling primeng/tabmenu : esm5 as esm5
+Compiling primeng/tabmenu : main as umd
+Compiling primeng/tabview : fesm5 as esm5
+Compiling primeng/tabview : esm2015 as esm2015
+Compiling primeng/tabview : esm5 as esm5
+Compiling primeng/tabview : main as umd
+Compiling primeng/terminal : fesm5 as esm5
+Compiling primeng/terminal : esm2015 as esm2015
+Compiling primeng/terminal : esm5 as esm5
+Compiling primeng/terminal : main as umd
+Compiling primeng/tieredmenu : fesm5 as esm5
+Compiling primeng/tieredmenu : esm2015 as esm2015
+Compiling primeng/tieredmenu : esm5 as esm5
+Compiling primeng/tieredmenu : main as umd
+Compiling primeng/toast : fesm5 as esm5
+Compiling primeng/toast : esm2015 as esm2015
+Compiling primeng/toast : esm5 as esm5
+Compiling primeng/toast : main as umd
+Compiling primeng/togglebutton : fesm5 as esm5
+Compiling primeng/togglebutton : esm2015 as esm2015
+Compiling primeng/togglebutton : esm5 as esm5
+Compiling primeng/togglebutton : main as umd
+Compiling primeng/toolbar : fesm5 as esm5
+Compiling primeng/toolbar : esm2015 as esm2015
+Compiling primeng/toolbar : esm5 as esm5
+Compiling primeng/toolbar : main as umd
+Compiling primeng/tree : fesm5 as esm5
+Compiling primeng/tree : esm2015 as esm2015
+Compiling primeng/tree : esm5 as esm5
+Compiling primeng/tree : main as umd
+Compiling primeng/treetable : fesm5 as esm5
+Compiling primeng/treetable : esm2015 as esm2015
+Compiling primeng/treetable : esm5 as esm5
+Compiling primeng/treetable : main as umd
+Compiling primeng/tristatecheckbox : fesm5 as esm5
+Compiling primeng/tristatecheckbox : esm2015 as esm2015
+Compiling primeng/tristatecheckbox : esm5 as esm5
+Compiling primeng/tristatecheckbox : main as umd
+Compiling primeng/virtualscroller : fesm5 as esm5
+Compiling primeng/virtualscroller : esm2015 as esm2015
+Compiling primeng/virtualscroller : esm5 as esm5
+Compiling primeng/virtualscroller : main as umd
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@1.2.13 (node_modules\webpack-dev-server\node_modules\fsevents):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for fsevents@1.2.13: wanted {"os":"darwin","arch":"any"} (current: {"os":"win32","arch":"x64"})
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@1.2.13 (node_modules\watchpack-chokidar2\node_modules\fsevents):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for fsevents@1.2.13: wanted {"os":"darwin","arch":"any"} (current: {"os":"win32","arch":"x64"})
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@2.3.2 (node_modules\fsevents):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for fsevents@2.3.2: wanted {"os":"darwin","arch":"any"} (current: {"os":"win32","arch":"x64"})
+
+added 1691 packages from 1483 contributors and audited 1703 packages in 296.758s
+
+98 packages are looking for funding
+  run `npm fund` for details
+
+found 606 vulnerabilities (46 low, 199 moderate, 313 high, 48 critical)
+  run `npm audit fix` to fix them, or `npm audit` for details
+PS C:\repo\reportes\FRONT> 
+
