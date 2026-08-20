@@ -45,7 +45,16 @@ git log -1 --oneline
 
 -------------------
 
+SELECT *
+FROM bf_RepConf_Tabla
+WHERE catReportesId = 3
+  AND idEmpresa IN (0, @idEmpresa);
 
+SELECT *
+FROM bf_RepConf_Columna
+WHERE catReportesId = 3
+  AND idEmpresa IN (0, @idEmpresa)
+ORDER BY grupo, orden;
 
 
 
