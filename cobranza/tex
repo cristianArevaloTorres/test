@@ -1,1 +1,30 @@
+Set-Location 'C:\RUTA\AL\CLON_FRONTEND'
+$branchFrontend = 'NOMBRE_RAMA_FRONTEND'
+
+git switch $branchFrontend
+git pull --ff-only origin $branchFrontend
+
+git add -- 'src/app/beflex/adm-reportes/cobranza/cobranza.component.ts'
+git diff --cached --name-only
+
+git commit --only -m 'Alinea parámetros del reporte de cobranza con B2' -- 'src/app/beflex/adm-reportes/cobranza/cobranza.component.ts'
+git push origin $branchFrontend
+
+
+---------------------------------------
+
+Set-Location 'C:\RUTA\AL\CLON_API'
+$branchApi = 'NOMBRE_RAMA_API'
+
+git switch $branchApi
+git pull --ff-only origin $branchApi
+
+git add -- 'src/main/java/com/lockton/rpt/dao/JDBCCobranza.java'
+git diff --cached --name-only
+
+git commit --only -m 'Homologa reporte de cobranza B3 con B2' -- 'src/main/java/com/lockton/rpt/dao/JDBCCobranza.java'
+git push origin $branchApi
+
+
+
 s
