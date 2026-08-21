@@ -1,0 +1,330 @@
+﻿2388,408,2026-08-21 14:13:33.994,CACHE_PREPARADA,"Modo=FULL; universo=1; perfiles=678,680,683,684,685,711,712,713,714,3085,6218",10,186,2388,CARGANDO,68
+2388,409,2026-08-21 14:13:34.025,SP_ORIGINAL_INICIO,Inicia ObtenCobranzaConcentrada_otro_V2_BF3; modo=FULL,10,186,2388,CARGANDO,68
+2388,410,2026-08-21 14:13:34.025,cobranza_obten_inicio,idEmpresa=186 idSolTipo=0 FecIni=2023-05-17 00:00 FecFin=2024-05-31 00:00 idVencida=1 idVIgencia=2388 perfiles=11,10,186,2388,CARGANDO,68
+2388,411,2026-08-21 14:13:34.041,cobranza_obten_pre_sinc,isCorporativo=0 empresas=1 perfilesV2=11 isTC=0,10,186,2388,CARGANDO,68
+2388,412,2026-08-21 14:13:34.041,cobranza_obten_pre_sinc_exec,SOIdEstatus=10 FecIniVig=2023-05-31 00:00:00 FecFinVig=2024-05-31 00:00:00,10,186,2388,CARGANDO,68
+2388,413,2026-08-21 14:15:28.260,cobranza_obten_post_sinc,sincronizacion completada,10,186,2388,CARGANDO,68
+2388,414,2026-08-21 14:15:28.260,cobranza_obten_pre_empleados,cantidadPagos=12 MesApl=4 AnioApl=2024,10,186,2388,CARGANDO,68
+2388,415,2026-08-21 14:15:28.854,cobranza_obten_post_empleados,filas_empleadotemp=9265,10,186,2388,CARGANDO,68
+2388,416,2026-08-21 14:15:31.916,cobranza_obten_vigencias_ec,"vigencia_actual=2388 top5_con_datos: v481=5724 v633=5690 v2388=5637 v389=5620 v1998=5571 ",10,186,2388,CARGANDO,68
+2388,417,2026-08-21 14:15:31.916,cobranza_obten_pre_insert_diag,ec_cobranza=795493 sol_vig=2423 sol_estatus1=2421 sol_tipo1=2423 sol_rango_fecha=2421 join_ec_cobranza=5637 ff_EdoCuenta=579814 ff_EdoCuentaCobranza2=581966 join_ec_cobranza2=5545,10,186,2388,CARGANDO,68
+2388,418,2026-08-21 14:31:43.434,cobranza_obten_post_insert,filas_tablatemp=2410,10,186,2388,CARGANDO,68
+2388,419,2026-08-21 14:31:43.450,cobranza_obten_while_inicio,total_registros=2410,10,186,2388,CARGANDO,68
+2388,420,2026-08-21 14:31:43.450,cobranza_obten_while_iter,contador=1 de 2410,10,186,2388,CARGANDO,68
+2388,421,2026-08-21 14:31:43.497,cobranza_obten_while_iter,contador=51 de 2410,10,186,2388,CARGANDO,68
+2388,422,2026-08-21 14:31:43.530,cobranza_obten_while_iter,contador=101 de 2410,10,186,2388,CARGANDO,68
+2388,423,2026-08-21 14:31:43.546,cobranza_obten_while_iter,contador=151 de 2410,10,186,2388,CARGANDO,68
+2388,424,2026-08-21 14:31:43.559,cobranza_obten_while_iter,contador=201 de 2410,10,186,2388,CARGANDO,68
+2388,425,2026-08-21 14:31:43.590,cobranza_obten_while_iter,contador=251 de 2410,10,186,2388,CARGANDO,68
+2388,426,2026-08-21 14:31:43.590,cobranza_obten_while_iter,contador=301 de 2410,10,186,2388,CARGANDO,68
+2388,427,2026-08-21 14:31:43.606,cobranza_obten_while_iter,contador=351 de 2410,10,186,2388,CARGANDO,68
+2388,428,2026-08-21 14:31:43.622,cobranza_obten_while_iter,contador=401 de 2410,10,186,2388,CARGANDO,68
+2388,429,2026-08-21 14:31:43.637,cobranza_obten_while_iter,contador=451 de 2410,10,186,2388,CARGANDO,68
+2388,430,2026-08-21 14:31:43.653,cobranza_obten_while_iter,contador=501 de 2410,10,186,2388,CARGANDO,68
+2388,431,2026-08-21 14:31:43.684,cobranza_obten_while_iter,contador=551 de 2410,10,186,2388,CARGANDO,68
+2388,432,2026-08-21 14:31:43.700,cobranza_obten_while_iter,contador=601 de 2410,10,186,2388,CARGANDO,68
+2388,433,2026-08-21 14:31:43.715,cobranza_obten_while_iter,contador=651 de 2410,10,186,2388,CARGANDO,68
+2388,434,2026-08-21 14:31:43.731,cobranza_obten_while_iter,contador=701 de 2410,10,186,2388,CARGANDO,68
+2388,435,2026-08-21 14:31:43.747,cobranza_obten_while_iter,contador=751 de 2410,10,186,2388,CARGANDO,68
+2388,436,2026-08-21 14:31:43.765,cobranza_obten_while_iter,contador=801 de 2410,10,186,2388,CARGANDO,68
+2388,437,2026-08-21 14:31:43.793,cobranza_obten_while_iter,contador=851 de 2410,10,186,2388,CARGANDO,68
+2388,438,2026-08-21 14:31:43.809,cobranza_obten_while_iter,contador=901 de 2410,10,186,2388,CARGANDO,68
+2388,439,2026-08-21 14:31:43.809,cobranza_obten_while_iter,contador=951 de 2410,10,186,2388,CARGANDO,68
+2388,440,2026-08-21 14:31:43.840,cobranza_obten_while_iter,contador=1001 de 2410,10,186,2388,CARGANDO,68
+2388,441,2026-08-21 14:31:43.856,cobranza_obten_while_iter,contador=1051 de 2410,10,186,2388,CARGANDO,68
+2388,442,2026-08-21 14:31:43.887,cobranza_obten_while_iter,contador=1101 de 2410,10,186,2388,CARGANDO,68
+2388,443,2026-08-21 14:31:43.903,cobranza_obten_while_iter,contador=1151 de 2410,10,186,2388,CARGANDO,68
+2388,444,2026-08-21 14:31:43.903,cobranza_obten_while_iter,contador=1201 de 2410,10,186,2388,CARGANDO,68
+2388,445,2026-08-21 14:31:43.934,cobranza_obten_while_iter,contador=1251 de 2410,10,186,2388,CARGANDO,68
+2388,446,2026-08-21 14:31:43.950,cobranza_obten_while_iter,contador=1301 de 2410,10,186,2388,CARGANDO,68
+2388,447,2026-08-21 14:31:43.981,cobranza_obten_while_iter,contador=1351 de 2410,10,186,2388,CARGANDO,68
+2388,448,2026-08-21 14:31:43.997,cobranza_obten_while_iter,contador=1401 de 2410,10,186,2388,CARGANDO,68
+2388,449,2026-08-21 14:31:44.028,cobranza_obten_while_iter,contador=1451 de 2410,10,186,2388,CARGANDO,68
+2388,450,2026-08-21 14:31:44.059,cobranza_obten_while_iter,contador=1501 de 2410,10,186,2388,CARGANDO,68
+2388,451,2026-08-21 14:31:44.075,cobranza_obten_while_iter,contador=1551 de 2410,10,186,2388,CARGANDO,68
+2388,452,2026-08-21 14:31:44.090,cobranza_obten_while_iter,contador=1601 de 2410,10,186,2388,CARGANDO,68
+2388,453,2026-08-21 14:31:44.106,cobranza_obten_while_iter,contador=1651 de 2410,10,186,2388,CARGANDO,68
+2388,454,2026-08-21 14:31:44.122,cobranza_obten_while_iter,contador=1701 de 2410,10,186,2388,CARGANDO,68
+2388,455,2026-08-21 14:31:44.153,cobranza_obten_while_iter,contador=1751 de 2410,10,186,2388,CARGANDO,68
+2388,456,2026-08-21 14:31:44.168,cobranza_obten_while_iter,contador=1801 de 2410,10,186,2388,CARGANDO,68
+2388,457,2026-08-21 14:31:44.184,cobranza_obten_while_iter,contador=1851 de 2410,10,186,2388,CARGANDO,68
+2388,458,2026-08-21 14:31:44.215,cobranza_obten_while_iter,contador=1901 de 2410,10,186,2388,CARGANDO,68
+2388,459,2026-08-21 14:31:44.231,cobranza_obten_while_iter,contador=1951 de 2410,10,186,2388,CARGANDO,68
+2388,460,2026-08-21 14:31:44.247,cobranza_obten_while_iter,contador=2001 de 2410,10,186,2388,CARGANDO,68
+2388,461,2026-08-21 14:31:44.262,cobranza_obten_while_iter,contador=2051 de 2410,10,186,2388,CARGANDO,68
+2388,462,2026-08-21 14:31:44.278,cobranza_obten_while_iter,contador=2101 de 2410,10,186,2388,CARGANDO,68
+2388,463,2026-08-21 14:31:44.293,cobranza_obten_while_iter,contador=2151 de 2410,10,186,2388,CARGANDO,68
+2388,464,2026-08-21 14:31:44.325,cobranza_obten_while_iter,contador=2201 de 2410,10,186,2388,CARGANDO,68
+2388,465,2026-08-21 14:31:44.340,cobranza_obten_while_iter,contador=2251 de 2410,10,186,2388,CARGANDO,68
+2388,466,2026-08-21 14:31:44.356,cobranza_obten_while_iter,contador=2301 de 2410,10,186,2388,CARGANDO,68
+2388,467,2026-08-21 14:31:44.372,cobranza_obten_while_iter,contador=2351 de 2410,10,186,2388,CARGANDO,68
+2388,468,2026-08-21 14:31:44.387,cobranza_obten_while_iter,contador=2401 de 2410,10,186,2388,CARGANDO,68
+2388,469,2026-08-21 14:31:44.403,cobranza_obten_while_fin,procesados=2410 de 2410,10,186,2388,CARGANDO,68
+2388,470,2026-08-21 14:31:44.450,cobranza_obten_pre_desglosada,Invocando ff_ObtenCobranzaDesg_Adaptada_bf3_nousar,10,186,2388,CARGANDO,68
+2388,471,2026-08-21 14:31:45.559,cobranza_obten_fin,SP completado,10,186,2388,COMPLETA,68
+2388,472,2026-08-21 14:31:45.575,SP_ORIGINAL_FIN,Finalizo ObtenCobranzaConcentrada_otro_V2_BF3.,10,186,2388,CARGANDO,68
+2388,473,2026-08-21 14:31:45.590,CARGA_COMPLETA,Resultado=CARGA_COMPLETA; modo=FULL,10,186,2388,COMPLETA,68
+3601,330,2026-08-21 14:06:04.274,CACHE_PREPARADA,"Modo=FULL; universo=1; perfiles=678,680,683,684,685,711,712,713,714,3085,6218",9,186,3601,CARGANDO,68
+3601,331,2026-08-21 14:06:04.321,SP_ORIGINAL_INICIO,Inicia ObtenCobranzaConcentrada_otro_V2_BF3; modo=FULL,9,186,3601,CARGANDO,68
+3601,332,2026-08-21 14:06:04.336,cobranza_obten_inicio,idEmpresa=186 idSolTipo=0 FecIni=2024-05-22 00:00 FecFin=2025-05-31 00:00 idVencida=1 idVIgencia=3601 perfiles=11,9,186,3601,CARGANDO,68
+3601,333,2026-08-21 14:06:04.368,cobranza_obten_pre_sinc,isCorporativo=0 empresas=1 perfilesV2=11 isTC=0,9,186,3601,CARGANDO,68
+3601,334,2026-08-21 14:06:04.383,cobranza_obten_pre_sinc_exec,SOIdEstatus=10 FecIniVig=2024-05-31 00:00:00 FecFinVig=2025-05-31 00:00:00,9,186,3601,CARGANDO,68
+3601,335,2026-08-21 14:08:18.899,cobranza_obten_post_sinc,sincronizacion completada,9,186,3601,CARGANDO,68
+3601,336,2026-08-21 14:08:18.946,cobranza_obten_pre_empleados,cantidadPagos=12 MesApl=4 AnioApl=2025,9,186,3601,CARGANDO,68
+3601,337,2026-08-21 14:08:21.071,cobranza_obten_post_empleados,filas_empleadotemp=9265,9,186,3601,CARGANDO,68
+3601,338,2026-08-21 14:08:26.899,cobranza_obten_vigencias_ec,"vigencia_actual=3601 top5_con_datos: v481=5724 v633=5690 v2388=5637 v389=5620 v1998=5571 ",9,186,3601,CARGANDO,68
+3601,339,2026-08-21 14:08:26.899,cobranza_obten_pre_insert_diag,ec_cobranza=795493 sol_vig=2953 sol_estatus1=2949 sol_tipo1=2953 sol_rango_fecha=2949 join_ec_cobranza=4944 ff_EdoCuenta=579814 ff_EdoCuentaCobranza2=581966 join_ec_cobranza2=4983,9,186,3601,CARGANDO,68
+3601,340,2026-08-21 14:13:31.604,cobranza_obten_post_insert,filas_tablatemp=2944,9,186,3601,CARGANDO,68
+3601,341,2026-08-21 14:13:31.619,cobranza_obten_while_inicio,total_registros=2944,9,186,3601,CARGANDO,68
+3601,342,2026-08-21 14:13:31.619,cobranza_obten_while_iter,contador=1 de 2944,9,186,3601,CARGANDO,68
+3601,343,2026-08-21 14:13:31.635,cobranza_obten_while_iter,contador=51 de 2944,9,186,3601,CARGANDO,68
+3601,344,2026-08-21 14:13:31.650,cobranza_obten_while_iter,contador=101 de 2944,9,186,3601,CARGANDO,68
+3601,345,2026-08-21 14:13:31.682,cobranza_obten_while_iter,contador=151 de 2944,9,186,3601,CARGANDO,68
+3601,346,2026-08-21 14:13:31.713,cobranza_obten_while_iter,contador=201 de 2944,9,186,3601,CARGANDO,68
+3601,347,2026-08-21 14:13:31.729,cobranza_obten_while_iter,contador=251 de 2944,9,186,3601,CARGANDO,68
+3601,348,2026-08-21 14:13:31.744,cobranza_obten_while_iter,contador=301 de 2944,9,186,3601,CARGANDO,68
+3601,349,2026-08-21 14:13:31.760,cobranza_obten_while_iter,contador=351 de 2944,9,186,3601,CARGANDO,68
+3601,350,2026-08-21 14:13:31.775,cobranza_obten_while_iter,contador=401 de 2944,9,186,3601,CARGANDO,68
+3601,351,2026-08-21 14:13:31.791,cobranza_obten_while_iter,contador=451 de 2944,9,186,3601,CARGANDO,68
+3601,352,2026-08-21 14:13:31.807,cobranza_obten_while_iter,contador=501 de 2944,9,186,3601,CARGANDO,68
+3601,353,2026-08-21 14:13:31.822,cobranza_obten_while_iter,contador=551 de 2944,9,186,3601,CARGANDO,68
+3601,354,2026-08-21 14:13:31.838,cobranza_obten_while_iter,contador=601 de 2944,9,186,3601,CARGANDO,68
+3601,355,2026-08-21 14:13:31.854,cobranza_obten_while_iter,contador=651 de 2944,9,186,3601,CARGANDO,68
+3601,356,2026-08-21 14:13:31.869,cobranza_obten_while_iter,contador=701 de 2944,9,186,3601,CARGANDO,68
+3601,357,2026-08-21 14:13:31.885,cobranza_obten_while_iter,contador=751 de 2944,9,186,3601,CARGANDO,68
+3601,358,2026-08-21 14:13:31.900,cobranza_obten_while_iter,contador=801 de 2944,9,186,3601,CARGANDO,68
+3601,359,2026-08-21 14:13:31.916,cobranza_obten_while_iter,contador=851 de 2944,9,186,3601,CARGANDO,68
+3601,360,2026-08-21 14:13:31.932,cobranza_obten_while_iter,contador=901 de 2944,9,186,3601,CARGANDO,68
+3601,361,2026-08-21 14:13:31.963,cobranza_obten_while_iter,contador=951 de 2944,9,186,3601,CARGANDO,68
+3601,362,2026-08-21 14:13:31.979,cobranza_obten_while_iter,contador=1001 de 2944,9,186,3601,CARGANDO,68
+3601,363,2026-08-21 14:13:31.994,cobranza_obten_while_iter,contador=1051 de 2944,9,186,3601,CARGANDO,68
+3601,364,2026-08-21 14:13:32.025,cobranza_obten_while_iter,contador=1101 de 2944,9,186,3601,CARGANDO,68
+3601,365,2026-08-21 14:13:32.057,cobranza_obten_while_iter,contador=1151 de 2944,9,186,3601,CARGANDO,68
+3601,366,2026-08-21 14:13:32.072,cobranza_obten_while_iter,contador=1201 de 2944,9,186,3601,CARGANDO,68
+3601,367,2026-08-21 14:13:32.088,cobranza_obten_while_iter,contador=1251 de 2944,9,186,3601,CARGANDO,68
+3601,368,2026-08-21 14:13:32.104,cobranza_obten_while_iter,contador=1301 de 2944,9,186,3601,CARGANDO,68
+3601,369,2026-08-21 14:13:32.119,cobranza_obten_while_iter,contador=1351 de 2944,9,186,3601,CARGANDO,68
+3601,370,2026-08-21 14:13:32.135,cobranza_obten_while_iter,contador=1401 de 2944,9,186,3601,CARGANDO,68
+3601,371,2026-08-21 14:13:32.150,cobranza_obten_while_iter,contador=1451 de 2944,9,186,3601,CARGANDO,68
+3601,372,2026-08-21 14:13:32.166,cobranza_obten_while_iter,contador=1501 de 2944,9,186,3601,CARGANDO,68
+3601,373,2026-08-21 14:13:32.197,cobranza_obten_while_iter,contador=1551 de 2944,9,186,3601,CARGANDO,68
+3601,374,2026-08-21 14:13:32.213,cobranza_obten_while_iter,contador=1601 de 2944,9,186,3601,CARGANDO,68
+3601,375,2026-08-21 14:13:32.229,cobranza_obten_while_iter,contador=1651 de 2944,9,186,3601,CARGANDO,68
+3601,376,2026-08-21 14:13:32.260,cobranza_obten_while_iter,contador=1701 de 2944,9,186,3601,CARGANDO,68
+3601,377,2026-08-21 14:13:32.291,cobranza_obten_while_iter,contador=1751 de 2944,9,186,3601,CARGANDO,68
+3601,378,2026-08-21 14:13:32.307,cobranza_obten_while_iter,contador=1801 de 2944,9,186,3601,CARGANDO,68
+3601,379,2026-08-21 14:13:32.307,cobranza_obten_while_iter,contador=1851 de 2944,9,186,3601,CARGANDO,68
+3601,380,2026-08-21 14:13:32.322,cobranza_obten_while_iter,contador=1901 de 2944,9,186,3601,CARGANDO,68
+3601,381,2026-08-21 14:13:32.338,cobranza_obten_while_iter,contador=1951 de 2944,9,186,3601,CARGANDO,68
+3601,382,2026-08-21 14:13:32.369,cobranza_obten_while_iter,contador=2001 de 2944,9,186,3601,CARGANDO,68
+3601,383,2026-08-21 14:13:32.385,cobranza_obten_while_iter,contador=2051 de 2944,9,186,3601,CARGANDO,68
+3601,384,2026-08-21 14:13:32.400,cobranza_obten_while_iter,contador=2101 de 2944,9,186,3601,CARGANDO,68
+3601,385,2026-08-21 14:13:32.416,cobranza_obten_while_iter,contador=2151 de 2944,9,186,3601,CARGANDO,68
+3601,386,2026-08-21 14:13:32.432,cobranza_obten_while_iter,contador=2201 de 2944,9,186,3601,CARGANDO,68
+3601,387,2026-08-21 14:13:32.447,cobranza_obten_while_iter,contador=2251 de 2944,9,186,3601,CARGANDO,68
+3601,388,2026-08-21 14:13:32.463,cobranza_obten_while_iter,contador=2301 de 2944,9,186,3601,CARGANDO,68
+3601,389,2026-08-21 14:13:32.478,cobranza_obten_while_iter,contador=2351 de 2944,9,186,3601,CARGANDO,68
+3601,390,2026-08-21 14:13:32.494,cobranza_obten_while_iter,contador=2401 de 2944,9,186,3601,CARGANDO,68
+3601,391,2026-08-21 14:13:32.510,cobranza_obten_while_iter,contador=2451 de 2944,9,186,3601,CARGANDO,68
+3601,392,2026-08-21 14:13:32.541,cobranza_obten_while_iter,contador=2501 de 2944,9,186,3601,CARGANDO,68
+3601,393,2026-08-21 14:13:32.557,cobranza_obten_while_iter,contador=2551 de 2944,9,186,3601,CARGANDO,68
+3601,394,2026-08-21 14:13:32.557,cobranza_obten_while_iter,contador=2601 de 2944,9,186,3601,CARGANDO,68
+3601,395,2026-08-21 14:13:32.572,cobranza_obten_while_iter,contador=2651 de 2944,9,186,3601,CARGANDO,68
+3601,396,2026-08-21 14:13:32.604,cobranza_obten_while_iter,contador=2701 de 2944,9,186,3601,CARGANDO,68
+3601,397,2026-08-21 14:13:32.619,cobranza_obten_while_iter,contador=2751 de 2944,9,186,3601,CARGANDO,68
+3601,398,2026-08-21 14:13:32.635,cobranza_obten_while_iter,contador=2801 de 2944,9,186,3601,CARGANDO,68
+3601,399,2026-08-21 14:13:32.650,cobranza_obten_while_iter,contador=2851 de 2944,9,186,3601,CARGANDO,68
+3601,400,2026-08-21 14:13:32.666,cobranza_obten_while_iter,contador=2901 de 2944,9,186,3601,CARGANDO,68
+3601,401,2026-08-21 14:13:32.682,cobranza_obten_while_fin,procesados=2944 de 2944,9,186,3601,CARGANDO,68
+3601,402,2026-08-21 14:13:32.713,cobranza_obten_pre_desglosada,Invocando ff_ObtenCobranzaDesg_Adaptada_bf3_nousar,9,186,3601,CARGANDO,68
+3601,403,2026-08-21 14:13:33.963,cobranza_obten_fin,SP completado,9,186,3601,COMPLETA,68
+3601,404,2026-08-21 14:13:33.963,SP_ORIGINAL_FIN,Finalizo ObtenCobranzaConcentrada_otro_V2_BF3.,9,186,3601,CARGANDO,68
+3601,405,2026-08-21 14:13:33.979,CARGA_COMPLETA,Resultado=CARGA_COMPLETA; modo=FULL,9,186,3601,COMPLETA,68
+3924,236,2026-08-21 13:57:10.912,CACHE_PREPARADA,"Modo=FULL; universo=1; perfiles=678,680,683,684,685,711,712,713,714,3085,6218",8,186,3924,CARGANDO,68
+3924,237,2026-08-21 13:57:10.959,SP_ORIGINAL_INICIO,Inicia ObtenCobranzaConcentrada_otro_V2_BF3; modo=FULL,8,186,3924,CARGANDO,68
+3924,238,2026-08-21 13:57:10.959,cobranza_obten_inicio,idEmpresa=186 idSolTipo=0 FecIni=2025-05-19 00:00 FecFin=2026-05-31 00:00 idVencida=1 idVIgencia=3924 perfiles=11,8,186,3924,CARGANDO,68
+3924,239,2026-08-21 13:57:10.975,cobranza_obten_pre_sinc,isCorporativo=0 empresas=1 perfilesV2=11 isTC=0,8,186,3924,CARGANDO,68
+3924,240,2026-08-21 13:57:10.975,cobranza_obten_pre_sinc_exec,SOIdEstatus=10 FecIniVig=2025-05-31 00:00:00 FecFinVig=2026-05-31 00:00:00,8,186,3924,CARGANDO,68
+3924,241,2026-08-21 13:59:50.381,cobranza_obten_post_sinc,sincronizacion completada,8,186,3924,CARGANDO,68
+3924,242,2026-08-21 13:59:50.428,cobranza_obten_pre_empleados,cantidadPagos=12 MesApl=4 AnioApl=2026,8,186,3924,CARGANDO,68
+3924,243,2026-08-21 13:59:52.444,cobranza_obten_post_empleados,filas_empleadotemp=9265,8,186,3924,CARGANDO,68
+3924,244,2026-08-21 13:59:57.866,cobranza_obten_vigencias_ec,"vigencia_actual=3924 top5_con_datos: v481=5724 v633=5690 v2388=5637 v389=5620 v1998=5571 ",8,186,3924,CARGANDO,68
+3924,245,2026-08-21 13:59:57.866,cobranza_obten_pre_insert_diag,ec_cobranza=795493 sol_vig=3718 sol_estatus1=3713 sol_tipo1=3718 sol_rango_fecha=3713 join_ec_cobranza=4994 ff_EdoCuenta=579814 ff_EdoCuentaCobranza2=581966 join_ec_cobranza2=4994,8,186,3924,CARGANDO,68
+3924,246,2026-08-21 14:06:01.211,cobranza_obten_post_insert,filas_tablatemp=3711,8,186,3924,CARGANDO,68
+3924,247,2026-08-21 14:06:01.211,cobranza_obten_while_inicio,total_registros=3711,8,186,3924,CARGANDO,68
+3924,248,2026-08-21 14:06:01.227,cobranza_obten_while_iter,contador=1 de 3711,8,186,3924,CARGANDO,68
+3924,249,2026-08-21 14:06:01.258,cobranza_obten_while_iter,contador=51 de 3711,8,186,3924,CARGANDO,68
+3924,250,2026-08-21 14:06:01.274,cobranza_obten_while_iter,contador=101 de 3711,8,186,3924,CARGANDO,68
+3924,251,2026-08-21 14:06:01.305,cobranza_obten_while_iter,contador=151 de 3711,8,186,3924,CARGANDO,68
+3924,252,2026-08-21 14:06:01.321,cobranza_obten_while_iter,contador=201 de 3711,8,186,3924,CARGANDO,68
+3924,253,2026-08-21 14:06:01.336,cobranza_obten_while_iter,contador=251 de 3711,8,186,3924,CARGANDO,68
+3924,254,2026-08-21 14:06:01.352,cobranza_obten_while_iter,contador=301 de 3711,8,186,3924,CARGANDO,68
+3924,255,2026-08-21 14:06:01.367,cobranza_obten_while_iter,contador=351 de 3711,8,186,3924,CARGANDO,68
+3924,256,2026-08-21 14:06:01.399,cobranza_obten_while_iter,contador=401 de 3711,8,186,3924,CARGANDO,68
+3924,257,2026-08-21 14:06:01.414,cobranza_obten_while_iter,contador=451 de 3711,8,186,3924,CARGANDO,68
+3924,258,2026-08-21 14:06:01.430,cobranza_obten_while_iter,contador=501 de 3711,8,186,3924,CARGANDO,68
+3924,259,2026-08-21 14:06:01.461,cobranza_obten_while_iter,contador=551 de 3711,8,186,3924,CARGANDO,68
+3924,260,2026-08-21 14:06:01.477,cobranza_obten_while_iter,contador=601 de 3711,8,186,3924,CARGANDO,68
+3924,261,2026-08-21 14:06:01.493,cobranza_obten_while_iter,contador=651 de 3711,8,186,3924,CARGANDO,68
+3924,262,2026-08-21 14:06:01.508,cobranza_obten_while_iter,contador=701 de 3711,8,186,3924,CARGANDO,68
+3924,263,2026-08-21 14:06:01.508,cobranza_obten_while_iter,contador=751 de 3711,8,186,3924,CARGANDO,68
+3924,264,2026-08-21 14:06:01.524,cobranza_obten_while_iter,contador=801 de 3711,8,186,3924,CARGANDO,68
+3924,265,2026-08-21 14:06:01.539,cobranza_obten_while_iter,contador=851 de 3711,8,186,3924,CARGANDO,68
+3924,266,2026-08-21 14:06:01.555,cobranza_obten_while_iter,contador=901 de 3711,8,186,3924,CARGANDO,68
+3924,267,2026-08-21 14:06:01.571,cobranza_obten_while_iter,contador=951 de 3711,8,186,3924,CARGANDO,68
+3924,268,2026-08-21 14:06:01.586,cobranza_obten_while_iter,contador=1001 de 3711,8,186,3924,CARGANDO,68
+3924,269,2026-08-21 14:06:01.602,cobranza_obten_while_iter,contador=1051 de 3711,8,186,3924,CARGANDO,68
+3924,270,2026-08-21 14:06:01.633,cobranza_obten_while_iter,contador=1101 de 3711,8,186,3924,CARGANDO,68
+3924,271,2026-08-21 14:06:01.664,cobranza_obten_while_iter,contador=1151 de 3711,8,186,3924,CARGANDO,68
+3924,272,2026-08-21 14:06:01.680,cobranza_obten_while_iter,contador=1201 de 3711,8,186,3924,CARGANDO,68
+3924,273,2026-08-21 14:06:01.696,cobranza_obten_while_iter,contador=1251 de 3711,8,186,3924,CARGANDO,68
+3924,274,2026-08-21 14:06:01.727,cobranza_obten_while_iter,contador=1301 de 3711,8,186,3924,CARGANDO,68
+3924,275,2026-08-21 14:06:01.743,cobranza_obten_while_iter,contador=1351 de 3711,8,186,3924,CARGANDO,68
+3924,276,2026-08-21 14:06:01.774,cobranza_obten_while_iter,contador=1401 de 3711,8,186,3924,CARGANDO,68
+3924,277,2026-08-21 14:06:01.789,cobranza_obten_while_iter,contador=1451 de 3711,8,186,3924,CARGANDO,68
+3924,278,2026-08-21 14:06:01.821,cobranza_obten_while_iter,contador=1501 de 3711,8,186,3924,CARGANDO,68
+3924,279,2026-08-21 14:06:01.836,cobranza_obten_while_iter,contador=1551 de 3711,8,186,3924,CARGANDO,68
+3924,280,2026-08-21 14:06:01.852,cobranza_obten_while_iter,contador=1601 de 3711,8,186,3924,CARGANDO,68
+3924,281,2026-08-21 14:06:01.868,cobranza_obten_while_iter,contador=1651 de 3711,8,186,3924,CARGANDO,68
+3924,282,2026-08-21 14:06:01.883,cobranza_obten_while_iter,contador=1701 de 3711,8,186,3924,CARGANDO,68
+3924,283,2026-08-21 14:06:01.899,cobranza_obten_while_iter,contador=1751 de 3711,8,186,3924,CARGANDO,68
+3924,284,2026-08-21 14:06:01.914,cobranza_obten_while_iter,contador=1801 de 3711,8,186,3924,CARGANDO,68
+3924,285,2026-08-21 14:06:01.930,cobranza_obten_while_iter,contador=1851 de 3711,8,186,3924,CARGANDO,68
+3924,286,2026-08-21 14:06:01.946,cobranza_obten_while_iter,contador=1901 de 3711,8,186,3924,CARGANDO,68
+3924,287,2026-08-21 14:06:01.993,cobranza_obten_while_iter,contador=1951 de 3711,8,186,3924,CARGANDO,68
+3924,288,2026-08-21 14:06:02.024,cobranza_obten_while_iter,contador=2001 de 3711,8,186,3924,CARGANDO,68
+3924,289,2026-08-21 14:06:02.039,cobranza_obten_while_iter,contador=2051 de 3711,8,186,3924,CARGANDO,68
+3924,290,2026-08-21 14:06:02.071,cobranza_obten_while_iter,contador=2101 de 3711,8,186,3924,CARGANDO,68
+3924,291,2026-08-21 14:06:02.102,cobranza_obten_while_iter,contador=2151 de 3711,8,186,3924,CARGANDO,68
+3924,292,2026-08-21 14:06:02.117,cobranza_obten_while_iter,contador=2201 de 3711,8,186,3924,CARGANDO,68
+3924,293,2026-08-21 14:06:02.133,cobranza_obten_while_iter,contador=2251 de 3711,8,186,3924,CARGANDO,68
+3924,294,2026-08-21 14:06:02.164,cobranza_obten_while_iter,contador=2301 de 3711,8,186,3924,CARGANDO,68
+3924,295,2026-08-21 14:06:02.180,cobranza_obten_while_iter,contador=2351 de 3711,8,186,3924,CARGANDO,68
+3924,296,2026-08-21 14:06:02.211,cobranza_obten_while_iter,contador=2401 de 3711,8,186,3924,CARGANDO,68
+3924,297,2026-08-21 14:06:02.211,cobranza_obten_while_iter,contador=2451 de 3711,8,186,3924,CARGANDO,68
+3924,298,2026-08-21 14:06:02.227,cobranza_obten_while_iter,contador=2501 de 3711,8,186,3924,CARGANDO,68
+3924,299,2026-08-21 14:06:02.258,cobranza_obten_while_iter,contador=2551 de 3711,8,186,3924,CARGANDO,68
+3924,300,2026-08-21 14:06:02.274,cobranza_obten_while_iter,contador=2601 de 3711,8,186,3924,CARGANDO,68
+3924,301,2026-08-21 14:06:02.289,cobranza_obten_while_iter,contador=2651 de 3711,8,186,3924,CARGANDO,68
+3924,302,2026-08-21 14:06:02.305,cobranza_obten_while_iter,contador=2701 de 3711,8,186,3924,CARGANDO,68
+3924,303,2026-08-21 14:06:02.305,cobranza_obten_while_iter,contador=2751 de 3711,8,186,3924,CARGANDO,68
+3924,304,2026-08-21 14:06:02.321,cobranza_obten_while_iter,contador=2801 de 3711,8,186,3924,CARGANDO,68
+3924,305,2026-08-21 14:06:02.352,cobranza_obten_while_iter,contador=2851 de 3711,8,186,3924,CARGANDO,68
+3924,306,2026-08-21 14:06:02.367,cobranza_obten_while_iter,contador=2901 de 3711,8,186,3924,CARGANDO,68
+3924,307,2026-08-21 14:06:02.383,cobranza_obten_while_iter,contador=2951 de 3711,8,186,3924,CARGANDO,68
+3924,308,2026-08-21 14:06:02.414,cobranza_obten_while_iter,contador=3001 de 3711,8,186,3924,CARGANDO,68
+3924,309,2026-08-21 14:06:02.430,cobranza_obten_while_iter,contador=3051 de 3711,8,186,3924,CARGANDO,68
+3924,310,2026-08-21 14:06:02.446,cobranza_obten_while_iter,contador=3101 de 3711,8,186,3924,CARGANDO,68
+3924,311,2026-08-21 14:06:02.461,cobranza_obten_while_iter,contador=3151 de 3711,8,186,3924,CARGANDO,68
+3924,312,2026-08-21 14:06:02.477,cobranza_obten_while_iter,contador=3201 de 3711,8,186,3924,CARGANDO,68
+3924,313,2026-08-21 14:06:02.508,cobranza_obten_while_iter,contador=3251 de 3711,8,186,3924,CARGANDO,68
+3924,314,2026-08-21 14:06:02.524,cobranza_obten_while_iter,contador=3301 de 3711,8,186,3924,CARGANDO,68
+3924,315,2026-08-21 14:06:02.539,cobranza_obten_while_iter,contador=3351 de 3711,8,186,3924,CARGANDO,68
+3924,316,2026-08-21 14:06:02.555,cobranza_obten_while_iter,contador=3401 de 3711,8,186,3924,CARGANDO,68
+3924,317,2026-08-21 14:06:02.571,cobranza_obten_while_iter,contador=3451 de 3711,8,186,3924,CARGANDO,68
+3924,318,2026-08-21 14:06:02.586,cobranza_obten_while_iter,contador=3501 de 3711,8,186,3924,CARGANDO,68
+3924,319,2026-08-21 14:06:02.602,cobranza_obten_while_iter,contador=3551 de 3711,8,186,3924,CARGANDO,68
+3924,320,2026-08-21 14:06:02.618,cobranza_obten_while_iter,contador=3601 de 3711,8,186,3924,CARGANDO,68
+3924,321,2026-08-21 14:06:02.633,cobranza_obten_while_iter,contador=3651 de 3711,8,186,3924,CARGANDO,68
+3924,322,2026-08-21 14:06:02.664,cobranza_obten_while_iter,contador=3701 de 3711,8,186,3924,CARGANDO,68
+3924,323,2026-08-21 14:06:02.680,cobranza_obten_while_fin,procesados=3711 de 3711,8,186,3924,CARGANDO,68
+3924,324,2026-08-21 14:06:02.727,cobranza_obten_pre_desglosada,Invocando ff_ObtenCobranzaDesg_Adaptada_bf3_nousar,8,186,3924,CARGANDO,68
+3924,325,2026-08-21 14:06:04.180,cobranza_obten_fin,SP completado,8,186,3924,COMPLETA,68
+3924,326,2026-08-21 14:06:04.180,SP_ORIGINAL_FIN,Finalizo ObtenCobranzaConcentrada_otro_V2_BF3.,8,186,3924,CARGANDO,68
+3924,327,2026-08-21 14:06:04.211,CARGA_COMPLETA,Resultado=CARGA_COMPLETA; modo=FULL,8,186,3924,COMPLETA,68
+4235,135,2026-08-21 12:28:11.260,CARGA_LIBERADA_MANUAL,Carga liberada manualmente: la sesion original termino y el APPLOCK ya no estaba retenido. Recurso=BF3-CobranzaCache-186-4235-EA539254DE4805D4301A6FAEF1DB5A839BB5C2A6F428C60691B6606BBDFA8F52-1,4,186,4235,ERROR,69
+4235,139,2026-08-21 12:28:53.041,CACHE_PREPARADA,"Modo=FULL; universo=1; perfiles=678,680,683,684,685,711,712,713,714,3085,6218",4,186,4235,CARGANDO,68
+4235,140,2026-08-21 12:28:53.088,SP_ORIGINAL_INICIO,Inicia ObtenCobranzaConcentrada_otro_V2_BF3; modo=FULL,4,186,4235,CARGANDO,68
+4235,141,2026-08-21 12:28:53.135,cobranza_obten_inicio,idEmpresa=186 idSolTipo=0 FecIni=2026-05-22 00:00 FecFin=2026-08-21 23:59 idVencida=1 idVIgencia=4235 perfiles=11,4,186,4235,ERROR,68
+4235,142,2026-08-21 12:28:53.166,cobranza_obten_pre_sinc,isCorporativo=0 empresas=1 perfilesV2=11 isTC=0,4,186,4235,ERROR,68
+4235,143,2026-08-21 12:28:53.182,cobranza_obten_pre_sinc_exec,SOIdEstatus=1 FecIniVig=2026-05-31 00:00:00 FecFinVig=2027-05-31 00:00:00,4,186,4235,ERROR,68
+4235,144,2026-08-21 12:32:32.542,cobranza_obten_post_sinc,sincronizacion completada,4,186,4235,ERROR,68
+4235,145,2026-08-21 12:32:32.542,cobranza_obten_pre_empleados,cantidadPagos=1 MesApl=7 AnioApl=2026,4,186,4235,ERROR,68
+4235,146,2026-08-21 12:32:33.245,cobranza_obten_post_empleados,filas_empleadotemp=9265,4,186,4235,ERROR,68
+4235,147,2026-08-21 12:32:36.964,cobranza_obten_vigencias_ec,"vigencia_actual=4235 top5_con_datos: v481=5724 v633=5690 v2388=5637 v389=5620 v1998=5571 ",4,186,4235,ERROR,68
+4235,148,2026-08-21 12:32:36.964,cobranza_obten_pre_insert_diag,ec_cobranza=795493 sol_vig=3891 sol_estatus1=3881 sol_tipo1=3891 sol_rango_fecha=3891 join_ec_cobranza=4204 ff_EdoCuenta=579814 ff_EdoCuentaCobranza2=581966 join_ec_cobranza2=4270,4,186,4235,ERROR,68
+4235,149,2026-08-21 12:59:15.045,cobranza_obten_post_insert,filas_tablatemp=3880,4,186,4235,ERROR,68
+4235,150,2026-08-21 12:59:15.061,cobranza_obten_while_inicio,total_registros=3880,4,186,4235,ERROR,68
+4235,151,2026-08-21 12:59:15.061,cobranza_obten_while_iter,contador=1 de 3880,4,186,4235,ERROR,68
+4235,152,2026-08-21 12:59:15.092,cobranza_obten_while_iter,contador=51 de 3880,4,186,4235,ERROR,68
+4235,153,2026-08-21 12:59:15.092,cobranza_obten_while_iter,contador=101 de 3880,4,186,4235,ERROR,68
+4235,154,2026-08-21 12:59:15.108,cobranza_obten_while_iter,contador=151 de 3880,4,186,4235,ERROR,68
+4235,155,2026-08-21 12:59:15.108,cobranza_obten_while_iter,contador=201 de 3880,4,186,4235,ERROR,68
+4235,156,2026-08-21 12:59:15.123,cobranza_obten_while_iter,contador=251 de 3880,4,186,4235,ERROR,68
+4235,157,2026-08-21 12:59:15.123,cobranza_obten_while_iter,contador=301 de 3880,4,186,4235,ERROR,68
+4235,158,2026-08-21 12:59:15.139,cobranza_obten_while_iter,contador=351 de 3880,4,186,4235,ERROR,68
+4235,159,2026-08-21 12:59:15.139,cobranza_obten_while_iter,contador=401 de 3880,4,186,4235,ERROR,68
+4235,160,2026-08-21 12:59:15.155,cobranza_obten_while_iter,contador=451 de 3880,4,186,4235,ERROR,68
+4235,161,2026-08-21 12:59:15.170,cobranza_obten_while_iter,contador=501 de 3880,4,186,4235,ERROR,68
+4235,162,2026-08-21 12:59:15.170,cobranza_obten_while_iter,contador=551 de 3880,4,186,4235,ERROR,68
+4235,163,2026-08-21 12:59:15.186,cobranza_obten_while_iter,contador=601 de 3880,4,186,4235,ERROR,68
+4235,164,2026-08-21 12:59:15.186,cobranza_obten_while_iter,contador=651 de 3880,4,186,4235,ERROR,68
+4235,165,2026-08-21 12:59:15.202,cobranza_obten_while_iter,contador=701 de 3880,4,186,4235,ERROR,68
+4235,166,2026-08-21 12:59:15.202,cobranza_obten_while_iter,contador=751 de 3880,4,186,4235,ERROR,68
+4235,167,2026-08-21 12:59:15.217,cobranza_obten_while_iter,contador=801 de 3880,4,186,4235,ERROR,68
+4235,168,2026-08-21 12:59:15.217,cobranza_obten_while_iter,contador=851 de 3880,4,186,4235,ERROR,68
+4235,169,2026-08-21 12:59:15.233,cobranza_obten_while_iter,contador=901 de 3880,4,186,4235,ERROR,68
+4235,170,2026-08-21 12:59:15.233,cobranza_obten_while_iter,contador=951 de 3880,4,186,4235,ERROR,68
+4235,171,2026-08-21 12:59:15.248,cobranza_obten_while_iter,contador=1001 de 3880,4,186,4235,ERROR,68
+4235,172,2026-08-21 12:59:15.264,cobranza_obten_while_iter,contador=1051 de 3880,4,186,4235,ERROR,68
+4235,173,2026-08-21 12:59:15.264,cobranza_obten_while_iter,contador=1101 de 3880,4,186,4235,ERROR,68
+4235,174,2026-08-21 12:59:15.280,cobranza_obten_while_iter,contador=1151 de 3880,4,186,4235,ERROR,68
+4235,175,2026-08-21 12:59:15.280,cobranza_obten_while_iter,contador=1201 de 3880,4,186,4235,ERROR,68
+4235,176,2026-08-21 12:59:15.295,cobranza_obten_while_iter,contador=1251 de 3880,4,186,4235,ERROR,68
+4235,177,2026-08-21 12:59:15.295,cobranza_obten_while_iter,contador=1301 de 3880,4,186,4235,ERROR,68
+4235,178,2026-08-21 12:59:15.311,cobranza_obten_while_iter,contador=1351 de 3880,4,186,4235,ERROR,68
+4235,179,2026-08-21 12:59:15.311,cobranza_obten_while_iter,contador=1401 de 3880,4,186,4235,ERROR,68
+4235,180,2026-08-21 12:59:15.327,cobranza_obten_while_iter,contador=1451 de 3880,4,186,4235,ERROR,68
+4235,181,2026-08-21 12:59:15.327,cobranza_obten_while_iter,contador=1501 de 3880,4,186,4235,ERROR,68
+4235,182,2026-08-21 12:59:15.342,cobranza_obten_while_iter,contador=1551 de 3880,4,186,4235,ERROR,68
+4235,183,2026-08-21 12:59:15.342,cobranza_obten_while_iter,contador=1601 de 3880,4,186,4235,ERROR,68
+4235,184,2026-08-21 12:59:15.358,cobranza_obten_while_iter,contador=1651 de 3880,4,186,4235,ERROR,68
+4235,185,2026-08-21 12:59:15.373,cobranza_obten_while_iter,contador=1701 de 3880,4,186,4235,ERROR,68
+4235,186,2026-08-21 12:59:15.373,cobranza_obten_while_iter,contador=1751 de 3880,4,186,4235,ERROR,68
+4235,187,2026-08-21 12:59:15.389,cobranza_obten_while_iter,contador=1801 de 3880,4,186,4235,ERROR,68
+4235,188,2026-08-21 12:59:15.389,cobranza_obten_while_iter,contador=1851 de 3880,4,186,4235,ERROR,68
+4235,189,2026-08-21 12:59:15.405,cobranza_obten_while_iter,contador=1901 de 3880,4,186,4235,ERROR,68
+4235,190,2026-08-21 12:59:15.405,cobranza_obten_while_iter,contador=1951 de 3880,4,186,4235,ERROR,68
+4235,191,2026-08-21 12:59:15.420,cobranza_obten_while_iter,contador=2001 de 3880,4,186,4235,ERROR,68
+4235,192,2026-08-21 12:59:15.436,cobranza_obten_while_iter,contador=2051 de 3880,4,186,4235,ERROR,68
+4235,193,2026-08-21 12:59:15.436,cobranza_obten_while_iter,contador=2101 de 3880,4,186,4235,ERROR,68
+4235,194,2026-08-21 12:59:15.452,cobranza_obten_while_iter,contador=2151 de 3880,4,186,4235,ERROR,68
+4235,195,2026-08-21 12:59:15.467,cobranza_obten_while_iter,contador=2201 de 3880,4,186,4235,ERROR,68
+4235,196,2026-08-21 12:59:15.467,cobranza_obten_while_iter,contador=2251 de 3880,4,186,4235,ERROR,68
+4235,197,2026-08-21 12:59:15.483,cobranza_obten_while_iter,contador=2301 de 3880,4,186,4235,ERROR,68
+4235,198,2026-08-21 12:59:15.498,cobranza_obten_while_iter,contador=2351 de 3880,4,186,4235,ERROR,68
+4235,199,2026-08-21 12:59:15.514,cobranza_obten_while_iter,contador=2401 de 3880,4,186,4235,ERROR,68
+4235,200,2026-08-21 12:59:15.514,cobranza_obten_while_iter,contador=2451 de 3880,4,186,4235,ERROR,68
+4235,201,2026-08-21 12:59:15.530,cobranza_obten_while_iter,contador=2501 de 3880,4,186,4235,ERROR,68
+4235,202,2026-08-21 12:59:15.530,cobranza_obten_while_iter,contador=2551 de 3880,4,186,4235,ERROR,68
+4235,203,2026-08-21 12:59:15.561,cobranza_obten_while_iter,contador=2601 de 3880,4,186,4235,ERROR,68
+4235,204,2026-08-21 12:59:15.561,cobranza_obten_while_iter,contador=2651 de 3880,4,186,4235,ERROR,68
+4235,205,2026-08-21 12:59:15.577,cobranza_obten_while_iter,contador=2701 de 3880,4,186,4235,ERROR,68
+4235,206,2026-08-21 12:59:15.592,cobranza_obten_while_iter,contador=2751 de 3880,4,186,4235,ERROR,68
+4235,207,2026-08-21 12:59:15.592,cobranza_obten_while_iter,contador=2801 de 3880,4,186,4235,ERROR,68
+4235,208,2026-08-21 12:59:15.608,cobranza_obten_while_iter,contador=2851 de 3880,4,186,4235,ERROR,68
+4235,209,2026-08-21 12:59:15.623,cobranza_obten_while_iter,contador=2901 de 3880,4,186,4235,ERROR,68
+4235,210,2026-08-21 12:59:15.623,cobranza_obten_while_iter,contador=2951 de 3880,4,186,4235,ERROR,68
+4235,211,2026-08-21 12:59:15.639,cobranza_obten_while_iter,contador=3001 de 3880,4,186,4235,ERROR,68
+4235,212,2026-08-21 12:59:15.639,cobranza_obten_while_iter,contador=3051 de 3880,4,186,4235,ERROR,68
+4235,213,2026-08-21 12:59:15.655,cobranza_obten_while_iter,contador=3101 de 3880,4,186,4235,ERROR,68
+4235,214,2026-08-21 12:59:15.655,cobranza_obten_while_iter,contador=3151 de 3880,4,186,4235,ERROR,68
+4235,215,2026-08-21 12:59:15.670,cobranza_obten_while_iter,contador=3201 de 3880,4,186,4235,ERROR,68
+4235,216,2026-08-21 12:59:15.670,cobranza_obten_while_iter,contador=3251 de 3880,4,186,4235,ERROR,68
+4235,217,2026-08-21 12:59:15.686,cobranza_obten_while_iter,contador=3301 de 3880,4,186,4235,ERROR,68
+4235,218,2026-08-21 12:59:15.702,cobranza_obten_while_iter,contador=3351 de 3880,4,186,4235,ERROR,68
+4235,219,2026-08-21 12:59:15.702,cobranza_obten_while_iter,contador=3401 de 3880,4,186,4235,ERROR,68
+4235,220,2026-08-21 12:59:15.717,cobranza_obten_while_iter,contador=3451 de 3880,4,186,4235,ERROR,68
+4235,221,2026-08-21 12:59:15.733,cobranza_obten_while_iter,contador=3501 de 3880,4,186,4235,ERROR,68
+4235,222,2026-08-21 12:59:15.733,cobranza_obten_while_iter,contador=3551 de 3880,4,186,4235,ERROR,68
+4235,223,2026-08-21 12:59:15.748,cobranza_obten_while_iter,contador=3601 de 3880,4,186,4235,ERROR,68
+4235,224,2026-08-21 12:59:15.748,cobranza_obten_while_iter,contador=3651 de 3880,4,186,4235,ERROR,68
+4235,225,2026-08-21 12:59:15.764,cobranza_obten_while_iter,contador=3701 de 3880,4,186,4235,ERROR,68
+4235,226,2026-08-21 12:59:15.764,cobranza_obten_while_iter,contador=3751 de 3880,4,186,4235,ERROR,68
+4235,227,2026-08-21 12:59:15.780,cobranza_obten_while_iter,contador=3801 de 3880,4,186,4235,ERROR,68
+4235,228,2026-08-21 12:59:15.780,cobranza_obten_while_iter,contador=3851 de 3880,4,186,4235,ERROR,68
+4235,229,2026-08-21 12:59:15.795,cobranza_obten_while_fin,procesados=3880 de 3880,4,186,4235,ERROR,68
+4235,230,2026-08-21 12:59:15.827,cobranza_obten_pre_desglosada,Invocando ff_ObtenCobranzaDesg_Adaptada_bf3_nousar,4,186,4235,ERROR,68
+4235,231,2026-08-21 13:57:10.881,cobranza_obten_fin,SP completado,4,186,4235,COMPLETA,68
+4235,232,2026-08-21 13:57:10.881,SP_ORIGINAL_FIN,Finalizo ObtenCobranzaConcentrada_otro_V2_BF3.,4,186,4235,CARGANDO,68
+4235,233,2026-08-21 13:57:10.897,CARGA_COMPLETA,Resultado=CARGA_COMPLETA; modo=FULL,4,186,4235,COMPLETA,68
