@@ -1,3 +1,53 @@
+-------------------------
+oniorear scit 
+SELECT @@SERVERNAME AS Servidor, DB_NAME() AS BaseDatos, @@SPID AS MiSesion;
+
+SELECT
+    r.session_id,
+    r.status,
+    r.command,
+    r.blocking_session_id,
+    r.wait_type,
+    r.wait_time / 1000 AS esperaSegundos,
+    r.total_elapsed_time / 60000 AS minutos,
+    r.cpu_time,
+    r.logical_reads,
+    r.reads,
+    r.writes
+FROM sys.dm_exec_requests r
+WHERE r.database_id = DB_ID()
+  AND r.session_id <> @@SPID
+ORDER BY r.total_elapsed_time DESC;
+
+SELECT
+    request_session_id,
+    resource_description,
+    request_mode,
+    request_status
+FROM sys.dm_tran_locks
+WHERE resource_type = 'APPLICATION';
+
+SELECT TOP (20)
+    CacheId,
+    IdEmpresa,
+    IdVigencia,
+    FecIni,
+    FecFin,
+    Estado,
+    FechaCargaInicio,
+    FechaCargaFin,
+    FilasConcentrada,
+    FilasDesglosada,
+    Mensaje
+FROM dbo.bf_CobranzaCache_ConsultaV2
+WHERE IdEmpresa = 186
+ORDER BY CacheId DESC;
+---------------
+
+
+
+
+
 
 
 
