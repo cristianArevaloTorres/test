@@ -1,3 +1,53 @@
+DECLARE @IdEmpresa int = 186;
+
+/* Estado general de cada carga */
+SELECT
+    CacheId,
+    IdVigencia,
+    Estado,
+    FechaCargaInicio,
+    FechaCargaFin,
+    FilasConcentrada,
+    FilasDesglosada,
+    UltimoEvento,
+    UltimaEtapa,
+    SesionId,
+    MinutosSinActividad,
+    Mensaje
+FROM dbo.bf_CobranzaCache_MonitoreoV2
+WHERE IdEmpresa = @IdEmpresa
+ORDER BY CacheId DESC;
+
+/* Últimos eventos registrados */
+SELECT TOP (100)
+    LogId,
+    Fecha,
+    CacheId,
+    Estado,
+    SesionId,
+    Etapa,
+    Detalle
+FROM dbo.bf_CobranzaCache_Log WITH (NOLOCK)
+WHERE IdEmpresa = @IdEmpresa
+ORDER BY LogId DESC;
+
+
+SELECT
+    R.session_id,
+    R.status,
+    R.command,
+    R.wait_type,
+    R.wait_time,
+    R.blocking_session_id,
+    R.cpu_time,
+    R.total_elapsed_time / 1000 AS SegundosTranscurridos,
+    LEFT(T.text, 1000) AS Consulta
+FROM sys.dm_exec_requests R
+CROSS APPLY sys.dm_exec_sql_text(R.sql_handle) T
+WHERE R.database_id = DB_ID()
+  AND R.session_id <> @@SPID
+  AND T.text LIKE '%Cobranza%'
+ORDER BY R.total_elapsed_time DESC;
 -------------------------
 oniorear scit 
 SELECT @@SERVERNAME AS Servidor, DB_NAME() AS BaseDatos, @@SPID AS MiSesion;
