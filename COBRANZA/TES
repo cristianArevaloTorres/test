@@ -1,4 +1,3 @@
-
 /*
    EXPORTAR UNIVERSO RELACIONADO CON COBRANZA B3 - EMPRESA 186
 
@@ -10,7 +9,8 @@
    - Cada resultset agrega __Tabla para identificarlo al guardarlo como CSV.
 
    CONFIGURACION RECOMENDADA PARA EL PRIMER PILOTO
-       @IdVigencia=4235, @CantidadVigencias=1, @IdVencida=1
+       @IdVigencia=4235, @CantidadVigencias=1, @IdVencida=1,
+       @IncluirLineaBase=0
 
    PARA LAS CUATRO VIGENCIAS MAS RECIENTES
        @IdVigencia=NULL, @CantidadVigencias=4
@@ -28,7 +28,7 @@ DECLARE @IdEmpresa int=186,
         @IdVigencia int=4235,       -- NULL = tomar las mas recientes
         @CantidadVigencias tinyint=1,
         @IdVencida int=1,
-        @IncluirLineaBase bit=1,
+        @IncluirLineaBase bit=0,     -- 1 solo si tambien se requiere evidencia cache
         @IdConfiguracion int;
 
 IF @IdEmpresa<>186
@@ -44,29 +44,15 @@ SELECT @IdConfiguracion=EMidConfiguracion
 FROM dbo.ff_Empresa
 WHERE EMidEmpresa=@IdEmpresa;
 
-/* Empresa 186 y filiales, solamente si 186 esta configurada como corporativo. */
+RAISERROR(N'[EXPORT 186] Inicio de extraccion estricta.',0,1) WITH NOWAIT;
+
+/* Por defecto se exporta exclusivamente la empresa 186. */
 CREATE TABLE #Empresas
 (
     IdEmpresa int NOT NULL PRIMARY KEY
 );
 
 INSERT #Empresas VALUES(@IdEmpresa);
-
-IF EXISTS
-(
-    SELECT 1 FROM dbo.ff_Empresa
-    WHERE EMidEmpresa=@IdEmpresa
-      AND EMidCorporativo=@IdEmpresa
-      AND EMidEstatus=1
-)
-BEGIN
-    INSERT #Empresas(IdEmpresa)
-    SELECT EMidEmpresa
-    FROM dbo.ff_Empresa
-    WHERE EMidCorporativo=@IdEmpresa
-      AND EMidEmpresa<>@IdEmpresa
-      AND EMidEstatus=1;
-END;
 
 CREATE TABLE #Vigencias
 (
@@ -116,6 +102,8 @@ END;
 IF NOT EXISTS(SELECT 1 FROM #Vigencias)
     THROW 53504,'No se encontro la vigencia solicitada para la configuracion de la empresa 186.',1;
 
+RAISERROR(N'[EXPORT 186] Vigencia validada.',0,1) WITH NOWAIT;
+
 CREATE TABLE #Perfiles
 (
     IdPerfil int NOT NULL PRIMARY KEY
@@ -134,7 +122,8 @@ CREATE TABLE #Solicitudes
     IdSolicitud int NOT NULL,
     IdEmpleado int NULL,
     NumeroEmpleado varchar(200) COLLATE DATABASE_DEFAULT NULL,
-    IdVigencia int NULL
+    IdVigencia int NULL,
+    PRIMARY KEY(IdEmpresa,IdSolicitud)
 );
 
 INSERT #Solicitudes(IdEmpresa,IdSolicitud,IdEmpleado,NumeroEmpleado,IdVigencia)
@@ -143,8 +132,6 @@ SELECT DISTINCT S.SOIdEmpresa,S.SOIdSolicitud,S.SOIdEmpleado,
 FROM dbo.ff_Solicitud AS S
 WHERE S.SOIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
   AND S.SOIdVigencia IN(SELECT IdVigencia FROM #Vigencias);
-
-CREATE INDEX IX_Export_Solicitud ON #Solicitudes(IdEmpresa,IdSolicitud);
 
 CREATE TABLE #Empleados
 (
@@ -199,48 +186,90 @@ FROM
 ) AS N
 WHERE NumeroEmpleado IS NOT NULL;
 
-/* Se agregan solicitudes historicas/compensatorias referidas por EdoCuenta. */
+DECLARE @FilasPaso int=(SELECT COUNT(*) FROM #Empleados);
+RAISERROR(N'[EXPORT 186] Empleados relacionados: %d.',0,1,@FilasPaso) WITH NOWAIT;
+
+/*
+   Materializar una sola vez las filas de estado de cuenta relacionadas evita
+   repetir EXISTS correlacionados contra tablas historicas grandes. El cierre
+   queda limitado a empresa 186 y a empleados/solicitudes del piloto.
+*/
+CREATE TABLE #EdoCuenta1
+(
+    IdEstadoCuenta int NOT NULL PRIMARY KEY
+);
+
+INSERT #EdoCuenta1(IdEstadoCuenta)
+SELECT DISTINCT EC.ECidEstadoCuenta
+FROM dbo.ff_EdoCuentaCobranza EC
+LEFT JOIN #Empleados E
+       ON E.IdEmpresa=EC.ECidEmpresa
+      AND E.IdEmpleado=EC.ECidEmpleado
+LEFT JOIN #NumerosEmpleado N
+       ON N.IdEmpresa=EC.ECidEmpresa
+      AND N.NumeroEmpleado=EC.ECNumeroEmpleado
+LEFT JOIN #Solicitudes S
+       ON S.IdEmpresa=EC.ECidEmpresa
+      AND S.IdSolicitud=EC.ECidSolicitud
+WHERE EC.ECidEmpresa=@IdEmpresa
+  AND EC.ECidEstadoCuenta IS NOT NULL
+  AND (E.IdEmpleado IS NOT NULL
+       OR N.NumeroEmpleado IS NOT NULL
+       OR S.IdSolicitud IS NOT NULL)
+OPTION(RECOMPILE);
+
+SET @FilasPaso=(SELECT COUNT(*) FROM #EdoCuenta1);
+RAISERROR(N'[EXPORT 186] Estado de cuenta 1 relacionado: %d filas.',0,1,@FilasPaso) WITH NOWAIT;
+
+CREATE TABLE #EdoCuenta2
+(
+    IdEstadoCuenta int NOT NULL PRIMARY KEY
+);
+
+INSERT #EdoCuenta2(IdEstadoCuenta)
+SELECT DISTINCT EC.ECidEstadoCuenta
+FROM dbo.ff_EdoCuentaCobranza2 EC
+LEFT JOIN #Empleados E
+       ON E.IdEmpresa=EC.ECidEmpresa
+      AND E.IdEmpleado=EC.ECidEmpleado
+LEFT JOIN #NumerosEmpleado N
+       ON N.IdEmpresa=EC.ECidEmpresa
+      AND N.NumeroEmpleado=EC.ECNumeroEmpleado
+LEFT JOIN #Solicitudes S
+       ON S.IdEmpresa=EC.ECidEmpresa
+      AND S.IdSolicitud=EC.ECidSolicitud
+WHERE EC.ECidEmpresa=@IdEmpresa
+  AND EC.ECidEstadoCuenta IS NOT NULL
+  AND (E.IdEmpleado IS NOT NULL
+       OR N.NumeroEmpleado IS NOT NULL
+       OR S.IdSolicitud IS NOT NULL)
+OPTION(RECOMPILE);
+
+SET @FilasPaso=(SELECT COUNT(*) FROM #EdoCuenta2);
+RAISERROR(N'[EXPORT 186] Estado de cuenta 2 relacionado: %d filas.',0,1,@FilasPaso) WITH NOWAIT;
+
+/* Se agregan solicitudes historicas referidas por el estado de cuenta acotado. */
 INSERT #Solicitudes(IdEmpresa,IdSolicitud,IdEmpleado,NumeroEmpleado,IdVigencia)
 SELECT DISTINCT S.SOIdEmpresa,S.SOIdSolicitud,S.SOIdEmpleado,
        S.SONumEmpleado,S.SOIdVigencia
 FROM dbo.ff_Solicitud AS S
-WHERE S.SOIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+INNER JOIN
+(
+    SELECT EC.ECidEmpresa,EC.ECidSolicitud
+    FROM dbo.ff_EdoCuentaCobranza EC
+    INNER JOIN #EdoCuenta1 K ON K.IdEstadoCuenta=EC.ECidEstadoCuenta
+    WHERE EC.ECidSolicitud IS NOT NULL
+    UNION
+    SELECT EC.ECidEmpresa,EC.ECidSolicitud
+    FROM dbo.ff_EdoCuentaCobranza2 EC
+    INNER JOIN #EdoCuenta2 K ON K.IdEstadoCuenta=EC.ECidEstadoCuenta
+    WHERE EC.ECidSolicitud IS NOT NULL
+) R ON R.ECidEmpresa=S.SOIdEmpresa AND R.ECidSolicitud=S.SOIdSolicitud
+WHERE S.SOIdEmpresa=@IdEmpresa
   AND NOT EXISTS
       (SELECT 1 FROM #Solicitudes X
        WHERE X.IdEmpresa=S.SOIdEmpresa AND X.IdSolicitud=S.SOIdSolicitud)
-  AND
-  (
-      EXISTS
-      (
-          SELECT 1 FROM dbo.ff_EdoCuentaCobranza EC
-          WHERE EC.ECidEmpresa=S.SOIdEmpresa
-            AND EC.ECidSolicitud=S.SOIdSolicitud
-            AND
-            (
-                EXISTS(SELECT 1 FROM #Empleados E
-                       WHERE E.IdEmpresa=EC.ECidEmpresa
-                         AND E.IdEmpleado=EC.ECidEmpleado)
-                OR EXISTS(SELECT 1 FROM #NumerosEmpleado N
-                          WHERE N.IdEmpresa=EC.ECidEmpresa
-                            AND N.NumeroEmpleado=EC.ECNumeroEmpleado)
-            )
-      )
-      OR EXISTS
-      (
-          SELECT 1 FROM dbo.ff_EdoCuentaCobranza2 EC
-          WHERE EC.ECidEmpresa=S.SOIdEmpresa
-            AND EC.ECidSolicitud=S.SOIdSolicitud
-            AND
-            (
-                EXISTS(SELECT 1 FROM #Empleados E
-                       WHERE E.IdEmpresa=EC.ECidEmpresa
-                         AND E.IdEmpleado=EC.ECidEmpleado)
-                OR EXISTS(SELECT 1 FROM #NumerosEmpleado N
-                          WHERE N.IdEmpresa=EC.ECidEmpresa
-                            AND N.NumeroEmpleado=EC.ECNumeroEmpleado)
-            )
-      )
-  );
+OPTION(RECOMPILE);
 
 CREATE TABLE #PlanOpciones
 (
@@ -263,17 +292,16 @@ FROM
     UNION ALL
     SELECT EC.ECidPlanOpcion
     FROM dbo.ff_EdoCuentaCobranza EC
-    WHERE EC.ECidEmpresa IN(SELECT IdEmpresa FROM #Empresas)
-      AND EXISTS(SELECT 1 FROM #Empleados E
-                 WHERE E.IdEmpresa=EC.ECidEmpresa AND E.IdEmpleado=EC.ECidEmpleado)
+    INNER JOIN #EdoCuenta1 K ON K.IdEstadoCuenta=EC.ECidEstadoCuenta
     UNION ALL
     SELECT EC.ECidPlanOpcion
     FROM dbo.ff_EdoCuentaCobranza2 EC
-    WHERE EC.ECidEmpresa IN(SELECT IdEmpresa FROM #Empresas)
-      AND EXISTS(SELECT 1 FROM #Empleados E
-                 WHERE E.IdEmpresa=EC.ECidEmpresa AND E.IdEmpleado=EC.ECidEmpleado)
+    INNER JOIN #EdoCuenta2 K ON K.IdEstadoCuenta=EC.ECidEstadoCuenta
 ) AS P
 WHERE IdPlanOpcion IS NOT NULL;
+
+SET @FilasPaso=(SELECT COUNT(*) FROM #PlanOpciones);
+RAISERROR(N'[EXPORT 186] Planes-opcion relacionados: %d. Iniciando resultsets.',0,1,@FilasPaso) WITH NOWAIT;
 
 CREATE TABLE #Planes
 (
@@ -339,6 +367,8 @@ SELECT N'00_CONTEOS_LLAVES' AS __Tabla,
        (SELECT COUNT(*) FROM #Perfiles) AS Perfiles,
        (SELECT COUNT(*) FROM #Empleados) AS Empleados,
        (SELECT COUNT(*) FROM #Solicitudes) AS Solicitudes,
+       (SELECT COUNT(*) FROM #EdoCuenta1) AS EdoCuenta1,
+       (SELECT COUNT(*) FROM #EdoCuenta2) AS EdoCuenta2,
        (SELECT COUNT(*) FROM #PlanOpciones) AS PlanOpciones,
        (SELECT COUNT(*) FROM #Planes) AS Planes,
        (SELECT COUNT(*) FROM #Tarifas) AS Tarifas,
@@ -425,31 +455,15 @@ ORDER BY P.POIdEmpresa,P.PONumeroEmpleado,P.POIdEmpleado,P.POIdPlanOpcion;
    ----------------------------------------------------------------------- */
 SELECT N'dbo.ff_EdoCuentaCobranza' AS __Tabla,EC.*
 FROM dbo.ff_EdoCuentaCobranza EC
-WHERE EC.ECidEmpresa IN(SELECT IdEmpresa FROM #Empresas)
-  AND
-  (
-      EXISTS(SELECT 1 FROM #Empleados E
-             WHERE E.IdEmpresa=EC.ECidEmpresa AND E.IdEmpleado=EC.ECidEmpleado)
-      OR EXISTS(SELECT 1 FROM #Solicitudes S
-                WHERE S.IdEmpresa=EC.ECidEmpresa AND S.IdSolicitud=EC.ECidSolicitud)
-      OR EXISTS(SELECT 1 FROM #NumerosEmpleado N
-                WHERE N.IdEmpresa=EC.ECidEmpresa
-                  AND N.NumeroEmpleado=EC.ECNumeroEmpleado)
-  );
+INNER JOIN #EdoCuenta1 K ON K.IdEstadoCuenta=EC.ECidEstadoCuenta
+WHERE EC.ECidEmpresa=@IdEmpresa
+ORDER BY EC.ECidEstadoCuenta;
 
 SELECT N'dbo.ff_EdoCuentaCobranza2' AS __Tabla,EC.*
 FROM dbo.ff_EdoCuentaCobranza2 EC
-WHERE EC.ECidEmpresa IN(SELECT IdEmpresa FROM #Empresas)
-  AND
-  (
-      EXISTS(SELECT 1 FROM #Empleados E
-             WHERE E.IdEmpresa=EC.ECidEmpresa AND E.IdEmpleado=EC.ECidEmpleado)
-      OR EXISTS(SELECT 1 FROM #Solicitudes S
-                WHERE S.IdEmpresa=EC.ECidEmpresa AND S.IdSolicitud=EC.ECidSolicitud)
-      OR EXISTS(SELECT 1 FROM #NumerosEmpleado N
-                WHERE N.IdEmpresa=EC.ECidEmpresa
-                  AND N.NumeroEmpleado=EC.ECNumeroEmpleado)
-  );
+INNER JOIN #EdoCuenta2 K ON K.IdEstadoCuenta=EC.ECidEstadoCuenta
+WHERE EC.ECidEmpresa=@IdEmpresa
+ORDER BY EC.ECidEstadoCuenta;
 
 SELECT N'dbo.ff_DescuentoEmpleado' AS __Tabla,D.*
 FROM dbo.ff_DescuentoEmpleado D
@@ -467,11 +481,13 @@ WHERE C.CPIdPlanOpcion IN(SELECT IdPlanOpcion FROM #PlanOpciones)
    OR C.CPIdCompensacion IN
       (
           SELECT EC.ECidCompensacion FROM dbo.ff_EdoCuentaCobranza EC
-          WHERE EC.ECidEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+          INNER JOIN #EdoCuenta1 K ON K.IdEstadoCuenta=EC.ECidEstadoCuenta
+          WHERE EC.ECidEmpresa=@IdEmpresa
             AND EC.ECidCompensacion IS NOT NULL
           UNION
           SELECT EC.ECidCompensacion FROM dbo.ff_EdoCuentaCobranza2 EC
-          WHERE EC.ECidEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+          INNER JOIN #EdoCuenta2 K ON K.IdEstadoCuenta=EC.ECidEstadoCuenta
+          WHERE EC.ECidEmpresa=@IdEmpresa
             AND EC.ECidCompensacion IS NOT NULL
       );
 
@@ -728,5 +744,7 @@ SELECT N'FIN_EXPORTACION' AS __Tabla,@IdEmpresa AS IdEmpresa,
        (SELECT COUNT(*) FROM #Vigencias) AS Vigencias,
        (SELECT COUNT(*) FROM #Empleados) AS Empleados,
        (SELECT COUNT(*) FROM #Solicitudes) AS Solicitudes,
+       (SELECT COUNT(*) FROM #EdoCuenta1) AS EdoCuenta1,
+       (SELECT COUNT(*) FROM #EdoCuenta2) AS EdoCuenta2,
        (SELECT COUNT(*) FROM #PlanOpciones) AS PlanOpciones,
        (SELECT COUNT(*) FROM #CacheBase) AS CachesBase;
