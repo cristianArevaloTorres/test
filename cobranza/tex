@@ -1,3 +1,25 @@
+SELECT
+    P.POidVigencia,
+    V.VIVigenciaIni,
+    V.VIVigenciaFin,
+    COUNT_BIG(*) AS Selecciones,
+    COUNT(DISTINCT P.POidEmpleado) AS Empleados
+FROM dbo.ff_PlanOpcionSeleccionCobranza P
+INNER JOIN dbo.ff_Empresa E
+    ON E.EMidEmpresa = P.POidEmpresa
+INNER JOIN dbo.ff_Vigencia V
+    ON V.VIidConfiguracion = E.EMidConfiguracion
+   AND V.VIidVigencia = P.POidVigencia
+WHERE P.POidEmpresa = 1807
+  AND P.POidEmpleado IN (6666909,6666917,6666918)
+GROUP BY P.POidVigencia,V.VIVigenciaIni,V.VIVigenciaFin
+ORDER BY P.POidVigencia DESC;
+
+.-----------------------------------------------------
+
+
+
+
 CacheId	IdVigencia	Estado	FechaCargaInicio	FechaCargaFin	FilasConcentrada	FilasDesglosada	UltimoEvento	UltimaEtapa	SesionId	MinutosSinActividad	Mensaje
 5	4235	CARGANDO	2026-08-20 23:49:21.869	NULL	0	0	NULL	NULL	NULL	694	Calculando cache FULL
 4	4235	CARGANDO	2026-08-21 09:15:58.231	NULL	0	0	NULL	NULL	NULL	128	Calculando universo FULL
