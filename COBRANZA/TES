@@ -1,1 +1,732 @@
 
+/*
+   EXPORTAR UNIVERSO RELACIONADO CON COBRANZA B3 - EMPRESA 186
+
+   OBJETIVO
+   - Ejecutar en DEV y devolver solamente datos relacionados con la empresa
+     186 y la(s) vigencia(s) seleccionada(s).
+   - No inserta, actualiza ni elimina datos permanentes. Solo crea tablas
+     temporales para calcular el cierre de llaves.
+   - Cada resultset agrega __Tabla para identificarlo al guardarlo como CSV.
+
+   CONFIGURACION RECOMENDADA PARA EL PRIMER PILOTO
+       @IdVigencia=4235, @CantidadVigencias=1, @IdVencida=1
+
+   PARA LAS CUATRO VIGENCIAS MAS RECIENTES
+       @IdVigencia=NULL, @CantidadVigencias=4
+
+   IMPORTANTE
+   - Esta extraccion reproduce la carga actual con @IdVencida=1.
+   - BASELINE_* es evidencia para comparar; no debe importarse en las tablas
+     activas del cache antes de ejecutar la simulacion local.
+*/
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+DECLARE @IdEmpresa int=186,
+        @IdVigencia int=4235,       -- NULL = tomar las mas recientes
+        @CantidadVigencias tinyint=1,
+        @IdVencida int=1,
+        @IncluirLineaBase bit=1,
+        @IdConfiguracion int;
+
+IF @IdEmpresa<>186
+    THROW 53500,'Este archivo fue preparado exclusivamente para la empresa 186.',1;
+IF @IdVencida<>1
+    THROW 53501,'La extraccion actual cubre la carga real con IdVencida=1.',1;
+IF @CantidadVigencias NOT BETWEEN 1 AND 4
+    THROW 53502,'CantidadVigencias debe estar entre 1 y 4.',1;
+IF NOT EXISTS(SELECT 1 FROM dbo.ff_Empresa WHERE EMidEmpresa=@IdEmpresa)
+    THROW 53503,'La empresa 186 no existe en esta base.',1;
+
+SELECT @IdConfiguracion=EMidConfiguracion
+FROM dbo.ff_Empresa
+WHERE EMidEmpresa=@IdEmpresa;
+
+/* Empresa 186 y filiales, solamente si 186 esta configurada como corporativo. */
+CREATE TABLE #Empresas
+(
+    IdEmpresa int NOT NULL PRIMARY KEY
+);
+
+INSERT #Empresas VALUES(@IdEmpresa);
+
+IF EXISTS
+(
+    SELECT 1 FROM dbo.ff_Empresa
+    WHERE EMidEmpresa=@IdEmpresa
+      AND EMidCorporativo=@IdEmpresa
+      AND EMidEstatus=1
+)
+BEGIN
+    INSERT #Empresas(IdEmpresa)
+    SELECT EMidEmpresa
+    FROM dbo.ff_Empresa
+    WHERE EMidCorporativo=@IdEmpresa
+      AND EMidEmpresa<>@IdEmpresa
+      AND EMidEstatus=1;
+END;
+
+CREATE TABLE #Vigencias
+(
+    IdVigencia int NOT NULL PRIMARY KEY,
+    FecIni varchar(16) NOT NULL,
+    FecFin varchar(16) NOT NULL
+);
+
+IF @IdVigencia IS NOT NULL
+BEGIN
+    INSERT #Vigencias(IdVigencia,FecIni,FecFin)
+    SELECT V.VIidVigencia,
+           CONVERT(varchar(16),
+             CASE WHEN V.VIEnrollmentIni IS NOT NULL
+                       AND V.VIEnrollmentIni<V.VIVigenciaIni
+                  THEN V.VIEnrollmentIni ELSE V.VIVigenciaIni END,120),
+           CONVERT(varchar(16),
+             CASE WHEN V.VIVigenciaFin<GETDATE() THEN V.VIVigenciaFin
+                  ELSE DATEADD(MINUTE,-1,
+                       DATEADD(DAY,1,CONVERT(datetime,CONVERT(date,GETDATE()))))
+             END,120)
+    FROM dbo.ff_Vigencia AS V
+    WHERE V.VIidVigencia=@IdVigencia
+      AND V.VIidConfiguracion=@IdConfiguracion
+      AND V.VITipoNegocio=1;
+END
+ELSE
+BEGIN
+    INSERT #Vigencias(IdVigencia,FecIni,FecFin)
+    SELECT TOP (@CantidadVigencias)
+           V.VIidVigencia,
+           CONVERT(varchar(16),
+             CASE WHEN V.VIEnrollmentIni IS NOT NULL
+                       AND V.VIEnrollmentIni<V.VIVigenciaIni
+                  THEN V.VIEnrollmentIni ELSE V.VIVigenciaIni END,120),
+           CONVERT(varchar(16),
+             CASE WHEN V.VIVigenciaFin<GETDATE() THEN V.VIVigenciaFin
+                  ELSE DATEADD(MINUTE,-1,
+                       DATEADD(DAY,1,CONVERT(datetime,CONVERT(date,GETDATE()))))
+             END,120)
+    FROM dbo.ff_Vigencia AS V
+    WHERE V.VIidConfiguracion=@IdConfiguracion
+      AND V.VITipoNegocio=1
+    ORDER BY V.VIVigenciaIni DESC,V.VIidVigencia DESC;
+END;
+
+IF NOT EXISTS(SELECT 1 FROM #Vigencias)
+    THROW 53504,'No se encontro la vigencia solicitada para la configuracion de la empresa 186.',1;
+
+CREATE TABLE #Perfiles
+(
+    IdPerfil int NOT NULL PRIMARY KEY
+);
+
+INSERT #Perfiles(IdPerfil)
+SELECT DISTINCT PEIdPerfil
+FROM dbo.ff_Perfil
+WHERE PEIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+  AND PEIdEstatus=1
+  AND PEAdministrador=0;
+
+CREATE TABLE #Solicitudes
+(
+    IdEmpresa int NOT NULL,
+    IdSolicitud int NOT NULL,
+    IdEmpleado int NULL,
+    NumeroEmpleado varchar(200) COLLATE DATABASE_DEFAULT NULL,
+    IdVigencia int NULL
+);
+
+INSERT #Solicitudes(IdEmpresa,IdSolicitud,IdEmpleado,NumeroEmpleado,IdVigencia)
+SELECT DISTINCT S.SOIdEmpresa,S.SOIdSolicitud,S.SOIdEmpleado,
+       S.SONumEmpleado,S.SOIdVigencia
+FROM dbo.ff_Solicitud AS S
+WHERE S.SOIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+  AND S.SOIdVigencia IN(SELECT IdVigencia FROM #Vigencias);
+
+CREATE INDEX IX_Export_Solicitud ON #Solicitudes(IdEmpresa,IdSolicitud);
+
+CREATE TABLE #Empleados
+(
+    IdEmpresa int NOT NULL,
+    IdEmpleado int NOT NULL,
+    NumeroEmpleado varchar(200) COLLATE DATABASE_DEFAULT NULL,
+    PRIMARY KEY(IdEmpresa,IdEmpleado)
+);
+
+INSERT #Empleados(IdEmpresa,IdEmpleado,NumeroEmpleado)
+SELECT X.IdEmpresa,X.IdEmpleado,MAX(X.NumeroEmpleado)
+FROM
+(
+    SELECT E.EMIdEmpresa,E.Id,E.EMNumeroEmpleado
+    FROM dbo.ff_Empleado AS E
+    WHERE E.EMIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+      AND E.EMIdEstatus=1
+      AND E.EMNumeroEmpleado NOT LIKE 'TEST%'
+      AND E.EMIdPerfil IN(SELECT IdPerfil FROM #Perfiles)
+    UNION ALL
+    SELECT S.IdEmpresa,S.IdEmpleado,S.NumeroEmpleado
+    FROM #Solicitudes AS S
+    WHERE S.IdEmpleado IS NOT NULL
+    UNION ALL
+    SELECT P.POIdEmpresa,P.POIdEmpleado,P.PONumeroEmpleado
+    FROM dbo.ff_PlanOpcionSeleccionCobranza AS P
+    WHERE P.POIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+      AND P.POIdVigencia IN(SELECT IdVigencia FROM #Vigencias)
+    UNION ALL
+    SELECT P.POIdEmpresa,P.POIdEmpleado,P.PONumeroEmpleado
+    FROM dbo.ff_PlanOpcionSeleccionCobranza2 AS P
+    WHERE P.POIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+      AND P.POIdVigencia IN(SELECT IdVigencia FROM #Vigencias)
+) AS X(IdEmpresa,IdEmpleado,NumeroEmpleado)
+WHERE X.IdEmpleado IS NOT NULL
+GROUP BY X.IdEmpresa,X.IdEmpleado;
+
+CREATE TABLE #NumerosEmpleado
+(
+    IdEmpresa int NOT NULL,
+    NumeroEmpleado varchar(200) COLLATE DATABASE_DEFAULT NOT NULL,
+    PRIMARY KEY(IdEmpresa,NumeroEmpleado)
+);
+
+INSERT #NumerosEmpleado(IdEmpresa,NumeroEmpleado)
+SELECT DISTINCT IdEmpresa,NumeroEmpleado
+FROM
+(
+    SELECT IdEmpresa,NumeroEmpleado FROM #Empleados
+    UNION ALL
+    SELECT IdEmpresa,NumeroEmpleado FROM #Solicitudes
+) AS N
+WHERE NumeroEmpleado IS NOT NULL;
+
+/* Se agregan solicitudes historicas/compensatorias referidas por EdoCuenta. */
+INSERT #Solicitudes(IdEmpresa,IdSolicitud,IdEmpleado,NumeroEmpleado,IdVigencia)
+SELECT DISTINCT S.SOIdEmpresa,S.SOIdSolicitud,S.SOIdEmpleado,
+       S.SONumEmpleado,S.SOIdVigencia
+FROM dbo.ff_Solicitud AS S
+WHERE S.SOIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+  AND NOT EXISTS
+      (SELECT 1 FROM #Solicitudes X
+       WHERE X.IdEmpresa=S.SOIdEmpresa AND X.IdSolicitud=S.SOIdSolicitud)
+  AND
+  (
+      EXISTS
+      (
+          SELECT 1 FROM dbo.ff_EdoCuentaCobranza EC
+          WHERE EC.ECidEmpresa=S.SOIdEmpresa
+            AND EC.ECidSolicitud=S.SOIdSolicitud
+            AND
+            (
+                EXISTS(SELECT 1 FROM #Empleados E
+                       WHERE E.IdEmpresa=EC.ECidEmpresa
+                         AND E.IdEmpleado=EC.ECidEmpleado)
+                OR EXISTS(SELECT 1 FROM #NumerosEmpleado N
+                          WHERE N.IdEmpresa=EC.ECidEmpresa
+                            AND N.NumeroEmpleado=EC.ECNumeroEmpleado)
+            )
+      )
+      OR EXISTS
+      (
+          SELECT 1 FROM dbo.ff_EdoCuentaCobranza2 EC
+          WHERE EC.ECidEmpresa=S.SOIdEmpresa
+            AND EC.ECidSolicitud=S.SOIdSolicitud
+            AND
+            (
+                EXISTS(SELECT 1 FROM #Empleados E
+                       WHERE E.IdEmpresa=EC.ECidEmpresa
+                         AND E.IdEmpleado=EC.ECidEmpleado)
+                OR EXISTS(SELECT 1 FROM #NumerosEmpleado N
+                          WHERE N.IdEmpresa=EC.ECidEmpresa
+                            AND N.NumeroEmpleado=EC.ECNumeroEmpleado)
+            )
+      )
+  );
+
+CREATE TABLE #PlanOpciones
+(
+    IdPlanOpcion int NOT NULL PRIMARY KEY
+);
+
+INSERT #PlanOpciones(IdPlanOpcion)
+SELECT DISTINCT IdPlanOpcion
+FROM
+(
+    SELECT P.POIdPlanOpcion AS IdPlanOpcion
+    FROM dbo.ff_PlanOpcionSeleccionCobranza P
+    WHERE P.POIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+      AND P.POIdVigencia IN(SELECT IdVigencia FROM #Vigencias)
+    UNION ALL
+    SELECT P.POIdPlanOpcion
+    FROM dbo.ff_PlanOpcionSeleccionCobranza2 P
+    WHERE P.POIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+      AND P.POIdVigencia IN(SELECT IdVigencia FROM #Vigencias)
+    UNION ALL
+    SELECT EC.ECidPlanOpcion
+    FROM dbo.ff_EdoCuentaCobranza EC
+    WHERE EC.ECidEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+      AND EXISTS(SELECT 1 FROM #Empleados E
+                 WHERE E.IdEmpresa=EC.ECidEmpresa AND E.IdEmpleado=EC.ECidEmpleado)
+    UNION ALL
+    SELECT EC.ECidPlanOpcion
+    FROM dbo.ff_EdoCuentaCobranza2 EC
+    WHERE EC.ECidEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+      AND EXISTS(SELECT 1 FROM #Empleados E
+                 WHERE E.IdEmpresa=EC.ECidEmpresa AND E.IdEmpleado=EC.ECidEmpleado)
+) AS P
+WHERE IdPlanOpcion IS NOT NULL;
+
+CREATE TABLE #Planes
+(
+    IdPlan int NOT NULL PRIMARY KEY
+);
+
+INSERT #Planes(IdPlan)
+SELECT DISTINCT PO.POIdPlan
+FROM dbo.ff_PlanOpcion PO
+WHERE PO.POIdPlanOpcion IN(SELECT IdPlanOpcion FROM #PlanOpciones);
+
+CREATE TABLE #Tarifas
+(
+    IdTarifa int NOT NULL PRIMARY KEY
+);
+
+INSERT #Tarifas(IdTarifa)
+SELECT DISTINCT T.TAIdTarifa
+FROM dbo.ff_Tarifa T
+WHERE T.TAIdVigencia IN(SELECT IdVigencia FROM #Vigencias);
+
+CREATE TABLE #CacheBase
+(
+    CacheId bigint NOT NULL PRIMARY KEY
+);
+
+IF @IncluirLineaBase=1
+BEGIN
+    INSERT #CacheBase(CacheId)
+    SELECT CacheId
+    FROM
+    (
+        SELECT C.CacheId,
+               ROW_NUMBER() OVER
+               (PARTITION BY C.IdVigencia
+                ORDER BY COALESCE(C.FechaCargaFin,C.FechaCargaInicio) DESC,
+                         C.CacheId DESC) AS RN
+        FROM dbo.bf_CobranzaCache_ConsultaV2 C
+        WHERE C.IdEmpresa=@IdEmpresa
+          AND C.IdVigencia IN(SELECT IdVigencia FROM #Vigencias)
+          AND C.EsUniverso=1
+          AND C.Estado='COMPLETA'
+    ) AS X
+    WHERE RN=1;
+END;
+
+/* -----------------------------------------------------------------------
+   00. PARAMETROS Y CONTEOS
+   ----------------------------------------------------------------------- */
+SELECT N'00_PARAMETROS' AS __Tabla,@IdEmpresa AS IdEmpresa,
+       @IdConfiguracion AS IdConfiguracion,@IdVigencia AS IdVigenciaSolicitada,
+       @CantidadVigencias AS CantidadSolicitada,@IdVencida AS IdVencida,
+       @@SERVERNAME AS Servidor,DB_NAME() AS BaseDatos,
+       CAST(SERVERPROPERTY('ProductVersion') AS nvarchar(128)) AS VersionSQL,
+       (SELECT compatibility_level FROM sys.databases WHERE name=DB_NAME()) AS Compatibilidad;
+
+SELECT N'00_VIGENCIAS_EXPORTADAS' AS __Tabla,*
+FROM #Vigencias ORDER BY FecIni;
+
+SELECT N'00_CONTEOS_LLAVES' AS __Tabla,
+       (SELECT COUNT(*) FROM #Empresas) AS Empresas,
+       (SELECT COUNT(*) FROM #Vigencias) AS Vigencias,
+       (SELECT COUNT(*) FROM #Perfiles) AS Perfiles,
+       (SELECT COUNT(*) FROM #Empleados) AS Empleados,
+       (SELECT COUNT(*) FROM #Solicitudes) AS Solicitudes,
+       (SELECT COUNT(*) FROM #PlanOpciones) AS PlanOpciones,
+       (SELECT COUNT(*) FROM #Planes) AS Planes,
+       (SELECT COUNT(*) FROM #Tarifas) AS Tarifas,
+       (SELECT COUNT(*) FROM #CacheBase) AS CachesBase;
+
+/* -----------------------------------------------------------------------
+   01. EMPRESA, VIGENCIA, PERFILES Y PARAMETROS
+   ----------------------------------------------------------------------- */
+SELECT N'dbo.ff_Empresa' AS __Tabla,E.*
+FROM dbo.ff_Empresa E
+WHERE E.EMidEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+ORDER BY E.EMidEmpresa;
+
+SELECT N'dbo.ff_Vigencia' AS __Tabla,V.*
+FROM dbo.ff_Vigencia V
+WHERE V.VIidVigencia IN(SELECT IdVigencia FROM #Vigencias)
+ORDER BY V.VIidVigencia;
+
+SELECT N'dbo.ff_Perfil' AS __Tabla,P.*
+FROM dbo.ff_Perfil P
+WHERE P.PEIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+  AND P.PEIdPerfil IN(SELECT IdPerfil FROM #Perfiles)
+ORDER BY P.PEIdEmpresa,P.PEIdPerfil;
+
+SELECT N'dbo.ff_Parametro' AS __Tabla,P.*
+FROM dbo.ff_Parametro P
+WHERE P.paIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+   OR (P.paIdEmpresa=0 AND UPPER(ISNULL(P.paClase,'')) LIKE 'COBRANZA%')
+ORDER BY P.paIdEmpresa,P.paClase,P.paId;
+
+SELECT N'dbo.ff_VigenciaCalendarioPago' AS __Tabla,V.*
+FROM dbo.ff_VigenciaCalendarioPago V
+WHERE V.VCidVigencia IN(SELECT IdVigencia FROM #Vigencias);
+
+SELECT N'dbo.ff_PeriodicidadPago' AS __Tabla,P.*
+FROM dbo.ff_PeriodicidadPago P
+WHERE EXISTS
+(
+    SELECT 1 FROM dbo.ff_VigenciaCalendarioPago V
+    WHERE V.VCidVigencia IN(SELECT IdVigencia FROM #Vigencias)
+      AND V.VCidPeriodicidadPago=P.PPidPeriodicidadPago
+)
+OR EXISTS
+(
+    SELECT 1 FROM dbo.ff_PlanOpcionSeleccionCobranza2 S
+    WHERE S.POIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+      AND S.POIdVigencia IN(SELECT IdVigencia FROM #Vigencias)
+      AND S.POIdPeriodicidadPago=P.PPidPeriodicidadPago
+);
+
+/* -----------------------------------------------------------------------
+   02. EMPLEADOS, SOLICITUDES Y SELECCIONES
+   ----------------------------------------------------------------------- */
+SELECT N'dbo.ff_Empleado' AS __Tabla,E.*
+FROM dbo.ff_Empleado E
+WHERE EXISTS(SELECT 1 FROM #Empleados K
+             WHERE K.IdEmpresa=E.EMIdEmpresa AND K.IdEmpleado=E.Id)
+   OR EXISTS(SELECT 1 FROM #NumerosEmpleado N
+             WHERE N.IdEmpresa=E.EMIdEmpresa
+               AND N.NumeroEmpleado=E.EMNumeroEmpleado)
+ORDER BY E.EMIdEmpresa,E.EMNumeroEmpleado,E.EMIdParentesco;
+
+SELECT N'dbo.ff_Solicitud' AS __Tabla,S.*
+FROM dbo.ff_Solicitud S
+WHERE EXISTS(SELECT 1 FROM #Solicitudes K
+             WHERE K.IdEmpresa=S.SOIdEmpresa
+               AND K.IdSolicitud=S.SOIdSolicitud)
+ORDER BY S.SOIdEmpresa,S.SOIdSolicitud;
+
+SELECT N'dbo.ff_PlanOpcionSeleccionCobranza' AS __Tabla,P.*
+FROM dbo.ff_PlanOpcionSeleccionCobranza P
+WHERE P.POIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+  AND P.POIdVigencia IN(SELECT IdVigencia FROM #Vigencias)
+ORDER BY P.POIdEmpresa,P.PONumeroEmpleado,P.POIdEmpleado,P.POIdPlanOpcion;
+
+SELECT N'dbo.ff_PlanOpcionSeleccionCobranza2' AS __Tabla,P.*
+FROM dbo.ff_PlanOpcionSeleccionCobranza2 P
+WHERE P.POIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+  AND P.POIdVigencia IN(SELECT IdVigencia FROM #Vigencias)
+ORDER BY P.POIdEmpresa,P.PONumeroEmpleado,P.POIdEmpleado,P.POIdPlanOpcion;
+
+/* -----------------------------------------------------------------------
+   03. ESTADO DE CUENTA, DESCUENTOS Y COMPENSACIONES
+   ----------------------------------------------------------------------- */
+SELECT N'dbo.ff_EdoCuentaCobranza' AS __Tabla,EC.*
+FROM dbo.ff_EdoCuentaCobranza EC
+WHERE EC.ECidEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+  AND
+  (
+      EXISTS(SELECT 1 FROM #Empleados E
+             WHERE E.IdEmpresa=EC.ECidEmpresa AND E.IdEmpleado=EC.ECidEmpleado)
+      OR EXISTS(SELECT 1 FROM #Solicitudes S
+                WHERE S.IdEmpresa=EC.ECidEmpresa AND S.IdSolicitud=EC.ECidSolicitud)
+      OR EXISTS(SELECT 1 FROM #NumerosEmpleado N
+                WHERE N.IdEmpresa=EC.ECidEmpresa
+                  AND N.NumeroEmpleado=EC.ECNumeroEmpleado)
+  );
+
+SELECT N'dbo.ff_EdoCuentaCobranza2' AS __Tabla,EC.*
+FROM dbo.ff_EdoCuentaCobranza2 EC
+WHERE EC.ECidEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+  AND
+  (
+      EXISTS(SELECT 1 FROM #Empleados E
+             WHERE E.IdEmpresa=EC.ECidEmpresa AND E.IdEmpleado=EC.ECidEmpleado)
+      OR EXISTS(SELECT 1 FROM #Solicitudes S
+                WHERE S.IdEmpresa=EC.ECidEmpresa AND S.IdSolicitud=EC.ECidSolicitud)
+      OR EXISTS(SELECT 1 FROM #NumerosEmpleado N
+                WHERE N.IdEmpresa=EC.ECidEmpresa
+                  AND N.NumeroEmpleado=EC.ECNumeroEmpleado)
+  );
+
+SELECT N'dbo.ff_DescuentoEmpleado' AS __Tabla,D.*
+FROM dbo.ff_DescuentoEmpleado D
+WHERE EXISTS(SELECT 1 FROM #NumerosEmpleado N
+             WHERE N.IdEmpresa=D.DEIdEmpresa
+               AND N.NumeroEmpleado=D.DENumeroEmpleado);
+
+SELECT N'dbo.ff_CompensacionEmpleado' AS __Tabla,C.*
+FROM dbo.ff_CompensacionEmpleado C
+WHERE C.CEIdEmpleado IN(SELECT IdEmpleado FROM #Empleados);
+
+SELECT N'dbo.ff_CompensacionPlanOpcion' AS __Tabla,C.*
+FROM dbo.ff_CompensacionPlanOpcion C
+WHERE C.CPIdPlanOpcion IN(SELECT IdPlanOpcion FROM #PlanOpciones)
+   OR C.CPIdCompensacion IN
+      (
+          SELECT EC.ECidCompensacion FROM dbo.ff_EdoCuentaCobranza EC
+          WHERE EC.ECidEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+            AND EC.ECidCompensacion IS NOT NULL
+          UNION
+          SELECT EC.ECidCompensacion FROM dbo.ff_EdoCuentaCobranza2 EC
+          WHERE EC.ECidEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+            AND EC.ECidCompensacion IS NOT NULL
+      );
+
+SELECT N'dbo.ff_CobranzaConcentrada' AS __Tabla,C.*
+FROM dbo.ff_CobranzaConcentrada C
+WHERE C.ccIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+  AND C.ccIdEmpleado IN(SELECT IdEmpleado FROM #Empleados);
+
+SELECT N'dbo.ff_CobranzaSubtotal' AS __Tabla,C.*
+FROM dbo.ff_CobranzaSubtotal C
+WHERE C.CsIdEmpresa IN(SELECT IdEmpresa FROM #Empresas);
+
+/* -----------------------------------------------------------------------
+   04. PLANES, TARIFAS Y CATALOGOS RELACIONADOS
+   ----------------------------------------------------------------------- */
+SELECT N'dbo.ff_PlanOpcion' AS __Tabla,P.*
+FROM dbo.ff_PlanOpcion P
+WHERE P.POIdPlanOpcion IN(SELECT IdPlanOpcion FROM #PlanOpciones);
+
+SELECT N'dbo.ff_Plan' AS __Tabla,P.*
+FROM dbo.ff_Plan P
+WHERE P.PLIdPlan IN(SELECT IdPlan FROM #Planes);
+
+SELECT N'dbo.ff_PlanOpcionVigencia' AS __Tabla,V.*
+FROM dbo.ff_PlanOpcionVigencia V
+WHERE V.VCIdVigencia IN(SELECT IdVigencia FROM #Vigencias)
+  AND V.VCIdPlanOpcion IN(SELECT IdPlanOpcion FROM #PlanOpciones);
+
+SELECT N'dbo.ff_PlanOpcionPerfil' AS __Tabla,P.*
+FROM dbo.ff_PlanOpcionPerfil P
+WHERE P.PPIdPlanOpcion IN(SELECT IdPlanOpcion FROM #PlanOpciones)
+  AND P.PPIdPerfil IN(SELECT IdPerfil FROM #Perfiles);
+
+SELECT N'dbo.ff_Tarifa' AS __Tabla,T.*
+FROM dbo.ff_Tarifa T
+WHERE T.TAIdTarifa IN(SELECT IdTarifa FROM #Tarifas);
+
+SELECT N'dbo.ff_TarifaCosto' AS __Tabla,T.*
+FROM dbo.ff_TarifaCosto T
+WHERE T.TCIdTarifa IN(SELECT IdTarifa FROM #Tarifas)
+  AND T.TCIdPlanOpcion IN(SELECT IdPlanOpcion FROM #PlanOpciones);
+
+SELECT N'dbo.ff_TarifaCostoPerfil' AS __Tabla,T.*
+FROM dbo.ff_TarifaCostoPerfil T
+WHERE T.TPIdTarifa IN(SELECT IdTarifa FROM #Tarifas)
+  AND T.TPIdPlanOpcion IN(SELECT IdPlanOpcion FROM #PlanOpciones)
+  AND T.TPIdPerfil IN(SELECT IdPerfil FROM #Perfiles);
+
+SELECT N'dbo.ff_ConcepAgrupaCob' AS __Tabla,C.*
+FROM dbo.ff_ConcepAgrupaCob C
+WHERE C.CAIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+  AND C.CAIdPlanOpcion IN(SELECT IdPlanOpcion FROM #PlanOpciones);
+
+SELECT N'dbo.ff_GMMDesgCob' AS __Tabla,G.*
+FROM dbo.ff_GMMDesgCob G
+WHERE G.GDIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+  AND G.GDIdPlanOpcion IN(SELECT IdPlanOpcion FROM #PlanOpciones);
+
+SELECT N'dbo.ff_ValidaSAVida' AS __Tabla,V.*
+FROM dbo.ff_ValidaSAVida V
+WHERE V.VSIdVigencia IN(SELECT IdVigencia FROM #Vigencias)
+  AND V.VSIdEmpleado IN(SELECT IdEmpleado FROM #Empleados)
+  AND V.VSIdPlanOpcion IN(SELECT IdPlanOpcion FROM #PlanOpciones);
+
+SELECT N'dbo.ff_ConfiguracionParentesco' AS __Tabla,C.*
+FROM dbo.ff_ConfiguracionParentesco C
+WHERE C.PCIdConfiguracion=@IdConfiguracion;
+
+SELECT N'dbo.ff_GrupoParentesco' AS __Tabla,G.*
+FROM dbo.ff_GrupoParentesco G
+WHERE G.GPIdGrupoParentesco IN
+(
+    SELECT P.POIdGrupoParentesco
+    FROM dbo.ff_PlanOpcionSeleccionCobranza P
+    WHERE P.POIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+      AND P.POIdVigencia IN(SELECT IdVigencia FROM #Vigencias)
+    UNION
+    SELECT P.POIdGrupoParentesco
+    FROM dbo.ff_PlanOpcionSeleccionCobranza2 P
+    WHERE P.POIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+      AND P.POIdVigencia IN(SELECT IdVigencia FROM #Vigencias)
+);
+
+SELECT N'dbo.ff_GrupoParentescoParentesco' AS __Tabla,G.*
+FROM dbo.ff_GrupoParentescoParentesco G
+WHERE G.GPIdGrupoParentesco IN
+(
+    SELECT P.POIdGrupoParentesco
+    FROM dbo.ff_PlanOpcionSeleccionCobranza2 P
+    WHERE P.POIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+      AND P.POIdVigencia IN(SELECT IdVigencia FROM #Vigencias)
+);
+
+SELECT N'dbo.ff_Parentesco' AS __Tabla,P.*
+FROM dbo.ff_Parentesco P
+WHERE P.PAIdParentesco IN
+(
+    SELECT E.EMIdParentesco FROM dbo.ff_Empleado E
+    WHERE EXISTS(SELECT 1 FROM #Empleados K
+                 WHERE K.IdEmpresa=E.EMIdEmpresa AND K.IdEmpleado=E.Id)
+);
+
+SELECT N'dbo.ff_Sexo' AS __Tabla,S.*
+FROM dbo.ff_Sexo S
+WHERE S.SEIdSexo IN
+(
+    SELECT E.EMIdSexo FROM dbo.ff_Empleado E
+    WHERE EXISTS(SELECT 1 FROM #Empleados K
+                 WHERE K.IdEmpresa=E.EMIdEmpresa AND K.IdEmpleado=E.Id)
+);
+
+SELECT N'dbo.ff_Ramo' AS __Tabla,R.*
+FROM dbo.ff_Ramo R
+WHERE R.RAIdRamo IN
+(
+    SELECT P.PLIdRamo FROM dbo.ff_Plan P
+    WHERE P.PLIdPlan IN(SELECT IdPlan FROM #Planes)
+);
+
+SELECT N'dbo.ff_TablaEncabezado' AS __Tabla,E.*
+FROM dbo.ff_TablaEncabezado E
+WHERE E.ENIdEmpresa IN(SELECT IdEmpresa FROM #Empresas);
+
+SELECT N'dbo.ff_TablaEncabezadoDetalle' AS __Tabla,D.*
+FROM dbo.ff_TablaEncabezadoDetalle D
+WHERE EXISTS
+(
+    SELECT 1 FROM dbo.ff_TablaEncabezado E
+    WHERE E.ENIdEmpresa IN(SELECT IdEmpresa FROM #Empresas)
+      AND E.ENClave=D.TEEnClave
+);
+
+SELECT N'dbo.bf_MobileDatoAseguradoraProveedor' AS __Tabla,A.*
+FROM dbo.bf_MobileDatoAseguradoraProveedor A
+WHERE A.DAPIdAseguradoraProveedor IN
+(
+    SELECT P.PLIdAseguradora FROM dbo.ff_Plan P
+    WHERE P.PLIdPlan IN(SELECT IdPlan FROM #Planes)
+);
+
+/* -----------------------------------------------------------------------
+   05. TARJETAS/BANWIRE RELACIONADOS, SI EXISTEN
+   ----------------------------------------------------------------------- */
+IF OBJECT_ID(N'dbo.bf_RegistroTarjetaEmpleado',N'U') IS NOT NULL
+BEGIN
+    EXEC sys.sp_executesql N'
+        SELECT N''dbo.bf_RegistroTarjetaEmpleado'' AS __Tabla,R.*
+        FROM dbo.bf_RegistroTarjetaEmpleado R
+        WHERE R.RTEIdEmpleadoTitular IN(SELECT IdEmpleado FROM #Empleados);';
+END;
+
+IF OBJECT_ID(N'dbo.bf_BanwireRecibos',N'U') IS NOT NULL
+   AND OBJECT_ID(N'dbo.bf_RegistroTarjetaEmpleado',N'U') IS NOT NULL
+BEGIN
+    EXEC sys.sp_executesql N'
+        SELECT N''dbo.bf_BanwireRecibos'' AS __Tabla,B.*
+        FROM dbo.bf_BanwireRecibos B
+        WHERE B.BRIdRegistroTarjeta IN
+        (
+            SELECT R.RTEIdRegistroTarjeta
+            FROM dbo.bf_RegistroTarjetaEmpleado R
+            WHERE R.RTEIdEmpleadoTitular IN(SELECT IdEmpleado FROM #Empleados)
+        );';
+END;
+
+/* -----------------------------------------------------------------------
+   06. LINEA BASE DEL CACHE: EVIDENCIA, NO IMPORTAR COMO FUENTE
+   ----------------------------------------------------------------------- */
+IF @IncluirLineaBase=1
+BEGIN
+    SELECT N'BASELINE_NO_IMPORTAR_dbo.bf_CobranzaCache_ConsultaV2' AS __Tabla,C.*
+    FROM dbo.bf_CobranzaCache_ConsultaV2 C
+    WHERE C.CacheId IN(SELECT CacheId FROM #CacheBase);
+
+    SELECT N'BASELINE_NO_IMPORTAR_dbo.bf_CobranzaCache_ConcentradaV2' AS __Tabla,C.*
+    FROM dbo.bf_CobranzaCache_ConcentradaV2 C
+    WHERE C.CacheId IN(SELECT CacheId FROM #CacheBase);
+
+    SELECT N'BASELINE_NO_IMPORTAR_dbo.bf_CobranzaCache_DesglosadaV2' AS __Tabla,D.*
+    FROM dbo.bf_CobranzaCache_DesglosadaV2 D
+    WHERE D.CacheId IN(SELECT CacheId FROM #CacheBase);
+
+    IF OBJECT_ID(N'dbo.bf_CobranzaCache_BanwireV2',N'U') IS NOT NULL
+        EXEC sys.sp_executesql N'
+            SELECT N''BASELINE_NO_IMPORTAR_dbo.bf_CobranzaCache_BanwireV2'' AS __Tabla,B.*
+            FROM dbo.bf_CobranzaCache_BanwireV2 B
+            WHERE B.CacheId IN(SELECT CacheId FROM #CacheBase);';
+
+    IF OBJECT_ID(N'dbo.bf_CobranzaCache_CapturaBasesV2',N'U') IS NOT NULL
+        EXEC sys.sp_executesql N'
+            SELECT N''BASELINE_NO_IMPORTAR_dbo.bf_CobranzaCache_CapturaBasesV2'' AS __Tabla,B.*
+            FROM dbo.bf_CobranzaCache_CapturaBasesV2 B
+            WHERE B.CacheId IN(SELECT CacheId FROM #CacheBase);';
+
+    SELECT N'BASELINE_NO_IMPORTAR_dbo.bf_CobranzaCache_Log' AS __Tabla,L.*
+    FROM dbo.bf_CobranzaCache_Log L
+    WHERE L.CacheId IN(SELECT CacheId FROM #CacheBase)
+    ORDER BY L.CacheId,L.LogId;
+END;
+
+/* -----------------------------------------------------------------------
+   07. METADATOS DE ESQUEMA E INDICES PARA PODER IMPORTAR Y COMPARAR PLANES
+   ----------------------------------------------------------------------- */
+SELECT N'ESQUEMA_COLUMNAS' AS __Tabla,
+       SCHEMA_NAME(O.schema_id) AS Esquema,O.name AS Tabla,C.column_id,
+       C.name AS Columna,T.name AS Tipo,C.max_length,C.precision,C.scale,
+       C.is_nullable,C.is_identity,C.collation_name
+FROM sys.objects O
+INNER JOIN sys.columns C ON C.object_id=O.object_id
+INNER JOIN sys.types T ON T.user_type_id=C.user_type_id
+WHERE O.type='U'
+  AND O.name IN
+  (
+      'ff_Empresa','ff_Vigencia','ff_Perfil','ff_Parametro','ff_Empleado',
+      'ff_Solicitud','ff_PlanOpcionSeleccionCobranza',
+      'ff_PlanOpcionSeleccionCobranza2','ff_EdoCuentaCobranza',
+      'ff_EdoCuentaCobranza2','ff_DescuentoEmpleado',
+      'ff_CompensacionEmpleado','ff_CompensacionPlanOpcion',
+      'ff_CobranzaConcentrada','ff_CobranzaSubtotal','ff_PlanOpcion',
+      'ff_Plan','ff_PlanOpcionVigencia','ff_PlanOpcionPerfil','ff_Tarifa',
+      'ff_TarifaCosto','ff_TarifaCostoPerfil','ff_ConcepAgrupaCob',
+      'ff_GMMDesgCob','ff_ValidaSAVida','ff_ConfiguracionParentesco',
+      'ff_GrupoParentesco','ff_GrupoParentescoParentesco','ff_Parentesco',
+      'ff_Sexo','ff_Ramo','ff_TablaEncabezado',
+      'ff_TablaEncabezadoDetalle','ff_VigenciaCalendarioPago',
+      'ff_PeriodicidadPago','bf_MobileDatoAseguradoraProveedor',
+      'bf_RegistroTarjetaEmpleado','bf_BanwireRecibos'
+  )
+ORDER BY O.name,C.column_id;
+
+SELECT N'ESQUEMA_INDICES' AS __Tabla,
+       OBJECT_SCHEMA_NAME(I.object_id) AS Esquema,
+       OBJECT_NAME(I.object_id) AS Tabla,I.name AS Indice,I.type_desc,
+       I.is_unique,I.is_primary_key,IC.key_ordinal,IC.is_included_column,
+       C.name AS Columna
+FROM sys.indexes I
+INNER JOIN sys.index_columns IC
+        ON IC.object_id=I.object_id AND IC.index_id=I.index_id
+INNER JOIN sys.columns C
+        ON C.object_id=IC.object_id AND C.column_id=IC.column_id
+WHERE I.object_id IN
+(
+    OBJECT_ID(N'dbo.ff_Empleado'),OBJECT_ID(N'dbo.ff_Solicitud'),
+    OBJECT_ID(N'dbo.ff_PlanOpcionSeleccionCobranza'),
+    OBJECT_ID(N'dbo.ff_PlanOpcionSeleccionCobranza2'),
+    OBJECT_ID(N'dbo.ff_EdoCuentaCobranza'),
+    OBJECT_ID(N'dbo.ff_EdoCuentaCobranza2'),
+    OBJECT_ID(N'dbo.ff_Tarifa'),OBJECT_ID(N'dbo.ff_TarifaCosto'),
+    OBJECT_ID(N'dbo.ff_TarifaCostoPerfil'),OBJECT_ID(N'dbo.ff_ValidaSAVida')
+)
+ORDER BY Tabla,Indice,IC.key_ordinal,IC.index_column_id;
+
+SELECT N'FIN_EXPORTACION' AS __Tabla,@IdEmpresa AS IdEmpresa,
+       (SELECT COUNT(*) FROM #Vigencias) AS Vigencias,
+       (SELECT COUNT(*) FROM #Empleados) AS Empleados,
+       (SELECT COUNT(*) FROM #Solicitudes) AS Solicitudes,
+       (SELECT COUNT(*) FROM #PlanOpciones) AS PlanOpciones,
+       (SELECT COUNT(*) FROM #CacheBase) AS CachesBase;
