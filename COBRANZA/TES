@@ -1,3 +1,20 @@
+
+LongitudProcedimiento	PosCreateEcAgg	PosInsertEcAgg	PosEdoCuenta2	PosWhereEmpresa	PosIndiceTemporal	PosMarcaInstalada
+869	0	0	0	0	0	0
+
+BloqueEcAgg
+EL PROCEDIMIENTO NO CONTIENE #ec_agg
+
+NombreIndice	Estado
+IX_BF_Cobranza_CA_EmpresaPlanConcepto	CREADO
+IX_BF_Cobranza2_EmpresaSolicitudEmpleado	CREADO
+IX_BF_Cobranza_EmpresaSolicitudNumero	CREADO
+IX_BF_POSCob2_EmpresaVigenciaEstatusEmpleado	CREADO
+
+
+
+----------------------------
+
 SET NOCOUNT ON;
 
 DECLARE @Def nvarchar(max) =
