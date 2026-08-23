@@ -1,3 +1,96 @@
+SET NOCOUNT ON;
+
+DECLARE @Def nvarchar(max) =
+    OBJECT_DEFINITION(
+        OBJECT_ID(N'dbo.ObtenCobranzaConcentrada_otro_V2_BF3')
+    ),
+    @Upper nvarchar(max),
+    @PosEcAgg int;
+
+IF @Def IS NULL
+    THROW 51800,
+        'No existe dbo.ObtenCobranzaConcentrada_otro_V2_BF3.',
+        1;
+
+SET @Upper = UPPER(@Def) COLLATE Latin1_General_100_CI_AS;
+SET @PosEcAgg = CHARINDEX(N'#EC_AGG', @Upper);
+
+SELECT
+    LEN(@Def) AS LongitudProcedimiento,
+
+    CHARINDEX(
+        N'CREATE TABLE #EC_AGG',
+        @Upper
+    ) AS PosCreateEcAgg,
+
+    CHARINDEX(
+        N'INSERT INTO #EC_AGG',
+        @Upper
+    ) AS PosInsertEcAgg,
+
+    CHARINDEX(
+        N'FROM DBO.FF_EDOCUENTACOBRANZA2',
+        @Upper
+    ) AS PosEdoCuenta2,
+
+    CHARINDEX(
+        N'WHERE EC.ECIDEMPRESA',
+        @Upper
+    ) AS PosWhereEmpresa,
+
+    CHARINDEX(
+        N'IX_EC_AGG',
+        @Upper
+    ) AS PosIndiceTemporal,
+
+    CHARINDEX(
+        N'BF_CACHE_PERF_SCOPE_EC_AGG_V1',
+        @Upper
+    ) AS PosMarcaInstalada;
+
+SELECT
+    CASE
+        WHEN @PosEcAgg = 0 THEN
+            N'EL PROCEDIMIENTO NO CONTIENE #ec_agg'
+        ELSE
+            SUBSTRING(
+                @Def,
+                CASE
+                    WHEN @PosEcAgg > 1500 THEN @PosEcAgg - 1500
+                    ELSE 1
+                END,
+                12000
+            )
+    END AS BloqueEcAgg;
+
+SELECT
+    V.NombreIndice,
+    CASE WHEN I.index_id IS NULL
+         THEN N'NO CREADO'
+         ELSE N'CREADO'
+    END AS Estado
+FROM
+(
+    VALUES
+      (N'dbo.ff_ConcepAgrupaCob',
+       N'IX_BF_Cobranza_CA_EmpresaPlanConcepto'),
+
+      (N'dbo.ff_EdoCuentaCobranza2',
+       N'IX_BF_Cobranza2_EmpresaSolicitudEmpleado'),
+
+      (N'dbo.ff_EdoCuentaCobranza',
+       N'IX_BF_Cobranza_EmpresaSolicitudNumero'),
+
+      (N'dbo.ff_PlanOpcionSeleccionCobranza2',
+       N'IX_BF_POSCob2_EmpresaVigenciaEstatusEmpleado')
+) V(Tabla, NombreIndice)
+LEFT JOIN sys.indexes I
+       ON I.object_id = OBJECT_ID(V.Tabla)
+      AND I.name = V.NombreIndice;
+
+
+------------------------
+
 Mens. 51801, Nivel 16, Estado 1, Línea 44
 El bloque #ec_agg no coincide con la version esperada; no se aplico un reemplazo parcial.
 
