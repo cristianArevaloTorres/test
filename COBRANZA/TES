@@ -1,4 +1,86 @@
 
+
+
+SET NOCOUNT ON;
+
+SELECT
+    V.Procedimiento,
+    CASE WHEN D.Definicion IS NULL
+         THEN N'NO EXISTE'
+         ELSE N'EXISTE'
+    END AS Existencia,
+    LEN(D.Definicion) AS Longitud,
+    CHARINDEX(
+        N'CREATE TABLE #EC_AGG',
+        UPPER(D.Definicion)
+    ) AS PosCreateEcAgg,
+    CHARINDEX(
+        N'INSERT INTO #EC_AGG',
+        UPPER(D.Definicion)
+    ) AS PosInsertEcAgg,
+    CHARINDEX(
+        N'INNER JOIN #EC_AGG',
+        UPPER(D.Definicion)
+    ) AS PosUsoEcAgg,
+    CHARINDEX(
+        N'BF_CACHE_PERF_SCOPE_EC_AGG_V1',
+        UPPER(D.Definicion)
+    ) AS PosFiltroVigencia,
+    CHARINDEX(
+        N'BF3_CONCENTRADA_ETAPAS_SET_V1',
+        UPPER(D.Definicion)
+    ) AS PosFlujoSet
+FROM
+(
+    VALUES
+      (N'dbo.ObtenCobranzaConcentrada_otro_V2_BF3_LEGACY'),
+      (N'dbo.ObtenCobranzaConcentrada_otro_V2_BF3_OPT'),
+      (N'dbo.ObtenCobranzaConcentrada_otro_V2_BF3_SET'),
+      (N'dbo.ObtenCobranzaConcentrada_otro_V2_BF3')
+) V(Procedimiento)
+OUTER APPLY
+(
+    SELECT OBJECT_DEFINITION(OBJECT_ID(V.Procedimiento)) AS Definicion
+) D;
+
+
+DECLARE @Def nvarchar(max) =
+    OBJECT_DEFINITION(
+        OBJECT_ID(
+          N'dbo.ObtenCobranzaConcentrada_otro_V2_BF3_SET'
+        )
+    ),
+    @Upper nvarchar(max),
+    @Pos int;
+
+IF @Def IS NULL
+    THROW 51810,
+        'No existe el procedimiento B3 SET.',
+        1;
+
+SET @Upper = UPPER(@Def);
+
+SET @Pos = COALESCE(
+    NULLIF(CHARINDEX(N'CREATE TABLE #EC_AGG', @Upper), 0),
+    NULLIF(CHARINDEX(N'INSERT INTO #EC_AGG', @Upper), 0),
+    NULLIF(CHARINDEX(N'#EC_AGG', @Upper), 0),
+    0
+);
+
+SELECT
+    CASE
+        WHEN @Pos = 0 THEN
+            N'EL PROCEDIMIENTO SET NO CONTIENE #ec_agg'
+        ELSE
+            SUBSTRING(
+                @Def,
+                CASE WHEN @Pos > 1000 THEN @Pos - 1000 ELSE 1 END,
+                8000
+            )
+    END AS BloqueEcAgg_SET;
+
+
+--------------------
 LongitudProcedimiento	PosCreateEcAgg	PosInsertEcAgg	PosEdoCuenta2	PosWhereEmpresa	PosIndiceTemporal	PosMarcaInstalada
 869	0	0	0	0	0	0
 
