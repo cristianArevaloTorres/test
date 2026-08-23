@@ -22,10 +22,21 @@ DECLARE @IdEmpresa int=186,
         @IdVigenciaEspecifica int=NULL, -- NULL = analizar las mas recientes
         @CantidadVigencias int=12,
 
-        /* Limites iniciales para escoger un piloto. Son configurables. */
-        @LimiteIdeal bigint=500000,
-        @LimiteUtilizable bigint=2000000,
-        @LimitePesada bigint=5000000,
+        /*
+           Limites estrictos para ahorrar tiempo durante las pruebas.
+           Una prueba RAPIDA debe cumplir todos sus limites simultaneamente.
+        */
+        @LimiteFilasRapida bigint=100000,
+        @LimiteEmpleadosRapida bigint=1500,
+        @LimiteSolicitudesRapida bigint=2000,
+        @LimiteEdoCuentaB3Rapida bigint=50000,
+
+        @LimiteFilasMedia bigint=500000,
+        @LimiteEmpleadosMedia bigint=5000,
+        @LimiteSolicitudesMedia bigint=6000,
+        @LimiteEdoCuentaB3Media bigint=150000,
+
+        @LimiteFilasLarga bigint=2000000,
 
         @IdConfiguracion int,
         @EmpleadosActivos bigint,
@@ -316,7 +327,9 @@ CREATE TABLE #Resumen
     Recomendacion varchar(200) NOT NULL,
     CacheId bigint NULL,
     EstadoCache varchar(20) NULL,
-    FilasCache bigint NULL
+    FilasCache bigint NULL,
+    DuracionRelativa varchar(20) NOT NULL,
+    EsViablePruebaRapida bit NOT NULL
 );
 
 INSERT #Resumen
@@ -330,7 +343,8 @@ SELECT V.IdVigencia,V.VigenciaInicio,V.VigenciaFin,
        ISNULL(SA.Filas,0),W.FilasEstrategicas,
        C.Nivel,C.Clasificacion,C.Recomendacion,
        CA.CacheId,CA.Estado,
-       ISNULL(CA.FilasConcentrada,0)+ISNULL(CA.FilasDesglosada,0)
+       ISNULL(CA.FilasConcentrada,0)+ISNULL(CA.FilasDesglosada,0),
+       C.DuracionRelativa,C.EsViablePruebaRapida
 FROM #Vigencias AS V
 LEFT JOIN #Solicitud AS S ON S.IdVigencia=V.IdVigencia
 LEFT JOIN #Seleccion1 AS P1 ON P1.IdVigencia=V.IdVigencia
@@ -356,34 +370,79 @@ CROSS APPLY
       CASE
         WHEN ISNULL(S.Solicitudes,0)=0 THEN 5
         WHEN ISNULL(P2.Selecciones,0)=0 OR ISNULL(E2.Filas,0)=0 THEN 5
-        WHEN W.FilasEstrategicas<=@LimiteIdeal THEN 1
-        WHEN W.FilasEstrategicas<=@LimiteUtilizable THEN 2
-        WHEN W.FilasEstrategicas<=@LimitePesada THEN 3
+        WHEN W.FilasEstrategicas<=@LimiteFilasRapida
+         AND ISNULL(S.EmpleadosSolicitud,0)<=@LimiteEmpleadosRapida
+         AND ISNULL(S.Solicitudes,0)<=@LimiteSolicitudesRapida
+         AND ISNULL(E2.Filas,0)<=@LimiteEdoCuentaB3Rapida THEN 1
+        WHEN W.FilasEstrategicas<=@LimiteFilasMedia
+         AND ISNULL(S.EmpleadosSolicitud,0)<=@LimiteEmpleadosMedia
+         AND ISNULL(S.Solicitudes,0)<=@LimiteSolicitudesMedia
+         AND ISNULL(E2.Filas,0)<=@LimiteEdoCuentaB3Media THEN 2
+        WHEN W.FilasEstrategicas<=@LimiteFilasLarga THEN 3
         ELSE 4
       END,
       CASE
         WHEN ISNULL(S.Solicitudes,0)=0 THEN 'SIN DATOS'
         WHEN ISNULL(P2.Selecciones,0)=0 OR ISNULL(E2.Filas,0)=0
           THEN 'INCOMPLETA PARA B3'
-        WHEN W.FilasEstrategicas<=@LimiteIdeal THEN 'IDEAL PARA PILOTO'
-        WHEN W.FilasEstrategicas<=@LimiteUtilizable THEN 'UTILIZABLE'
-        WHEN W.FilasEstrategicas<=@LimitePesada THEN 'PESADA'
-        ELSE 'MUY PESADA'
+        WHEN W.FilasEstrategicas<=@LimiteFilasRapida
+         AND ISNULL(S.EmpleadosSolicitud,0)<=@LimiteEmpleadosRapida
+         AND ISNULL(S.Solicitudes,0)<=@LimiteSolicitudesRapida
+         AND ISNULL(E2.Filas,0)<=@LimiteEdoCuentaB3Rapida
+          THEN 'VIABLE - PRUEBA RAPIDA'
+        WHEN W.FilasEstrategicas<=@LimiteFilasMedia
+         AND ISNULL(S.EmpleadosSolicitud,0)<=@LimiteEmpleadosMedia
+         AND ISNULL(S.Solicitudes,0)<=@LimiteSolicitudesMedia
+         AND ISNULL(E2.Filas,0)<=@LimiteEdoCuentaB3Media
+          THEN 'VIABLE - DURACION MEDIA'
+        WHEN W.FilasEstrategicas<=@LimiteFilasLarga THEN 'PRUEBA LARGA'
+        ELSE 'NO RECOMENDADA'
       END,
       CASE
         WHEN ISNULL(S.Solicitudes,0)=0
           THEN 'No usar: la vigencia no tiene solicitudes para esta empresa.'
         WHEN ISNULL(P2.Selecciones,0)=0 OR ISNULL(E2.Filas,0)=0
           THEN 'No usar para validar B3 completo: faltan selecciones o estado de cuenta B3.'
-        WHEN W.FilasEstrategicas<=@LimiteIdeal
-          THEN 'Primera opcion para ejecutar DIRECTO y despues CACHE.'
-        WHEN W.FilasEstrategicas<=@LimiteUtilizable
-          THEN 'Puede usarse; medir IO y tiempo antes de probar otra vigencia.'
-        WHEN W.FilasEstrategicas<=@LimitePesada
-          THEN 'Usar con precaucion y fuera de horario de carga.'
-        ELSE 'No usar como primer piloto; elegir una vigencia mas pequena.'
+        WHEN W.FilasEstrategicas<=@LimiteFilasRapida
+         AND ISNULL(S.EmpleadosSolicitud,0)<=@LimiteEmpleadosRapida
+         AND ISNULL(S.Solicitudes,0)<=@LimiteSolicitudesRapida
+         AND ISNULL(E2.Filas,0)<=@LimiteEdoCuentaB3Rapida
+          THEN 'SI usar: volumen pequeno para ahorrar tiempo en DIRECTO y CACHE.'
+        WHEN W.FilasEstrategicas<=@LimiteFilasMedia
+         AND ISNULL(S.EmpleadosSolicitud,0)<=@LimiteEmpleadosMedia
+         AND ISNULL(S.Solicitudes,0)<=@LimiteSolicitudesMedia
+         AND ISNULL(E2.Filas,0)<=@LimiteEdoCuentaB3Media
+          THEN 'Puede usarse, pero no es una prueba pequena; esperar una duracion media.'
+        WHEN W.FilasEstrategicas<=@LimiteFilasLarga
+          THEN 'Evitar si se busca rapidez; usar solo para una prueba de carga controlada.'
+        ELSE 'No usar para pruebas iterativas; elegir otra empresa o vigencia.'
+      END,
+      CASE
+        WHEN ISNULL(S.Solicitudes,0)=0
+          OR ISNULL(P2.Selecciones,0)=0 OR ISNULL(E2.Filas,0)=0
+          THEN 'NO APLICA'
+        WHEN W.FilasEstrategicas<=@LimiteFilasRapida
+         AND ISNULL(S.EmpleadosSolicitud,0)<=@LimiteEmpleadosRapida
+         AND ISNULL(S.Solicitudes,0)<=@LimiteSolicitudesRapida
+         AND ISNULL(E2.Filas,0)<=@LimiteEdoCuentaB3Rapida THEN 'CORTA'
+        WHEN W.FilasEstrategicas<=@LimiteFilasMedia
+         AND ISNULL(S.EmpleadosSolicitud,0)<=@LimiteEmpleadosMedia
+         AND ISNULL(S.Solicitudes,0)<=@LimiteSolicitudesMedia
+         AND ISNULL(E2.Filas,0)<=@LimiteEdoCuentaB3Media THEN 'MEDIA'
+        WHEN W.FilasEstrategicas<=@LimiteFilasLarga THEN 'LARGA'
+        ELSE 'MUY LARGA'
+      END,
+      CASE
+        WHEN ISNULL(S.Solicitudes,0)>0
+         AND ISNULL(P2.Selecciones,0)>0
+         AND ISNULL(E2.Filas,0)>0
+         AND W.FilasEstrategicas<=@LimiteFilasRapida
+         AND ISNULL(S.EmpleadosSolicitud,0)<=@LimiteEmpleadosRapida
+         AND ISNULL(S.Solicitudes,0)<=@LimiteSolicitudesRapida
+         AND ISNULL(E2.Filas,0)<=@LimiteEdoCuentaB3Rapida THEN CONVERT(bit,1)
+        ELSE CONVERT(bit,0)
       END
-) AS C(Nivel,Clasificacion,Recomendacion);
+) AS C(Nivel,Clasificacion,Recomendacion,DuracionRelativa,EsViablePruebaRapida);
 
 /* 00. Datos generales de la empresa. */
 SELECT N'EMPRESA' AS Resultado,
@@ -394,18 +453,43 @@ SELECT N'EMPRESA' AS Resultado,
        @EmpleadosActivos AS EmpleadosActivos,
        @PerfilesActivos AS PerfilesActivosNoAdministradores,
        (SELECT COUNT(*) FROM #Vigencias) AS VigenciasAnalizadas,
-       @LimiteIdeal AS LimiteIdeal,
-       @LimiteUtilizable AS LimiteUtilizable,
-       @LimitePesada AS LimitePesada
+       B.IdVigencia AS MejorIdVigencia,
+       B.FilasEstrategicas AS FilasMejorVigencia,
+       B.EmpleadosSolicitud AS EmpleadosMejorVigencia,
+       B.Clasificacion AS ClasificacionMejorVigencia,
+       B.DuracionRelativa,
+       CASE WHEN B.EsViablePruebaRapida=1
+            THEN 'SI: EMPRESA VIABLE PARA PRUEBA RAPIDA'
+            WHEN B.Nivel=2
+            THEN 'NO ES PEQUENA: VIABLE PARA PRUEBA DE DURACION MEDIA'
+            WHEN B.Nivel=3
+            THEN 'NO: LA MEJOR VIGENCIA IMPLICA UNA PRUEBA LARGA'
+            WHEN B.Nivel=4
+            THEN 'NO RECOMENDADA PARA PRUEBAS ITERATIVAS'
+            ELSE 'NO HAY UNA VIGENCIA COMPLETA PARA B3'
+       END AS DictamenEmpresa,
+       @LimiteFilasRapida AS MaxFilasPruebaRapida,
+       @LimiteEmpleadosRapida AS MaxEmpleadosPruebaRapida,
+       @LimiteSolicitudesRapida AS MaxSolicitudesPruebaRapida,
+       @LimiteEdoCuentaB3Rapida AS MaxEdoCuentaB3PruebaRapida
 FROM dbo.ff_Empresa AS E
+OUTER APPLY
+(
+    SELECT TOP (1) R.IdVigencia,R.FilasEstrategicas,
+           R.EmpleadosSolicitud,R.Clasificacion,R.DuracionRelativa,
+           R.EsViablePruebaRapida,R.Nivel
+    FROM #Resumen AS R
+    WHERE R.Nivel<5
+    ORDER BY R.Nivel,R.FilasEstrategicas,R.VigenciaInicio DESC
+) AS B
 WHERE E.EMidEmpresa=@IdEmpresa;
 
 /* 01. Todas las vigencias analizadas y sus conteos. */
 SELECT ROW_NUMBER() OVER
        (
            ORDER BY R.Nivel,
-                    CASE WHEN R.EstadoCache='COMPLETA' THEN 0 ELSE 1 END,
                     R.FilasEstrategicas,
+                    CASE WHEN R.EstadoCache='COMPLETA' THEN 0 ELSE 1 END,
                     R.VigenciaInicio DESC
        ) AS OrdenSugerido,
        R.*,
@@ -425,8 +509,8 @@ SELECT TOP (3)
 FROM #Resumen AS R
 WHERE R.Nivel<=2
 ORDER BY R.Nivel,
-         CASE WHEN R.EstadoCache='COMPLETA' THEN 0 ELSE 1 END,
          R.FilasEstrategicas,
+         CASE WHEN R.EstadoCache='COMPLETA' THEN 0 ELSE 1 END,
          R.VigenciaInicio DESC;
 
 RAISERROR(N'[PERFIL B3] Diagnostico terminado.',0,1) WITH NOWAIT;
