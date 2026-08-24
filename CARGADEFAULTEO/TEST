@@ -150,3 +150,35 @@ Untracked files:
 
 no changes added to commit (use "git add" and/or "git commit -a")
 PS C:\repo\reportes\APIREPORTS> 
+
+-
+----------------------------
+Set-Location 'C:\repo\reportes\APIREPORTS'
+
+$ApiFiles = @(
+    'src/main/java/com/lockton/rpt/dao/JDBCCobranza.java',
+    'src/main/java/com/lockton/rpt/services/GeneradorReportesService.java',
+    'src/main/java/com/lockton/rpt/util/Excel_Hoja_Multiple.java',
+    'src/test/java/com/lockton/rpt/dao/CobranzaWorkbookInspectorTest.java',
+    'src/test/java/com/lockton/rpt/dao/JDBCCobranzaTest.java',
+    'src/test/java/com/lockton/rpt/services/GeneradorReportesServiceTest.java',
+    'src/test/java/com/lockton/rpt/util/ExcelHojaMultipleHomologacionTest.java',
+    'src/test/java/com/lockton/rpt/util/SabanaWorkbookInspectorTest.java'
+)
+
+$ExistingFiles = @(
+    $ApiFiles | Where-Object { Test-Path -LiteralPath $_ }
+)
+
+$MissingFiles = @(
+    $ApiFiles | Where-Object { -not (Test-Path -LiteralPath $_) }
+)
+
+'ARCHIVOS QUE SE AGREGARÁN:'
+$ExistingFiles
+
+'ARCHIVOS FALTANTES, NO SE AGREGARÁN:'
+$MissingFiles
+
+git add -- $ExistingFiles
+git diff --cached --name-status
