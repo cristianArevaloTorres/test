@@ -8,6 +8,10 @@
     @IdEmpresa             Empresa que se desea revisar. Para esta prueba: 186.
     @IdOperacionCarga      Primera ejecucion: dejar NULL. Copiar despues el
                             COIdOperacion del primer resultado y volver a ejecutar.
+    @IdEmpleadoBaseCarga   Id devuelto en las muestras. Si se captura, genera
+                            tambien un TXT usando sus valores como referencia.
+    @IdEmpresaOrigenCarga  Se utiliza para el campo comun EMIdEmpresaOrigen.
+    @IdAdministradorCarga  Se utiliza para EMUsuarioAdd/EMUsuarioUMod.
     @NumeroEmpleadoBase    NULL devuelve candidatos; capturar un numero para
                             revisar solamente ese empleado.
     @IdVigenciaDestino     NULL la resuelve por fecha/configuracion. Se puede
@@ -25,6 +29,8 @@
     - Un empleado puede ser candidato simultaneamente para tipo 1 y tipo 3.
       La diferencia funcional esta en el token que se envia al motor: def1/def3.
 */
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 SET LOCK_TIMEOUT 15000;
@@ -33,6 +39,9 @@ SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 /* ===================== PARAMETROS EDITABLES ===================== */
 DECLARE @IdEmpresa             INT         = 186;
 DECLARE @IdOperacionCarga      INT         = NULL; -- Ejemplo: 2. Primero dejar NULL.
+DECLARE @IdEmpleadoBaseCarga   INT         = NULL; -- Copiar el Id de una muestra.
+DECLARE @IdEmpresaOrigenCarga  INT         = NULL; -- Obligatorio para transferencia.
+DECLARE @IdAdministradorCarga  INT         = NULL; -- Usuario que ejecutara la prueba.
 DECLARE @NumeroEmpleadoBase    VARCHAR(50) = NULL; -- Ejemplo: 'QADEF1-186'.
 DECLARE @IdVigenciaDestino     INT         = NULL; -- NULL = resolver automaticamente.
 DECLARE @IdVigenciaOrigen      INT         = NULL; -- NULL = usar VIRenovada del destino.
@@ -117,21 +126,36 @@ SELECT
     CE.CEIdEstatus AS estatus,
     CASE WHEN OBJECT_ID(LTRIM(RTRIM(CE.CEStoredProc)), 'P') IS NULL
          THEN 'REVISAR: EL SP NO EXISTE' ELSE 'OK' END AS validacionSP,
-    CASE
-      WHEN UPPER(O.CONombre) LIKE '%REACTIV%' THEN 'Usar un titular inactivo.'
-      WHEN UPPER(O.CONombre) LIKE '%DEPEND%' AND UPPER(O.CONombre) LIKE '%ALTA%'
-        THEN 'Usar un titular activo como referencia y capturar el nuevo dependiente.'
-      WHEN UPPER(O.CONombre) LIKE '%ALTA%'
-        THEN 'Usar un titular activo solo como referencia y cambiar sus identificadores unicos.'
-      WHEN UPPER(O.CONombre) LIKE '%BAJA%' THEN 'Usar un registro activo existente.'
-      WHEN UPPER(O.CONombre) LIKE '%ACTUAL%'
-        OR UPPER(O.CONombre) LIKE '%CAMBIO%'
-        OR UPPER(O.CONombre) LIKE '%TRANSFER%'
-        OR UPPER(O.CONombre) LIKE '%COMPENS%'
-        OR UPPER(O.CONombre) LIKE '%CONCILI%'
-        THEN 'Usar un titular activo existente.'
-      ELSE 'Revisar la plantilla y usar un empleado existente como referencia.'
-    END AS escenarioSugerido
+    CASE O.COIdOperacion
+      WHEN 1 THEN 'Dar de alta un dependiente ligado a un titular existente.'
+      WHEN 2 THEN 'Dar de alta un titular que todavia no exista en la empresa.'
+      WHEN 5 THEN 'Registrar el importe conciliado de un periodo/CIS para un empleado.'
+      WHEN 13 THEN 'Cambiar el numero de un empleado ya existente.'
+      WHEN 14 THEN 'Reactivar un titular actualmente inactivo.'
+      WHEN 15 THEN 'Transferir un empleado desde una empresa origen a una empresa destino.'
+      WHEN 16 THEN 'Dar de alta, actualizar o dar de baja una compensacion de un empleado.'
+      ELSE 'Ejecutar la operacion configurada para la empresa.'
+    END AS seUsaPara,
+    CASE O.COIdOperacion
+      WHEN 1 THEN 'Titular activo; el numero identifica al titular al que se agregara el dependiente.'
+      WHEN 2 THEN 'Empleado activo solamente como referencia de formatos/catalogos; no copiar identificadores unicos.'
+      WHEN 5 THEN 'Empleado existente al que corresponden el periodo, CIS e importe.'
+      WHEN 13 THEN 'Titular activo con el numero actual que se desea sustituir.'
+      WHEN 14 THEN 'Titular inactivo conservando su numero de empleado.'
+      WHEN 15 THEN 'Titular activo de la empresa origen.'
+      WHEN 16 THEN 'Titular activo que recibira el movimiento de compensacion.'
+      ELSE 'Revisar la plantilla de la operacion.'
+    END AS registroQueDebeUsarse,
+    CASE O.COIdOperacion
+      WHEN 1 THEN 'Sexo, numero del titular, nombres, nacimiento, parentesco, fecha alta y certificado del dependiente.'
+      WHEN 2 THEN 'Numero nuevo, nombre, apellido, nacimiento y centro de costos; los demas segun plantilla.'
+      WHEN 5 THEN 'Numero de empleado, periodo, CIS, importe y usuario.'
+      WHEN 13 THEN 'Empresa 186, numero actual y numero nuevo no utilizado.'
+      WHEN 14 THEN 'Empresa 186, numero del inactivo y fecha de reingreso.'
+      WHEN 15 THEN 'Empresa destino, empresa origen, empleado, perfil, fecha y opcion de solicitud.'
+      WHEN 16 THEN 'Empresa, empleado, compensacion, monto y tipo 1=alta/actualizacion o 2=baja.'
+      ELSE 'Los campos marcados como requeridos por la plantilla.'
+    END AS datosQueDebeCapturar
 FROM dbo.ff_CargaMasivaOperacionEmpresa CE
 INNER JOIN dbo.ff_CargaMasivaOperacion O
     ON O.COIdOperacion = CE.CEIdOperacion
@@ -206,11 +230,12 @@ BEGIN
             C.CALongitud AS longitud,
             CP.CPRequerido AS requerido,
             CP.CPRangoValores AS rangoOCatalogo,
-            CASE WHEN UPPER(LTRIM(RTRIM(C.CADominio))) = 'E'
-                       OR UPPER(LTRIM(RTRIM(C.CANombreCampo)))
-                          IN ('EMUSUARIOADD', 'EMUSUARIOUMOD')
-                 THEN 'COMUN: se captura una vez'
-                 ELSE 'POR REGISTRO: una columna/fila' END AS grupoTxtSugerido,
+            CASE WHEN UPPER(LTRIM(RTRIM(C.CANombreCampo))) IN
+                           ('EMIDEMPRESA', 'EMIDEMPRESAORIGEN',
+                            'EMUSUARIOADD', 'EMUSUARIOUMOD')
+                 THEN 'COMUN SUGERIDO: si aplica igual a toda la carga'
+                 ELSE 'POR REGISTRO SUGERIDO; puede moverse a comun si el valor no cambia' END AS grupoTxtSugerido,
+            'B2 permite que cualquier campo valido de la plantilla este en @commonFields si su valor es igual para todos los renglones.' AS reglaCampoComunB2,
             CASE
               WHEN UPPER(LTRIM(RTRIM(C.CANombreCampo)))
                    IN ('EMIDEMPRESA', 'EMIDEMPRESAORIGEN')
@@ -248,6 +273,246 @@ BEGIN
         FROM sys.parameters SP
         WHERE SP.object_id = OBJECT_ID(@StoredProcedureCarga, 'P')
         ORDER BY SP.parameter_id;
+
+        /* ==========================================================
+           CONTENIDO TXT PARA COPIAR Y PEGAR
+
+           - Mueve a @commonFields empresa/origen/usuario cuando esos
+             campos formen parte de la plantilla. EMEmpresa usa la clave
+             externa que el SP legacy resuelve en ff_Empresa (S001 para 186).
+           - Conserva el orden real de los demas campos en @fieldNames.
+           - Siempre genera una plantilla con marcadores.
+           - Si @IdEmpleadoBaseCarga tiene valor, genera una segunda version
+             usando las columnas homonimas de ff_Empleado. Los campos que no
+             existen en ff_Empleado permanecen como <CAPTURAR_CAMPO>.
+           ========================================================== */
+        DECLARE @CRLF NCHAR(2) = NCHAR(13) + NCHAR(10);
+        DECLARE @CamposComunes NVARCHAR(MAX) = N'';
+        DECLARE @NombresCampos NVARCHAR(MAX) = N'';
+        DECLARE @DatosMarcadores NVARCHAR(MAX) = N'';
+        DECLARE @ContenidoPlantilla NVARCHAR(MAX);
+        DECLARE @ContenidoEmpleado NVARCHAR(MAX);
+        DECLARE @ClaveEmpresaCarga NVARCHAR(150);
+
+        SELECT @ClaveEmpresaCarga = NULLIF(LTRIM(RTRIM(E.EMIdEmpresaFlexiForbes)), '')
+        FROM dbo.ff_Empresa E
+        WHERE E.EMIdEmpresa = @IdEmpresa;
+
+        DECLARE @CamposRegistro TABLE
+        (
+            orden INT NOT NULL,
+            idConfiguracion INT NOT NULL,
+            campo SYSNAME NOT NULL,
+            tipoDato VARCHAR(20) NULL,
+            requerido VARCHAR(10) NULL,
+            columnaEmpleado SYSNAME NULL,
+            tipoColumnaEmpleado SYSNAME NULL
+        );
+
+        INSERT @CamposRegistro
+        (
+            orden, idConfiguracion, campo, tipoDato, requerido,
+            columnaEmpleado, tipoColumnaEmpleado
+        )
+        SELECT
+            CP.CPOrden,
+            CP.CPIdConfiguracionPlantilla,
+            LTRIM(RTRIM(C.CANombreCampo)),
+            C.CATipoDato,
+            CP.CPRequerido,
+            EC.name,
+            ET.name
+        FROM dbo.ff_ConfiguracionPlantilla CP
+        INNER JOIN dbo.ff_Campo C
+            ON C.CAIdCampo = CP.CAIdCampo
+           AND C.CAIdEstatus = 1
+        OUTER APPLY
+        (
+            SELECT TOP (1) SC.name, SC.user_type_id
+            FROM sys.columns SC
+            WHERE SC.object_id = OBJECT_ID('dbo.ff_Empleado')
+              AND UPPER(SC.name) = UPPER
+              (
+                  CASE UPPER(LTRIM(RTRIM(C.CANombreCampo)))
+                    WHEN 'EMPUESTODESCRIPCION' THEN 'EMPUESTO'
+                    WHEN 'EMCENTROCOSTOS_TEXT' THEN 'EMIDCENTROCOSTOS'
+                    WHEN 'EMOFICINA_TEXT' THEN 'EMOFICINA'
+                    WHEN 'EMAREA_TEXT' THEN 'EMAREA'
+                    WHEN 'EMJEFE' THEN 'EMIDJEFE'
+                    ELSE LTRIM(RTRIM(C.CANombreCampo))
+                  END
+              )
+        ) EC
+        LEFT JOIN sys.types ET ON ET.user_type_id = EC.user_type_id
+        WHERE CP.PLIdPlantilla = @IdPlantillaCarga
+          AND CP.CPIdEstatus = 1
+          AND UPPER(LTRIM(RTRIM(C.CANombreCampo))) NOT IN
+              ('EMIDEMPRESA', 'EMEMPRESA', 'EMIDEMPRESAORIGEN',
+               'EMUSUARIOADD', 'EMUSUARIOUMOD');
+
+        SELECT @CamposComunes =
+        (
+            SELECT
+                LTRIM(RTRIM(C.CANombreCampo)) + N'=' +
+                CASE UPPER(LTRIM(RTRIM(C.CANombreCampo)))
+                  WHEN 'EMIDEMPRESA' THEN CONVERT(NVARCHAR(30), @IdEmpresa)
+                  WHEN 'EMEMPRESA' THEN COALESCE(
+                       @ClaveEmpresaCarga, N'<CAPTURAR_CLAVE_EMPRESA_LEGACY>')
+                  WHEN 'EMIDEMPRESAORIGEN' THEN COALESCE(
+                       CONVERT(NVARCHAR(30), @IdEmpresaOrigenCarga),
+                       N'<CAPTURAR_EMPRESA_ORIGEN>')
+                  WHEN 'EMUSUARIOADD' THEN COALESCE(
+                       CONVERT(NVARCHAR(30), @IdAdministradorCarga),
+                       N'<CAPTURAR_ID_ADMINISTRADOR>')
+                  WHEN 'EMUSUARIOUMOD' THEN COALESCE(
+                       CONVERT(NVARCHAR(30), @IdAdministradorCarga),
+                       N'<CAPTURAR_ID_ADMINISTRADOR>')
+                END + @CRLF
+            FROM dbo.ff_ConfiguracionPlantilla CP
+            INNER JOIN dbo.ff_Campo C
+                ON C.CAIdCampo = CP.CAIdCampo
+               AND C.CAIdEstatus = 1
+            WHERE CP.PLIdPlantilla = @IdPlantillaCarga
+              AND CP.CPIdEstatus = 1
+              AND UPPER(LTRIM(RTRIM(C.CANombreCampo))) IN
+                  ('EMIDEMPRESA', 'EMEMPRESA', 'EMIDEMPRESAORIGEN',
+                   'EMUSUARIOADD', 'EMUSUARIOUMOD')
+            ORDER BY CP.CPOrden, CP.CPIdConfiguracionPlantilla
+            FOR XML PATH(''), TYPE
+        ).value('.', 'nvarchar(max)');
+
+        SELECT @NombresCampos = STUFF
+        ((
+            SELECT N',' + R.campo
+            FROM @CamposRegistro R
+            ORDER BY R.orden, R.idConfiguracion
+            FOR XML PATH(''), TYPE
+        ).value('.', 'nvarchar(max)'), 1, 1, N'');
+
+        SELECT @DatosMarcadores = STUFF
+        ((
+            SELECT N'|' +
+                CASE
+                  WHEN UPPER(R.campo) = 'EMNUMEROEMPLEADO'
+                    THEN N'<CAPTURAR_NUMERO_EMPLEADO>'
+                  WHEN UPPER(R.campo) = 'EMNUEVONUMEROEMPLEADO'
+                    THEN N'<CAPTURAR_NUMERO_NUEVO_NO_UTILIZADO>'
+                  WHEN UPPER(R.campo) LIKE '%FECHA%'
+                    THEN N'<DD/MM/AAAA>'
+                  WHEN R.requerido = '1'
+                    THEN N'<CAPTURAR_' + UPPER(R.campo) + N'>'
+                  ELSE N''
+                END
+            FROM @CamposRegistro R
+            ORDER BY R.orden, R.idConfiguracion
+            FOR XML PATH(''), TYPE
+        ).value('.', 'nvarchar(max)'), 1, 1, N'');
+
+        SET @ContenidoPlantilla =
+            N'# NO EJECUTAR SIN REEMPLAZAR LOS MARCADORES <CAPTURAR_...>' + @CRLF +
+            N'# Operacion ' + CONVERT(NVARCHAR(20), @IdOperacionCarga) +
+                N': ' + COALESCE(@NombreOperacionCarga, N'') + @CRLF +
+            N'@commonFields:' + @CRLF + COALESCE(@CamposComunes, N'') + @CRLF +
+            N'@fieldNames:' + COALESCE(@NombresCampos, N'') + @CRLF +
+            N'##' + @CRLF + N'@data:' + @CRLF +
+            COALESCE(@DatosMarcadores, N'') + @CRLF;
+
+        SELECT
+            'TXT_PLANTILLA_PARA_COPIAR' AS bloque,
+            @IdOperacionCarga AS idOperacion,
+            @NombreOperacionCarga AS operacion,
+            'Reemplace todos los marcadores <CAPTURAR_...> antes de ejecutar.' AS instruccion,
+            @ContenidoPlantilla AS contenidoTxt;
+
+        IF @IdEmpleadoBaseCarga IS NOT NULL
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM dbo.ff_Empleado WHERE Id = @IdEmpleadoBaseCarga)
+            BEGIN
+                SELECT
+                    'TXT_CON_EMPLEADO_BASE' AS bloque,
+                    'REVISAR' AS resultado,
+                    'El @IdEmpleadoBaseCarga indicado no existe.' AS detalle;
+            END
+            ELSE
+            BEGIN
+                DECLARE @ExpresionDatos NVARCHAR(MAX) = N'';
+                DECLARE @CampoActual SYSNAME;
+                DECLARE @ColumnaActual SYSNAME;
+                DECLARE @TipoColumnaActual SYSNAME;
+                DECLARE @Primero BIT = 1;
+
+                DECLARE campos_txt_cursor CURSOR LOCAL FAST_FORWARD FOR
+                    SELECT campo, columnaEmpleado, tipoColumnaEmpleado
+                    FROM @CamposRegistro
+                    ORDER BY orden, idConfiguracion;
+
+                OPEN campos_txt_cursor;
+                FETCH NEXT FROM campos_txt_cursor
+                    INTO @CampoActual, @ColumnaActual, @TipoColumnaActual;
+                WHILE @@FETCH_STATUS = 0
+                BEGIN
+                    IF @Primero = 0
+                        SET @ExpresionDatos += N' + N''|'' + ';
+
+                    IF @ColumnaActual IS NOT NULL
+                    BEGIN
+                        SET @ExpresionDatos +=
+                            N'COALESCE(REPLACE(REPLACE(REPLACE(' +
+                            CASE WHEN @TipoColumnaActual IN
+                                           ('date', 'datetime', 'datetime2', 'smalldatetime')
+                                 THEN N'CONVERT(NVARCHAR(10), E.' +
+                                      QUOTENAME(@ColumnaActual) + N', 103)'
+                                 ELSE N'CONVERT(NVARCHAR(MAX), E.' +
+                                      QUOTENAME(@ColumnaActual) + N')' END +
+                            N', N''|'', N'' ''), CHAR(13), N'' ''), CHAR(10), N'' ''), N'''')';
+                    END
+                    ELSE
+                        SET @ExpresionDatos += N'N''<CAPTURAR_' +
+                            REPLACE(UPPER(@CampoActual), '''', '''''') + N'>''';
+
+                    SET @Primero = 0;
+                    FETCH NEXT FROM campos_txt_cursor
+                        INTO @CampoActual, @ColumnaActual, @TipoColumnaActual;
+                END;
+                CLOSE campos_txt_cursor;
+                DEALLOCATE campos_txt_cursor;
+
+                DECLARE @DatosEmpleado NVARCHAR(MAX);
+                DECLARE @SqlDatos NVARCHAR(MAX) =
+                    N'SELECT @Salida = ' + @ExpresionDatos +
+                    N' FROM dbo.ff_Empleado E WHERE E.Id = @IdEmpleado;';
+
+                EXEC sys.sp_executesql
+                    @SqlDatos,
+                    N'@IdEmpleado INT, @Salida NVARCHAR(MAX) OUTPUT',
+                    @IdEmpleado = @IdEmpleadoBaseCarga,
+                    @Salida = @DatosEmpleado OUTPUT;
+
+                SET @ContenidoEmpleado =
+                    N'# REVISAR Y CAMBIAR IDENTIFICADORES/VALORES ANTES DE EJECUTAR' + @CRLF +
+                    N'# Empleado base Id=' + CONVERT(NVARCHAR(30), @IdEmpleadoBaseCarga) + @CRLF +
+                    N'# Operacion ' + CONVERT(NVARCHAR(20), @IdOperacionCarga) +
+                        N': ' + COALESCE(@NombreOperacionCarga, N'') + @CRLF +
+                    N'@commonFields:' + @CRLF + COALESCE(@CamposComunes, N'') + @CRLF +
+                    N'@fieldNames:' + COALESCE(@NombresCampos, N'') + @CRLF +
+                    N'##' + @CRLF + N'@data:' + @CRLF +
+                    COALESCE(@DatosEmpleado, N'') + @CRLF;
+
+                SELECT
+                    'TXT_CON_EMPLEADO_BASE' AS bloque,
+                    @IdOperacionCarga AS idOperacion,
+                    @NombreOperacionCarga AS operacion,
+                    @IdEmpleadoBaseCarga AS idEmpleadoBase,
+                    'No ejecute un alta sin cambiar numero, certificado y demas identificadores unicos. Reemplace todos los marcadores.' AS instruccion,
+                    @ContenidoEmpleado AS contenidoTxt;
+            END;
+        END
+        ELSE
+        BEGIN
+            SELECT
+                'TXT_CON_EMPLEADO_BASE' AS bloque,
+                'Capture @IdEmpleadoBaseCarga con el Id de una muestra para generar una segunda version poblada.' AS instruccion;
+        END;
     END;
 END
 ELSE
