@@ -1,6 +1,62 @@
+$RepoFront = 'C:\RUTA\DE\TU\CLON\BeFlex3-EmpAdm-QA'
+Set-Location -LiteralPath $RepoFront
 
-Mens. 208, Nivel 16, Estado 1, Línea 146
-Invalid object name 'dbo.bf_ConfiguracionFlujoCargaMasiva'.
+if (-not (Test-Path -LiteralPath '.git')) {
+    throw "Esta carpeta no es un clon Git: $RepoFront"
+}
 
-Hora de finalización: 2026-08-22T19:23:29.0048759-06:00
+$FrontFiles = @(
+    'src/app/beflex/adm-reportes/cobranza/cobranza.component.ts',
+    'src/app/beflex/adm-reportes/cobranza/cobranza.component.html',
+    'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts',
+    'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html'
+)
+
+git status --short
+git add -- $FrontFiles
+git diff --cached --name-status
+git diff --cached
+
+git commit -m "Actualiza filtros y generación de reportes B3"
+
+$Branch = git branch --show-current
+git push -u origin $Branch
+
+
+--------
+
+$RepoApi = 'C:\RUTA\DE\TU\CLON\BeFlex3_Admin_API_Reportes-ReporteSabanaHomologacionOK-clean'
+Set-Location -LiteralPath $RepoApi
+
+if (-not (Test-Path -LiteralPath '.git')) {
+    throw "Esta carpeta no es un clon Git: $RepoApi"
+}
+
+$ApiFiles = @(
+    'pom.xml',
+    'scripts/validar-cobranza-local.ps1',
+    'src/main/java/com/lockton/rpt/dao/JDBCCobranza.java',
+    'src/main/java/com/lockton/rpt/services/GeneradorReportesService.java',
+    'src/main/java/com/lockton/rpt/util/Excel_Hoja_Multiple.java',
+    'src/test/java/com/lockton/rpt/dao/CobranzaWorkbookInspectorTest.java',
+    'src/test/java/com/lockton/rpt/dao/JDBCCobranzaTest.java',
+    'src/test/java/com/lockton/rpt/services/GeneradorReportesServiceTest.java',
+    'src/test/java/com/lockton/rpt/util/ExcelHojaMultipleHomologacionTest.java',
+    'src/test/java/com/lockton/rpt/util/SabanaWorkbookInspectorTest.java'
+)
+
+git remote -v
+git branch --show-current
+git status --short
+
+git add -- $ApiFiles
+
+# Verifica que no haya archivos ajenos
+git diff --cached --name-status
+git diff --cached
+
+git commit -m "Actualiza generación y validación de reportes B3"
+
+$Branch = git branch --show-current
+git push -u origin $Branch
  
