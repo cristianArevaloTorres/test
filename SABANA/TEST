@@ -1,3 +1,11 @@
+name	MarcasParche	LlamadasFuncion
+ff_SabanaGMM_v2	2	2
+ff_SabanaVIDA_v2	1	1
+
+catReportesSPId	catReportesId	catReportesSPNombre	catReportesSPOrden	ESid
+3	3	ff_Sabana_v2	1	1
+
+
 SELECT
     O.name,
     (
