@@ -1,3 +1,8 @@
+Mensaje 2714, nivel 16, estado 3, procedimiento ff_SabanaOPC_v2, línea 6 [línea de inicio de lote 0]
+There is already an object named 'ff_SabanaOPC_v2' in the database.
+
+Hora de finalización: 2026-08-25T09:40:37.0122351-06:00
+
 USE [FlexiForbesv2];
 GO
 SET NOCOUNT ON;
