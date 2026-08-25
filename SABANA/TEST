@@ -28,3 +28,11 @@ WHERE O.name IN
     'ff_SabanaVIDA_BF3'
 )
 ORDER BY O.name;
+
+name	Estado
+ff_Sabana_BF3	SIN PARCHE
+ff_Sabana_v2	SIN PARCHE
+ff_SabanaGMM_BF3	SIN PARCHE
+ff_SabanaGMM_v2	PARCHE INSTALADO
+ff_SabanaVIDA_BF3	SIN PARCHE
+ff_SabanaVIDA_v2	PARCHE INSTALADO
