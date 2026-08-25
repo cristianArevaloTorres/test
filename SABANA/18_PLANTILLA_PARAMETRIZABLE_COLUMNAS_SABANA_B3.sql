@@ -1,3 +1,11 @@
+Mens. 156, Nivel 15, Estado 1, Línea 72
+Incorrect syntax near the keyword 'IF'.
+
+Hora de finalización: 2026-08-25T13:15:42.4134776-06:00
+
+
+    
+
 USE [FlexiForbesv2];
 GO
 SET NOCOUNT ON;
