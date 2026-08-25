@@ -1,19 +1,3 @@
-
-Bloque	ADIdAdministrador	ADClaveAcceso	Administrador	AEIdEmpresa	AEIdRol	AEIdEstatus	Rol	Resultado
-05_USUARIO_EMPRESA_ROL	NULL	NULL		NULL	NULL	NULL	NULL	FALTA: ASIGNACION EN ff_AdministradorEmpresa
-
-  Bloque	IdEmpresa	IdRol	IdMenuCargaMasiva	IdMenuDefaulteo	ResultadoMenuBD	ResultadoSeguridad	URLDirecta	SiguienteRevision
-07_RESUMEN	186	570	583	566	OK_MENU_BD	OK_USUARIO_EMPRESA_ROL	/pages/administracion/solicitudes/defaulteo	Si ResultadoMenuBD es OK y la URL directa regresa a /pages/home, el frontend ejecutado no contiene la ruta nueva o conserva un build/cache anterior.
-
-  Bloque	IdMenuCargaMasiva	MenuCargaMasiva	RutaCargaMasiva	PadreCargaMasiva	OrdenCargaMasiva	IdRelacionCargaMasiva	ImagenCargaMasiva	IdMenuDefaulteo	MenuDefaulteo	RutaDefaulteo	URLFinalCalculada	PadreDefaulteo	OrdenDefaulteo	IdRelacionDefaulteo	ImagenDefaulteo	ValidacionMenu	ValidacionRol	ValidacionRuta	ValidacionNivel	ValidacionOrden	ValidacionIcono
-02_COMPARACION_CARGA_VS_DEFAULTEO	583	Carga Masiva	/cargamasivapoblaciones	580	10	31916	Boton_CARGA MASIVA.png	566	Defaulteo	administracion/solicitudes/defaulteo	/pages/administracion/solicitudes/defaulteo	580	11	31919	Boton_CARGA MASIVA.png	OK	OK	OK	OK	OK	OK
-  
-
-
-
-
-
-
 /*
   DIAGNOSTICO DE CARGA DEL MENU BF3 - DEFAULTEO, EMPRESA 186
 
@@ -228,6 +212,10 @@ SELECT
     AE.AEIdEstatus,
     R.RODescripcionCorta AS Rol,
     CASE
+        WHEN @IdAdministrador IS NULL
+            THEN 'NO EVALUADO: CAPTURE @IdAdministrador O @ClaveAdministrador'
+        WHEN A.ADIdAdministrador IS NULL
+            THEN 'FALTA: ADMINISTRADOR NO ENCONTRADO O INACTIVO'
         WHEN AE.ADIdAdministrador IS NULL THEN 'FALTA: ASIGNACION EN ff_AdministradorEmpresa'
         WHEN AE.AEIdRol <> @IdRol THEN 'REVISAR: EL USUARIO TIENE OTRO ROL'
         WHEN AE.AEIdEstatus <> 1 THEN 'FALTA: ASIGNACION INACTIVA'
@@ -270,6 +258,7 @@ SELECT
     '07_RESUMEN' AS Bloque,
     @IdEmpresa AS IdEmpresa,
     @IdRol AS IdRol,
+    @IdAdministrador AS IdAdministradorEvaluado,
     @IdMenuCarga AS IdMenuCargaMasiva,
     @IdMenuDefaulteo AS IdMenuDefaulteo,
     CASE
@@ -298,6 +287,17 @@ SELECT
         ELSE 'OK_MENU_BD'
     END AS ResultadoMenuBD,
     CASE
+        WHEN @IdAdministrador IS NULL
+         AND EXISTS
+        (
+            SELECT 1
+            FROM dbo.ff_AdministradorEmpresa AE
+            WHERE AE.AEIdEmpresa = @IdEmpresa
+              AND AE.AEIdRol = @IdRol
+              AND AE.AEIdEstatus = 1
+        ) THEN 'OK_GENERAL: EXISTE USUARIO CON ROL 570; CAPTURE USUARIO PARA VALIDAR SU SESION'
+        WHEN @IdAdministrador IS NULL
+            THEN 'REVISAR: NO HAY USUARIO ACTIVO DE LA EMPRESA CON ROL 570'
         WHEN EXISTS
         (
             SELECT 1
@@ -305,9 +305,9 @@ SELECT
             WHERE AE.AEIdEmpresa = @IdEmpresa
               AND AE.AEIdRol = @IdRol
               AND AE.AEIdEstatus = 1
-              AND (@IdAdministrador IS NULL OR AE.ADIdAdministrador = @IdAdministrador)
+              AND AE.ADIdAdministrador = @IdAdministrador
         ) THEN 'OK_USUARIO_EMPRESA_ROL'
-        ELSE 'REVISAR: NO HAY USUARIO ACTIVO DE LA EMPRESA CON ROL 570'
+        ELSE 'REVISAR: EL USUARIO INDICADO NO TIENE EMPRESA 186 Y ROL 570 ACTIVOS'
     END AS ResultadoSeguridad,
     '/pages/administracion/solicitudes/defaulteo' AS URLDirecta,
     CASE
