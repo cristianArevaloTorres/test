@@ -11,11 +11,11 @@ SET XACT_ABORT ON;
     3. Dejar @AplicarCambios=0 para revisar la vista previa.
     4. Cambiar @AplicarCambios=1 para aplicar.
 
-    No usa BULK INSERT, no elimina filas y no reemplaza tablas completas.
+    
 */
 
 DECLARE @AplicarCambios bit=0;  -- 0=solo revisar; 1=aplicar UPDATE/INSERT
-DECLARE @VisibleDestino bit=0;  -- 0=ocultar; 1=mostrar
+DECLARE @VisibleDestino bit=1;  -- 0=ocultar; 1=mostrar
 
 IF OBJECT_ID(N'dbo.bf_RepConf_Columna',N'U') IS NULL
     THROW 50700,'No existe dbo.bf_RepConf_Columna.',1;
@@ -59,19 +59,14 @@ DECLARE @Campos TABLE
    El texto debe coincidir con bf_RepConf_Columna.campoOrigen.
 */
 INSERT @Campos(campoOrigen)
-VALUES (N'Calle'),
+VALUES
+      -- (N'Calle'),
        (N'NumExt'),
        (N'NumInt'),
-       (N'Colonia'),
-       (N'Del_Municipio'),
-       (N'EstadoFiscal'),
-       (N'CP');
-
-/* Ejemplos adicionales que se pueden agregar en @Campos:
-       (N'PrimaNeta'),
-       (N'PrimeNeta'),
-       (N'Costo');
-*/
+    --   (N'Colonia'),
+    --   (N'Del_Municipio'),
+    --   (N'EstadoFiscal'),
+    --   (N'CP');
 
 /* Confirmar que los IDs existan antes de continuar. */
 IF OBJECT_ID(N'dbo.ff_Empresa',N'U') IS NOT NULL
