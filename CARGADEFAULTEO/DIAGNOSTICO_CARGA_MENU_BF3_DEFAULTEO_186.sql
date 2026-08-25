@@ -1,3 +1,14 @@
+Bloque	ADIdAdministrador	ADClaveAcceso	Administrador	AEIdEmpresa	AEIdRol	AEIdEstatus	Rol	Resultado
+05_USUARIO_EMPRESA_ROL	NULL	NULL		NULL	NULL	NULL	NULL	NO EVALUADO: CAPTURE @IdAdministrador O @ClaveAdministrador
+
+
+Bloque	IdEmpresa	IdRol	IdAdministradorEvaluado	IdMenuCargaMasiva	IdMenuDefaulteo	ResultadoMenuBD	ResultadoSeguridad	URLDirecta	SiguienteRevision
+07_RESUMEN	186	570	NULL	583	566	OK_MENU_BD	OK_GENERAL: EXISTE USUARIO CON ROL 570; CAPTURE USUARIO PARA VALIDAR SU SESION	/pages/administracion/solicitudes/defaulteo	Si ResultadoMenuBD es OK y la URL directa regresa a /pages/home, el frontend ejecutado no contiene la ruta nueva o conserva un build/cache anterior.
+
+  
+  
+
+
 /*
   DIAGNOSTICO DE CARGA DEL MENU BF3 - DEFAULTEO, EMPRESA 186
 
