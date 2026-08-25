@@ -1,8 +1,3 @@
-Mensaje 2714, nivel 16, estado 3, procedimiento ff_SabanaOPC_v2, línea 6 [línea de inicio de lote 0]
-There is already an object named 'ff_SabanaOPC_v2' in the database.
-
-Hora de finalización: 2026-08-25T09:40:37.0122351-06:00
-
 USE [FlexiForbesv2];
 GO
 SET NOCOUNT ON;
@@ -212,7 +207,10 @@ BEGIN TRY
        Opcionales de CORTEVA/BH antes de llegar al configurador de Excel. */
     DECLARE @Definicion nvarchar(max)=OBJECT_DEFINITION
             (OBJECT_ID(N'dbo.ff_SabanaOPC_v2')),
-            @NuevaDefinicion nvarchar(max);
+            @NuevaDefinicion nvarchar(max),
+            @PosCreate int,
+            @PosCreateOrAlter int,
+            @PosProcedure int;
 
     IF @Definicion IS NULL
         THROW 50303,'No se pudo leer dbo.ff_SabanaOPC_v2.',1;
@@ -225,7 +223,35 @@ BEGIN TRY
     );
 
     IF @NuevaDefinicion<>@Definicion
+    BEGIN
+        /* OBJECT_DEFINITION puede conservar CREATE PROCEDURE aunque el objeto
+           ya exista. Convertirlo a ALTER antes de recompilar la definicion. */
+        SET @PosProcedure=CHARINDEX(N'PROCEDURE',UPPER(@NuevaDefinicion));
+        IF @PosProcedure=0
+            SET @PosProcedure=CHARINDEX(N'PROC',UPPER(@NuevaDefinicion));
+        IF @PosProcedure=0
+            THROW 50306,'No se encontro PROC/PROCEDURE en ff_SabanaOPC_v2.',1;
+
+        SET @PosCreateOrAlter=CHARINDEX
+            (N'CREATE OR ALTER',UPPER(@NuevaDefinicion));
+        SET @PosCreate=CHARINDEX(N'CREATE',UPPER(@NuevaDefinicion));
+
+        IF @PosCreateOrAlter>0
+           AND @PosCreateOrAlter<@PosProcedure
+            SET @NuevaDefinicion=STUFF
+                (@NuevaDefinicion,@PosCreateOrAlter,LEN(N'CREATE OR ALTER'),
+                 N'ALTER');
+        ELSE IF @PosCreate>0 AND @PosCreate<@PosProcedure
+            SET @NuevaDefinicion=STUFF
+                (@NuevaDefinicion,@PosCreate,LEN(N'CREATE'),N'ALTER');
+
+        SET @PosCreate=CHARINDEX(N'CREATE',UPPER(@NuevaDefinicion));
+        SET @PosProcedure=CHARINDEX(N'PROC',UPPER(@NuevaDefinicion));
+        IF @PosCreate>0 AND @PosCreate<@PosProcedure
+            THROW 50307,'La definicion de ff_SabanaOPC_v2 aun inicia con CREATE.',1;
+
         EXEC sys.sp_executesql @NuevaDefinicion;
+    END;
 
     SET @Definicion=OBJECT_DEFINITION(OBJECT_ID(N'dbo.ff_SabanaOPC_v2'));
 
