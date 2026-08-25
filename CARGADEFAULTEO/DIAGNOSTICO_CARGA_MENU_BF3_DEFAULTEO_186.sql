@@ -1,3 +1,19 @@
+
+Bloque	ADIdAdministrador	ADClaveAcceso	Administrador	AEIdEmpresa	AEIdRol	AEIdEstatus	Rol	Resultado
+05_USUARIO_EMPRESA_ROL	NULL	NULL		NULL	NULL	NULL	NULL	FALTA: ASIGNACION EN ff_AdministradorEmpresa
+
+  Bloque	IdEmpresa	IdRol	IdMenuCargaMasiva	IdMenuDefaulteo	ResultadoMenuBD	ResultadoSeguridad	URLDirecta	SiguienteRevision
+07_RESUMEN	186	570	583	566	OK_MENU_BD	OK_USUARIO_EMPRESA_ROL	/pages/administracion/solicitudes/defaulteo	Si ResultadoMenuBD es OK y la URL directa regresa a /pages/home, el frontend ejecutado no contiene la ruta nueva o conserva un build/cache anterior.
+
+  Bloque	IdMenuCargaMasiva	MenuCargaMasiva	RutaCargaMasiva	PadreCargaMasiva	OrdenCargaMasiva	IdRelacionCargaMasiva	ImagenCargaMasiva	IdMenuDefaulteo	MenuDefaulteo	RutaDefaulteo	URLFinalCalculada	PadreDefaulteo	OrdenDefaulteo	IdRelacionDefaulteo	ImagenDefaulteo	ValidacionMenu	ValidacionRol	ValidacionRuta	ValidacionNivel	ValidacionOrden	ValidacionIcono
+02_COMPARACION_CARGA_VS_DEFAULTEO	583	Carga Masiva	/cargamasivapoblaciones	580	10	31916	Boton_CARGA MASIVA.png	566	Defaulteo	administracion/solicitudes/defaulteo	/pages/administracion/solicitudes/defaulteo	580	11	31919	Boton_CARGA MASIVA.png	OK	OK	OK	OK	OK	OK
+  
+
+
+
+
+
+
 /*
   DIAGNOSTICO DE CARGA DEL MENU BF3 - DEFAULTEO, EMPRESA 186
 
