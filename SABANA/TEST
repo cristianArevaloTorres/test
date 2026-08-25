@@ -1,3 +1,24 @@
+SELECT TOP (100)
+       etapa,
+       detalle
+FROM dbo.bf_RepConf_Debug WITH (NOLOCK)
+WHERE etapa IN
+(
+    N'bf_RepConf_Tabla_fila',
+    N'bf_RepConf_Columna',
+    N'generar_rs',
+    N'escribirTabla_inicio',
+    N'escribirTabla_matchColumnas',
+    N'escribirTabla_resultado'
+)
+ORDER BY 1 DESC;
+
+SELECT
+    DB_NAME() AS BaseActual,
+    @@SERVERNAME AS ServidorActual,
+    OBJECT_SCHEMA_NAME(@@PROCID) AS Esquema;
+
+
 name	MarcasParche	LlamadasFuncion
 ff_SabanaGMM_v2	2	2
 ff_SabanaVIDA_v2	1	1
