@@ -1,3 +1,11 @@
+etapa	detalle
+bf_RepConf_Tabla	reporteId=3 idEmpresaParam=332 filas=8
+
+
+etapa	detalle
+bf_RepConf_Columna	grupo='GMM' idEmpresaConfig=332 catReportesId=3 colsRaw=92 hayColsEspecificas=true colsEfectivas=34 campos=EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,SEDescripcion,PADescripcion,EMFechaNacimiento,RFC,EMedad,EMFechaIngresoEmpresa,PrimeNeta,Costo,EMOFicina,Oficina,Perfil,NombrePestana,TipoSabana,POidPlan,EMidParentesco,Nombres,poidplanopcion,POidGrupoParentesco,PLNombre,EMFechaAlta,GPDescripcion,Ubicacion,SONumeroSolicitud,IDEmp,EMArea,EMIdCentroCostos,INFO,EMIdParentesco1
+
+
 SELECT TOP (1) Orden,etapa,detalle
 FROM dbo.bf_RepConf_Debug
 WHERE etapa=N'bf_RepConf_Tabla'
