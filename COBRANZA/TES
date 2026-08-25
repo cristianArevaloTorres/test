@@ -1,3 +1,37 @@
+[COBRANZA B3] Inicio de instalacion en FlexiForbesv2.
+[COBRANZA B3] Ejecutando paso 1/10: 01_INSTALAR_CACHE_Y_REPORTE_B3.sql
+INICIO: instalacion completa de cache de Cobranza BF3.
+Warning: Null value is eliminated by an aggregate or other SET operation.
+Warning: Null value is eliminated by an aggregate or other SET operation.
+Warning: Null value is eliminated by an aggregate or other SET operation.
+Warning: Null value is eliminated by an aggregate or other SET operation.
+[COBRANZA B3] Ejecutando paso 2/10: 02_INDICES_RENDIMIENTO_B3.sql
+[COBRANZA B3] Ejecutando paso 3/10: 03_OPTIMIZAR_DESGLOSADA_B3.sql
+[COBRANZA B3] Ejecutando paso 4/10: 04_CREAR_RUTAS_LEGACY_OPT_B3.sql
+[COBRANZA B3] Ejecutando paso 5/10: 05_MOTOR_DIVISION_SET_B3.sql
+[COBRANZA B3] Ejecutando paso 6/10: 06_DESGLOSADA_ETAPAS_SET_B3.sql
+[COBRANZA B3] Ejecutando paso 7/10: 07_CONCENTRADA_ETAPAS_SET_B3.sql
+Mensaje 102, nivel 15, estado 1, procedimiento ObtenCobranzaConcentrada_otro_V2_BF3_SET, línea 482 [línea de inicio de lote 4543]
+Incorrect syntax near '±'.
+Mensaje 102, nivel 15, estado 1, procedimiento ObtenCobranzaConcentrada_otro_V2_BF3_SET, línea 489 [línea de inicio de lote 4543]
+Incorrect syntax near '±'.
+[COBRANZA B3] Ejecutando paso 8/10: 08_INTEGRAR_FLUJO_UNICO_SET_B3.sql
+Mens. 52700, Nivel 16, Estado 1, Línea 4800
+Falta instalar la rama SET B3 con los scripts 05, 06 y 07.
+[COBRANZA B3] Ejecutando paso 9/10: 10_CORREGIR_FILTRO_DESGLOSADA_CACHE_B3.sql
+[COBRANZA B3] Ejecutando paso 10/10: 09_VALIDAR_FLUJO_UNICO_B3.sql
+[COBRANZA B3] Validacion de tarifas omitida: no se configuro IdVigencia.
+Mens. 52723, Nivel 16, Estado 1, Línea 5011
+B3 no usa el punto de entrada unico SET.
+Mens. 53920, Nivel 16, Estado 1, Línea 5124
+La instalacion no termino: faltan objetos funcionales o marcadores B3.
+
+Hora de finalización: 2026-08-24T22:53:55.5857501-06:00
+
+
+
+
+
 /*
    COBRANZA B2 REAL - EMPRESA 186 / VIGENCIA 4235
 
