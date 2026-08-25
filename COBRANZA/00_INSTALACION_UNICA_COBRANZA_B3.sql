@@ -4740,14 +4740,14 @@ SET @Bloque=N'/* BF3_CONCENTRADA_ETAPAS_SET_V1 */
         SELECT TOP(1) CC.ccSueldoMensual
         FROM dbo.ff_CobranzaConcentrada AS CC WITH(NOLOCK)
         WHERE CC.ccIdEmpresa=E.EMIdEmpresa AND CC.ccIdEmpleado=E.EMIdAnt
-          AND CC.ccAÃ±o=@AnioApl AND CC.ccMes=@MesApl
+          AND CC.[ccAño]=@AnioApl AND CC.ccMes=@MesApl
     ) AS CCA
     OUTER APPLY(
         SELECT TOP(1) CC.ccTotalCreditos,CC.ccTotalCostos,CC.ccDescuentoEmpleado,
                CC.ccExcedentes,CC.ccFondoAhorro
         FROM dbo.ff_CobranzaConcentrada AS CC WITH(NOLOCK)
         WHERE CC.ccIdEmpresa=E.EMIdEmpresa AND CC.ccIdEmpleado=E.EMIdAnt
-          AND CC.ccAÃ±o=@AnioApl AND CC.ccMes=@MesApl AND CC.ccIdVigencia=@idVigencia
+          AND CC.[ccAño]=@AnioApl AND CC.ccMes=@MesApl AND CC.ccIdVigencia=@idVigencia
     ) AS CCV
     WHERE P.PEIdPerfil IN(SELECT IdTipoNotificacionCorreo FROM #IdPerfilV2)
     ORDER BY E.EMIdAnt
