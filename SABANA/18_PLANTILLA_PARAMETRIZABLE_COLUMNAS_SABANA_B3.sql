@@ -1,11 +1,3 @@
-Mens. 156, Nivel 15, Estado 1, Línea 72
-Incorrect syntax near the keyword 'IF'.
-
-Hora de finalización: 2026-08-25T13:15:42.4134776-06:00
-
-
-    
-
 USE [FlexiForbesv2];
 GO
 SET NOCOUNT ON;
@@ -19,7 +11,7 @@ SET XACT_ABORT ON;
     3. Dejar @AplicarCambios=0 para revisar la vista previa.
     4. Cambiar @AplicarCambios=1 para aplicar.
 
-    
+    No usa BULK INSERT, no elimina filas y no reemplaza tablas completas.
 */
 
 DECLARE @AplicarCambios bit=0;  -- 0=solo revisar; 1=aplicar UPDATE/INSERT
@@ -66,15 +58,23 @@ DECLARE @Campos TABLE
    Dejar solamente los que se quieran mostrar/ocultar.
    El texto debe coincidir con bf_RepConf_Columna.campoOrigen.
 */
-INSERT @Campos(campoOrigen)
-VALUES
-      -- (N'Calle'),
-       (N'NumExt'),
-       (N'NumInt'),
-    --   (N'Colonia'),
-    --   (N'Del_Municipio'),
-    --   (N'EstadoFiscal'),
-    --   (N'CP');
+/*
+   Cada campo usa un INSERT independiente. Se puede comentar o descomentar
+   cualquier linea sin dejar comas o puntos y coma pendientes.
+*/
+-- INSERT @Campos(campoOrigen) VALUES (N'Calle');
+INSERT @Campos(campoOrigen) VALUES (N'NumExt');
+INSERT @Campos(campoOrigen) VALUES (N'NumInt');
+-- INSERT @Campos(campoOrigen) VALUES (N'Colonia');
+-- INSERT @Campos(campoOrigen) VALUES (N'Del_Municipio');
+-- INSERT @Campos(campoOrigen) VALUES (N'EstadoFiscal');
+-- INSERT @Campos(campoOrigen) VALUES (N'CP');
+-- INSERT @Campos(campoOrigen) VALUES (N'PrimaNeta');
+-- INSERT @Campos(campoOrigen) VALUES (N'PrimeNeta');
+-- INSERT @Campos(campoOrigen) VALUES (N'Costo');
+
+IF NOT EXISTS (SELECT 1 FROM @Campos)
+    THROW 50705,'Debe habilitar al menos un campo en @Campos.',1;
 
 /* Confirmar que los IDs existan antes de continuar. */
 IF OBJECT_ID(N'dbo.ff_Empresa',N'U') IS NOT NULL
