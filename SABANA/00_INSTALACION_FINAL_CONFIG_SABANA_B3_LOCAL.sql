@@ -1,3 +1,14 @@
+Mens. 102, Nivel 15, Estado 1, Línea 59
+Incorrect syntax near 'FORMAT'.
+Mens. 102, Nivel 15, Estado 1, Línea 67
+Incorrect syntax near 'FORMAT'.
+
+Hora de finalización: 2026-08-25T12:16:13.2545984-06:00
+
+
+     
+
+
 USE [FlexiForbesv2];
 GO
 SET NOCOUNT ON;
