@@ -1,3 +1,48 @@
+SELECT
+    O.name,
+    (
+        LEN(M.definition) -
+        LEN(REPLACE(
+            M.definition,
+            N'BF3_SOLO_SQL_OCULTA_COLUMNAS_B2',
+            N''
+        ))
+    ) / LEN(N'BF3_SOLO_SQL_OCULTA_COLUMNAS_B2')
+      AS MarcasParche,
+    (
+        LEN(M.definition) -
+        LEN(REPLACE(
+            M.definition,
+            N'bf_SabanaQuitarColumnasB2',
+            N''
+        ))
+    ) / LEN(N'bf_SabanaQuitarColumnasB2')
+      AS LlamadasFuncion
+FROM sys.objects O
+JOIN sys.sql_modules M
+  ON M.object_id = O.object_id
+WHERE O.name IN
+(
+    N'ff_SabanaGMM_v2',
+    N'ff_SabanaVIDA_v2'
+);
+
+
+SELECT
+    catReportesSPId,
+    catReportesId,
+    catReportesSPNombre,
+    catReportesSPOrden,
+    ESid
+FROM dbo.bf_CatReportesSP
+WHERE catReportesId = 3
+  AND ESid = 1
+ORDER BY catReportesSPOrden;
+
+
+
+
+
 
 SELECT catReportesSPId,
        catReportesId,
