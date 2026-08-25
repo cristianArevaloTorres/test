@@ -3,191 +3,142 @@ GO
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
+/* PARAMETRO PRINCIPAL: 0=ocultar los campos; 1=mostrarlos. */
+DECLARE @VisibleDestino bit=0;
+
 /*
-    PLANTILLA PARAMETRIZABLE PARA MOSTRAR U OCULTAR COLUMNAS DE SABANA B3
+  AJUSTE INCREMENTAL FINAL - SABANA B3
 
-    1. Agregar empresas/grupos en @Empresas.
-    2. Agregar los campoOrigen exactos en @Campos.
-    3. Dejar @AplicarCambios=0 para revisar la vista previa.
-    4. Cambiar @AplicarCambios=1 para aplicar.
+  Este script NO reemplaza tablas completas, NO usa BULK INSERT y NO elimina
+  configuraciones. Solo realiza UPDATE y los INSERT indispensables cuando una
+  empresa no tiene configuracion especifica o le falta uno de los campos.
 
-    No usa BULK INSERT, no elimina filas y no reemplaza tablas completas.
+  Matriz solicitada:
+    - CORTEVA GMM: ocultar Calle, NumExt, NumInt, Colonia,
+      Del_Municipio, EstadoFiscal y CP.
+    - CORTEVA VIDA: lo anterior mas PrimaNeta/PrimeNeta y Costo.
+    - BH GMM/VIDA: misma regla.
+    - ZURICH SANTANDER GMM/VIDA: misma regla.
+
+  IDs efectivos confirmados con datos y logs:
+    CORTEVA: 332 y 856
+    BH: 1038 y 1039
+    ZURICH SANTANDER: 1806 y 1807
+
+  ATT, SSGT y Opcionales quedan con las direcciones visibles.
 */
-
-DECLARE @AplicarCambios bit=0;  -- 0=solo revisar; 1=aplicar UPDATE/INSERT
 
 IF OBJECT_ID(N'dbo.bf_RepConf_Columna',N'U') IS NULL
-    THROW 50700,'No existe dbo.bf_RepConf_Columna.',1;
+    THROW 50600,'No existe dbo.bf_RepConf_Columna.',1;
 IF OBJECT_ID(N'dbo.bf_RepConf_Tabla',N'U') IS NULL
-    THROW 50701,'No existe dbo.bf_RepConf_Tabla.',1;
+    THROW 50601,'No existe dbo.bf_RepConf_Tabla.',1;
 
-DECLARE @Empresas TABLE
+DECLARE @Target TABLE
 (
     idEmpresa int NOT NULL,
-    Empresa nvarchar(100) NOT NULL,
-    grupoSugerido nvarchar(100) NOT NULL,
+    Empresa nvarchar(60) NOT NULL,
+    grupoNormalizado nvarchar(20) NOT NULL,
     idEmpresaFuente int NOT NULL,
-    visibleDestino bit NOT NULL,
-    PRIMARY KEY(idEmpresa,grupoSugerido)
+    QuitarPrimaCosto bit NOT NULL,
+    PRIMARY KEY(idEmpresa,grupoNormalizado)
 );
 
-/*
-   EJEMPLO SSGT:
-     - 116 es la empresa/corporativo.
-     - 117 hereda de 116.
-     - El grupo real encontrado en la configuracion es OPC.
-     - visibleDestino=0 oculta; visibleDestino=1 vuelve a mostrar.
-
-   Para otra empresa, agregar otra fila con su ID, grupo e ID fuente.
-   Usar idEmpresaFuente=0 cuando deba copiar la configuracion global.
-*/
-INSERT @Empresas
-    (idEmpresa,Empresa,grupoSugerido,idEmpresaFuente,visibleDestino)
+INSERT @Target
+    (idEmpresa,Empresa,grupoNormalizado,idEmpresaFuente,QuitarPrimaCosto)
 VALUES
-    (116,N'SSGT',N'OPC',0,0),
-    (117,N'SSGT',N'OPC',116,0);
+    (332,N'CORTEVA/PHI',N'GMM',856,0),
+    (332,N'CORTEVA/PHI',N'VIDA',856,1),
+    (856,N'CORTEVA',N'GMM',0,0),
+    (856,N'CORTEVA',N'VIDA',0,1),
+    (1038,N'BH',N'GMM',0,0),
+    (1038,N'BH',N'VIDA',0,1),
+    (1039,N'BH PRODUCTS',N'GMM',1038,0),
+    (1039,N'BH PRODUCTS',N'VIDA',1038,1),
+    (1806,N'ZURICH SANTANDER',N'GMM',0,0),
+    (1806,N'ZURICH SANTANDER',N'VIDA',0,1),
+    (1807,N'ZURICH SANTANDER',N'GMM',0,0),
+    (1807,N'ZURICH SANTANDER',N'VIDA',0,1);
 
 DECLARE @Campos TABLE
 (
-    campoOrigen nvarchar(256) NOT NULL PRIMARY KEY
+    campoOrigen nvarchar(200) NOT NULL PRIMARY KEY,
+    SoloVida bit NOT NULL
 );
 
-/*
-   CAMPOS PARAMETRIZABLES:
-   Dejar solamente los que se quieran mostrar/ocultar.
-   El texto debe coincidir con bf_RepConf_Columna.campoOrigen.
-*/
-INSERT @Campos(campoOrigen)
-VALUES (N'Calle'),
-       (N'NumExt'),
-       (N'NumInt'),
-       (N'Colonia'),
-       (N'Del_Municipio'),
-       (N'EstadoFiscal'),
-       (N'CP');
+INSERT @Campos(campoOrigen,SoloVida)
+VALUES (N'Calle',0),(N'NumExt',0),(N'NumInt',0),(N'Colonia',0),
+       (N'Del_Municipio',0),(N'EstadoFiscal',0),(N'CP',0),
+       /* Se contemplan ambas grafias encontradas en los procedimientos. */
+       (N'PrimaNeta',1),(N'PrimeNeta',1),(N'Costo',1);
 
-/* Ejemplos adicionales que se pueden agregar en @Campos:
-       (N'PrimaNeta'),
-       (N'PrimeNeta'),
-       (N'Costo');
-*/
-
-/* Confirmar que los IDs existan antes de continuar. */
+/* Validar que los IDs realmente existan antes de modificar configuracion. */
 IF OBJECT_ID(N'dbo.ff_Empresa',N'U') IS NOT NULL
    AND EXISTS
    (
        SELECT 1
-       FROM @Empresas AS P
+       FROM (SELECT DISTINCT idEmpresa FROM @Target) AS T
        WHERE NOT EXISTS
        (
            SELECT 1
            FROM dbo.ff_Empresa AS E
-           WHERE E.EMidEmpresa=P.idEmpresa
+           WHERE E.EMidEmpresa=T.idEmpresa
        )
    )
-    THROW 50702,'Uno de los IDs indicados no existe en dbo.ff_Empresa.',1;
+    THROW 50602,'Falta uno de los IDs de empresa esperados; no se aplico el ajuste.',1;
 
-DECLARE @Resuelto TABLE
+DECLARE @TargetResuelto TABLE
 (
     idEmpresa int NOT NULL,
-    Empresa nvarchar(100) NOT NULL,
-    grupoNormalizado nvarchar(100) NOT NULL,
+    Empresa nvarchar(60) NOT NULL,
+    grupoNormalizado nvarchar(20) NOT NULL,
     grupoDestino nvarchar(100) NOT NULL,
     idEmpresaFuente int NOT NULL,
-    visibleDestino bit NOT NULL,
+    QuitarPrimaCosto bit NOT NULL,
     PRIMARY KEY(idEmpresa,grupoNormalizado)
 );
 
-/*
-   Normalizar OPC/OPCIONAL/OPCIONALES y conservar el nombre real del grupo
-   que ya existe para cada empresa.
-*/
-INSERT @Resuelto
+/* Respetar exactamente la escritura del grupo que ya usa cada empresa. */
+INSERT @TargetResuelto
     (idEmpresa,Empresa,grupoNormalizado,grupoDestino,idEmpresaFuente,
-     visibleDestino)
-SELECT P.idEmpresa,P.Empresa,N.grupoNormalizado,
-       COALESCE(T.grupo,C.grupo,P.grupoSugerido),
-       P.idEmpresaFuente,P.visibleDestino
-FROM @Empresas AS P
-CROSS APPLY
-(
-    SELECT CASE WHEN UPPER(LTRIM(RTRIM(P.grupoSugerido))) IN
-                          (N'OPC',N'OPCIONAL',N'OPCIONALES')
-                     THEN N'OPCIONALES'
-                     ELSE UPPER(LTRIM(RTRIM(P.grupoSugerido))) END
-           AS grupoNormalizado
-) AS N
+     QuitarPrimaCosto)
+SELECT T.idEmpresa,T.Empresa,T.grupoNormalizado,
+       COALESCE(RT.grupo,RC.grupo,
+                CASE WHEN T.grupoNormalizado=N'VIDA' THEN N'Vida'
+                     ELSE N'GMM' END),
+       T.idEmpresaFuente,T.QuitarPrimaCosto
+FROM @Target AS T
 OUTER APPLY
 (
     SELECT TOP (1) X.grupo
     FROM dbo.bf_RepConf_Tabla AS X
-    WHERE X.idEmpresa=P.idEmpresa AND X.catReportesId=3
-      AND CASE WHEN UPPER(LTRIM(RTRIM(X.grupo))) IN
-                         (N'OPC',N'OPCIONAL',N'OPCIONALES')
-                    THEN N'OPCIONALES'
-                    ELSE UPPER(LTRIM(RTRIM(X.grupo))) END=N.grupoNormalizado
+    WHERE X.catReportesId=3 AND X.idEmpresa=T.idEmpresa
+      AND UPPER(LTRIM(RTRIM(X.grupo)))=T.grupoNormalizado
     ORDER BY CASE WHEN ISNULL(X.activo,1)=1 THEN 0 ELSE 1 END,X.indexTable
-) AS T
+) AS RT
 OUTER APPLY
 (
     SELECT TOP (1) X.grupo
     FROM dbo.bf_RepConf_Columna AS X
-    WHERE X.idEmpresa=P.idEmpresa AND X.catReportesId=3
-      AND CASE WHEN UPPER(LTRIM(RTRIM(X.grupo))) IN
-                         (N'OPC',N'OPCIONAL',N'OPCIONALES')
-                    THEN N'OPCIONALES'
-                    ELSE UPPER(LTRIM(RTRIM(X.grupo))) END=N.grupoNormalizado
+    WHERE X.catReportesId=3 AND X.idEmpresa=T.idEmpresa
+      AND UPPER(LTRIM(RTRIM(X.grupo)))=T.grupoNormalizado
     ORDER BY X.orden
-) AS C;
-
-/* Vista previa: estado actual y operacion que se realizaria. */
-SELECT R.Empresa,R.idEmpresa,R.grupoDestino,F.campoOrigen,
-       C.visible AS visibleActual,R.visibleDestino,
-       CASE WHEN C.campoOrigen IS NULL THEN N'INSERTAR'
-            WHEN C.visible<>R.visibleDestino THEN N'ACTUALIZAR'
-            ELSE N'SIN CAMBIO' END AS Accion
-FROM @Resuelto AS R
-CROSS JOIN @Campos AS F
-OUTER APPLY
-(
-    SELECT TOP (1) X.campoOrigen,X.visible
-    FROM dbo.bf_RepConf_Columna AS X
-    WHERE X.idEmpresa=R.idEmpresa AND X.catReportesId=3
-      AND CASE WHEN UPPER(LTRIM(RTRIM(X.grupo))) IN
-                         (N'OPC',N'OPCIONAL',N'OPCIONALES')
-                    THEN N'OPCIONALES'
-                    ELSE UPPER(LTRIM(RTRIM(X.grupo))) END=R.grupoNormalizado
-      AND UPPER(LTRIM(RTRIM(X.campoOrigen)))=
-          UPPER(LTRIM(RTRIM(F.campoOrigen)))
-    ORDER BY X.orden
-) AS C
-ORDER BY R.Empresa,R.idEmpresa,R.grupoDestino,F.campoOrigen;
-
-IF @AplicarCambios=0
-BEGIN
-    SELECT N'VISTA PREVIA: no se modifico ningun dato. Cambiar '
-           +N'@AplicarCambios a 1 para aplicar.' AS Resultado;
-    RETURN;
-END;
+) AS RC;
 
 /*
-   Validar que exista una fuente completa cuando la empresa aun no tenga
-   configuracion especifica. Así no se crea una lista parcial de columnas.
+  Si no hay ninguna columna especifica para un ID/grupo, insertar una copia
+  completa desde su empresa fuente o desde la configuracion global. Esto evita
+  crear una configuracion parcial que pudiera dejar la hoja casi vacia.
 */
 IF EXISTS
 (
     SELECT 1
-    FROM @Resuelto AS R
+    FROM @TargetResuelto AS R
     WHERE NOT EXISTS
     (
         SELECT 1
         FROM dbo.bf_RepConf_Columna AS C
         WHERE C.idEmpresa=R.idEmpresa AND C.catReportesId=3
-          AND CASE WHEN UPPER(LTRIM(RTRIM(C.grupo))) IN
-                             (N'OPC',N'OPCIONAL',N'OPCIONALES')
-                        THEN N'OPCIONALES'
-                        ELSE UPPER(LTRIM(RTRIM(C.grupo))) END=
-              R.grupoNormalizado
+          AND UPPER(LTRIM(RTRIM(C.grupo)))=R.grupoNormalizado
     )
       AND NOT EXISTS
       (
@@ -195,55 +146,43 @@ IF EXISTS
           FROM dbo.bf_RepConf_Columna AS C
           WHERE C.idEmpresa IN (R.idEmpresaFuente,0)
             AND C.catReportesId=3
-            AND CASE WHEN UPPER(LTRIM(RTRIM(C.grupo))) IN
-                               (N'OPC',N'OPCIONAL',N'OPCIONALES')
-                          THEN N'OPCIONALES'
-                          ELSE UPPER(LTRIM(RTRIM(C.grupo))) END=
-                R.grupoNormalizado
+            AND UPPER(LTRIM(RTRIM(C.grupo)))=R.grupoNormalizado
       )
 )
-    THROW 50703,'No existe configuracion fuente para una empresa/grupo.',1;
+    THROW 50603,'No existe configuracion fuente para uno de los grupos.',1;
 
 BEGIN TRY
     BEGIN TRANSACTION;
 
-    /* Copiar lista completa solo si la empresa no tiene ninguna columna. */
     ;WITH SinConfiguracion AS
     (
         SELECT R.*
-        FROM @Resuelto AS R
+        FROM @TargetResuelto AS R
         WHERE NOT EXISTS
         (
             SELECT 1
             FROM dbo.bf_RepConf_Columna AS C
             WHERE C.idEmpresa=R.idEmpresa AND C.catReportesId=3
-              AND CASE WHEN UPPER(LTRIM(RTRIM(C.grupo))) IN
-                                 (N'OPC',N'OPCIONAL',N'OPCIONALES')
-                        THEN N'OPCIONALES'
-                        ELSE UPPER(LTRIM(RTRIM(C.grupo))) END=
-                  R.grupoNormalizado
+              AND UPPER(LTRIM(RTRIM(C.grupo)))=R.grupoNormalizado
         )
     ),
-    Fuente AS
+    FuenteElegida AS
     (
-        SELECT R.*,F.idFuente,F.grupoFuente
+        SELECT R.*,
+               F.idFuente,F.grupoFuente
         FROM SinConfiguracion AS R
         CROSS APPLY
         (
             SELECT TOP (1) C.idEmpresa AS idFuente,C.grupo AS grupoFuente
             FROM dbo.bf_RepConf_Columna AS C
-            WHERE C.idEmpresa IN (R.idEmpresaFuente,0)
-              AND C.catReportesId=3
-              AND CASE WHEN UPPER(LTRIM(RTRIM(C.grupo))) IN
-                                 (N'OPC',N'OPCIONAL',N'OPCIONALES')
-                        THEN N'OPCIONALES'
-                        ELSE UPPER(LTRIM(RTRIM(C.grupo))) END=
-                  R.grupoNormalizado
+            WHERE C.catReportesId=3
+              AND C.idEmpresa IN (R.idEmpresaFuente,0)
+              AND UPPER(LTRIM(RTRIM(C.grupo)))=R.grupoNormalizado
             ORDER BY CASE WHEN C.idEmpresa=R.idEmpresaFuente THEN 0 ELSE 1 END,
                      C.orden
         ) AS F
     ),
-    Copia AS
+    FuenteDeduplicada AS
     (
         SELECT R.idEmpresa AS idEmpresaDestino,R.grupoDestino,
                C.orden,C.campoOrigen,C.encabezado,C.visible,C.ancho,
@@ -254,10 +193,11 @@ BEGIN TRY
                                 UPPER(LTRIM(RTRIM(C.campoOrigen)))
                    ORDER BY C.orden
                ) AS Duplicado
-        FROM Fuente AS R
+        FROM FuenteElegida AS R
         INNER JOIN dbo.bf_RepConf_Columna AS C
           ON C.idEmpresa=R.idFuente AND C.catReportesId=3
-         AND C.grupo=R.grupoFuente
+         AND UPPER(LTRIM(RTRIM(C.grupo)))=
+             UPPER(LTRIM(RTRIM(R.grupoFuente)))
     )
     INSERT dbo.bf_RepConf_Columna
     (
@@ -273,62 +213,51 @@ BEGIN TRY
             ORDER BY orden,campoOrigen),
            campoOrigen,encabezado,visible,ancho,formato,alinear,tipoDato,
            0,GETDATE(),NULL,NULL,NULL,NULL
-    FROM Copia
+    FROM FuenteDeduplicada
     WHERE Duplicado=1;
 
-    /* Insertar solamente campos solicitados que sigan faltando. */
+    /* Insertar con @VisibleDestino los campos solicitados que aun no existan. */
     ;WITH Faltantes AS
     (
-        SELECT R.idEmpresa,R.grupoDestino,F.campoOrigen,
-               M.MaxOrden,P.encabezado,P.ancho,P.formato,P.alinear,P.tipoDato,
+        SELECT R.idEmpresa,R.grupoNormalizado,R.grupoDestino,
+               F.campoOrigen,M.MaxOrden,
+               P.encabezado,P.ancho,P.formato,P.alinear,P.tipoDato,
                ROW_NUMBER() OVER
                (PARTITION BY R.idEmpresa,R.grupoDestino
-                ORDER BY F.campoOrigen) AS Posicion,
-               R.visibleDestino
-        FROM @Resuelto AS R
+                ORDER BY F.campoOrigen) AS Posicion
+        FROM @TargetResuelto AS R
         CROSS JOIN @Campos AS F
         CROSS APPLY
         (
             SELECT ISNULL(MAX(C.orden),0) AS MaxOrden
             FROM dbo.bf_RepConf_Columna AS C
             WHERE C.idEmpresa=R.idEmpresa AND C.catReportesId=3
-              AND CASE WHEN UPPER(LTRIM(RTRIM(C.grupo))) IN
-                                 (N'OPC',N'OPCIONAL',N'OPCIONALES')
-                        THEN N'OPCIONALES'
-                        ELSE UPPER(LTRIM(RTRIM(C.grupo))) END=
-                  R.grupoNormalizado
+              AND UPPER(LTRIM(RTRIM(C.grupo)))=R.grupoNormalizado
         ) AS M
         OUTER APPLY
         (
             SELECT TOP (1)
                    C.encabezado,C.ancho,C.formato,C.alinear,C.tipoDato
             FROM dbo.bf_RepConf_Columna AS C
-            WHERE C.idEmpresa IN (R.idEmpresa,R.idEmpresaFuente,0)
-              AND C.catReportesId=3
-              AND CASE WHEN UPPER(LTRIM(RTRIM(C.grupo))) IN
-                                 (N'OPC',N'OPCIONAL',N'OPCIONALES')
-                        THEN N'OPCIONALES'
-                        ELSE UPPER(LTRIM(RTRIM(C.grupo))) END=
-                  R.grupoNormalizado
+            WHERE C.catReportesId=3
+              AND C.idEmpresa IN (R.idEmpresa,R.idEmpresaFuente,0)
+              AND UPPER(LTRIM(RTRIM(C.grupo)))=R.grupoNormalizado
               AND UPPER(LTRIM(RTRIM(C.campoOrigen)))=
                   UPPER(LTRIM(RTRIM(F.campoOrigen)))
             ORDER BY CASE WHEN C.idEmpresa=R.idEmpresa THEN 0
                           WHEN C.idEmpresa=R.idEmpresaFuente THEN 1
                           ELSE 2 END,C.orden
         ) AS P
-        WHERE NOT EXISTS
-        (
-            SELECT 1
-            FROM dbo.bf_RepConf_Columna AS C
-            WHERE C.idEmpresa=R.idEmpresa AND C.catReportesId=3
-              AND CASE WHEN UPPER(LTRIM(RTRIM(C.grupo))) IN
-                                 (N'OPC',N'OPCIONAL',N'OPCIONALES')
-                        THEN N'OPCIONALES'
-                        ELSE UPPER(LTRIM(RTRIM(C.grupo))) END=
-                  R.grupoNormalizado
-              AND UPPER(LTRIM(RTRIM(C.campoOrigen)))=
-                  UPPER(LTRIM(RTRIM(F.campoOrigen)))
-        )
+        WHERE (F.SoloVida=0 OR R.QuitarPrimaCosto=1)
+          AND NOT EXISTS
+          (
+              SELECT 1
+              FROM dbo.bf_RepConf_Columna AS C
+              WHERE C.idEmpresa=R.idEmpresa AND C.catReportesId=3
+                AND UPPER(LTRIM(RTRIM(C.grupo)))=R.grupoNormalizado
+                AND UPPER(LTRIM(RTRIM(C.campoOrigen)))=
+                    UPPER(LTRIM(RTRIM(F.campoOrigen)))
+          )
     )
     INSERT dbo.bf_RepConf_Columna
     (
@@ -339,51 +268,82 @@ BEGIN TRY
         repConfColumnaFechaDel
     )
     SELECT idEmpresa,3,grupoDestino,MaxOrden+Posicion,campoOrigen,
-           ISNULL(encabezado,campoOrigen),visibleDestino,
+           ISNULL(encabezado,campoOrigen),@VisibleDestino,
            ancho,formato,alinear,tipoDato,
            0,GETDATE(),NULL,NULL,NULL,NULL
     FROM Faltantes;
 
-    /* Aplicar visibleDestino a los campos seleccionados. */
+    /* Aplicar la matriz exacta. */
     UPDATE C
-       SET C.visible=R.visibleDestino,
+       SET C.visible=@VisibleDestino,
            C.repConfColumnaUsuarioMod=0,
            C.repConfColumnaFechaMod=GETDATE()
     FROM dbo.bf_RepConf_Columna AS C
-    INNER JOIN @Resuelto AS R
+    INNER JOIN @TargetResuelto AS R
       ON R.idEmpresa=C.idEmpresa
-     AND CASE WHEN UPPER(LTRIM(RTRIM(C.grupo))) IN
-                        (N'OPC',N'OPCIONAL',N'OPCIONALES')
-               THEN N'OPCIONALES'
-               ELSE UPPER(LTRIM(RTRIM(C.grupo))) END=R.grupoNormalizado
+     AND UPPER(LTRIM(RTRIM(C.grupo)))=R.grupoNormalizado
     INNER JOIN @Campos AS F
       ON UPPER(LTRIM(RTRIM(C.campoOrigen)))=
          UPPER(LTRIM(RTRIM(F.campoOrigen)))
+     AND (F.SoloVida=0 OR R.QuitarPrimaCosto=1)
     WHERE C.catReportesId=3
-      AND ISNULL(C.visible,1)<>R.visibleDestino;
+      AND ISNULL(C.visible,1)<>@VisibleDestino;
 
-    /* Verificar antes de confirmar. */
+    /*
+      Corregir solamente posibles residuos de scripts anteriores:
+      ATT, SSGT y Opcionales no pertenecen a la matriz de ocultamiento.
+      No se crean configuraciones nuevas para estas combinaciones.
+    */
+    UPDATE C
+       SET C.visible=1,
+           C.repConfColumnaUsuarioMod=0,
+           C.repConfColumnaFechaMod=GETDATE()
+    FROM dbo.bf_RepConf_Columna AS C
+    INNER JOIN
+    (
+        SELECT 116 AS idEmpresa,N'OPC' AS grupoNormalizado UNION ALL
+        SELECT 117,N'OPC' UNION ALL
+        SELECT 166,N'GMM' UNION ALL
+        SELECT 166,N'VIDA' UNION ALL
+        SELECT 166,N'OPCIONALES' UNION ALL
+        SELECT 332,N'OPCIONALES' UNION ALL
+        SELECT 856,N'OPCIONALES' UNION ALL
+        SELECT 1038,N'OPCIONALES' UNION ALL
+        SELECT 1039,N'OPCIONALES'
+    ) AS V
+      ON V.idEmpresa=C.idEmpresa
+     AND CASE WHEN UPPER(LTRIM(RTRIM(C.grupo))) IN
+                   (N'OPC',N'OPCIONAL',N'OPCIONALES')
+              THEN N'OPCIONALES'
+              ELSE UPPER(LTRIM(RTRIM(C.grupo))) END=
+         CASE WHEN V.grupoNormalizado=N'OPC' THEN N'OPCIONALES'
+              ELSE V.grupoNormalizado END
+    INNER JOIN @Campos AS F
+      ON F.SoloVida=0
+     AND UPPER(LTRIM(RTRIM(C.campoOrigen)))=
+         UPPER(LTRIM(RTRIM(F.campoOrigen)))
+    WHERE C.catReportesId=3
+      AND ISNULL(C.visible,1)<>1;
+
+    /* Si algo no queda con la visibilidad solicitada, revertir todo el lote. */
     IF EXISTS
     (
         SELECT 1
-        FROM @Resuelto AS R
+        FROM @TargetResuelto AS R
         CROSS JOIN @Campos AS F
-        WHERE NOT EXISTS
-        (
-            SELECT 1
-            FROM dbo.bf_RepConf_Columna AS C
-            WHERE C.idEmpresa=R.idEmpresa AND C.catReportesId=3
-              AND CASE WHEN UPPER(LTRIM(RTRIM(C.grupo))) IN
-                                 (N'OPC',N'OPCIONAL',N'OPCIONALES')
-                        THEN N'OPCIONALES'
-                        ELSE UPPER(LTRIM(RTRIM(C.grupo))) END=
-                  R.grupoNormalizado
-              AND UPPER(LTRIM(RTRIM(C.campoOrigen)))=
-                  UPPER(LTRIM(RTRIM(F.campoOrigen)))
-              AND C.visible=R.visibleDestino
-        )
+        WHERE (F.SoloVida=0 OR R.QuitarPrimaCosto=1)
+          AND NOT EXISTS
+          (
+              SELECT 1
+              FROM dbo.bf_RepConf_Columna AS C
+              WHERE C.idEmpresa=R.idEmpresa AND C.catReportesId=3
+                AND UPPER(LTRIM(RTRIM(C.grupo)))=R.grupoNormalizado
+                AND UPPER(LTRIM(RTRIM(C.campoOrigen)))=
+                    UPPER(LTRIM(RTRIM(F.campoOrigen)))
+                AND C.visible=@VisibleDestino
+          )
     )
-        THROW 50704,'La configuracion no quedo completa; se revertira.',1;
+        THROW 50604,'La matriz no quedo completa; se revertira el lote.',1;
 
     COMMIT TRANSACTION;
 END TRY
@@ -392,17 +352,16 @@ BEGIN CATCH
     THROW;
 END CATCH;
 
-SELECT R.Empresa,R.idEmpresa,R.grupoDestino,F.campoOrigen,
-       C.visible,N'APLICADO' AS Resultado
-FROM @Resuelto AS R
-CROSS JOIN @Campos AS F
+/* Resultado final: visible debe coincidir con @VisibleDestino. */
+SELECT R.Empresa,R.idEmpresa,R.grupoNormalizado,
+       C.campoOrigen,C.visible,@VisibleDestino AS visibleSolicitado
+FROM @TargetResuelto AS R
 INNER JOIN dbo.bf_RepConf_Columna AS C
   ON C.idEmpresa=R.idEmpresa AND C.catReportesId=3
- AND CASE WHEN UPPER(LTRIM(RTRIM(C.grupo))) IN
-                    (N'OPC',N'OPCIONAL',N'OPCIONALES')
-           THEN N'OPCIONALES'
-           ELSE UPPER(LTRIM(RTRIM(C.grupo))) END=R.grupoNormalizado
- AND UPPER(LTRIM(RTRIM(C.campoOrigen)))=
+ AND UPPER(LTRIM(RTRIM(C.grupo)))=R.grupoNormalizado
+INNER JOIN @Campos AS F
+  ON UPPER(LTRIM(RTRIM(C.campoOrigen)))=
      UPPER(LTRIM(RTRIM(F.campoOrigen)))
-ORDER BY R.Empresa,R.idEmpresa,R.grupoDestino,F.campoOrigen;
+ AND (F.SoloVida=0 OR R.QuitarPrimaCosto=1)
+ORDER BY R.Empresa,R.idEmpresa,R.grupoNormalizado,C.orden;
 GO
