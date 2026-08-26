@@ -3,6 +3,7 @@ Subquery returned more than 1 value. This is not permitted when the subquery fol
 
 Hora de finalización: 2026-08-25T22:12:53.5716260-06:00
 
+
 /*
   PREPARA LOS DATOS DE LOS SIETE TXT DE CARGA MASIVA B2/BF3.
 
