@@ -19,3 +19,8 @@ TEXT GENERADO CON CONSULTA : @commonFields:  EMIdEmpresa=186  EMUsuarioUMod=25  
 
 CONSULTA USADA 
 
+http://localhost:4200/#/pages/administracion/solicitudes/defaulteo
+http://localhost:4200/#/pages/administracion/titulares/defaulteo
+
+
+
