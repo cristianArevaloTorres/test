@@ -1,3 +1,8 @@
+Mensaje 512, nivel 16, estado 1, procedimiento fb_AsignacionPerfil, línea 20 [línea de inicio de lote 0]
+Subquery returned more than 1 value. This is not permitted when the subquery follows =, !=, <, <= , >, >= or when the subquery is used as an expression.
+
+Hora de finalización: 2026-08-25T22:12:53.5716260-06:00
+
 /*
   PREPARA LOS DATOS DE LOS SIETE TXT DE CARGA MASIVA B2/BF3.
 
