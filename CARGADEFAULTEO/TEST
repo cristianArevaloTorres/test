@@ -23,3 +23,4 @@ EMEmpresa=186edf
 # Sustituya los valores de ejemplo sin cambiar nombres, orden ni separador.
 @data:
 testA001|STAFF 5/8|DUMMY|ALTA|TITULAR|20/05/1990|M|26/08/2026|3||26/08/2026|QACM000001HDFLRN01|QAC000001AA1|0|CIUDAD DE MEXICO|18600000102|STAFF 5/8|35007|MEX|MEX|STAFF|qacm.186.p1@dummy.mx|DOMICILIO DUMMY||0|||0|0|4|0
+http://localhost:4200/#/pages/administracion/titulares/cargamasivapoblaciones
