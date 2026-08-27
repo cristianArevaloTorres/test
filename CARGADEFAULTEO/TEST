@@ -1,3 +1,6 @@
+http://localhost:4200/#/pages/administracion/titulares/defaulteo
+
+
 [2026-08-26 18:03:14] [TRAZA:CM-186-1787788994906-7O1NE3] [FLUJO:B2] [EMPRESA:186]: [CLIENTE] Archivo TXT recibido y validado en navegador.
 [2026-08-26 18:03:14] [TRAZA:CM-186-1787788994906-7O1NE3] [FLUJO:B2] [EMPRESA:186]: [SOLICITUD] Archivo=B2_ALTA_TITULARES_Empresa_186 (5).txt; tamano=1039 bytes; operacion=2; registros=1; modo=TODOS.
 [2026-08-26 18:03:15.434] [TRAZA:CM-186-1787788994906-7O1NE3] [FLUJO:B2] [EMPRESA:186] [ETAPA:INICIO] Archivo='B2_ALTA_TITULARES_Empresa_186 (5).txt'; tamano=1039 bytes; usuario=25; modo=TODOS.
