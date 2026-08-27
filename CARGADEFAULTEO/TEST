@@ -1,41 +1,15 @@
-Trazabilidad de esta carga
-CM-186-1787725961973-XAUB21 · B2 · CON ERRORES
-[INICIO] Traza CM-186-1787725961973-XAUB21. Operacion 1, plantilla 182, SP ff_XCMDependientesAltaCMM.
-[ERROR] Renglon 1: El campo EMIdEmpresa no es valido para el tipo E.
-[2026-08-26 00:32:42] [TRAZA:CM-186-1787725961973-XAUB21] [FLUJO:B2] [EMPRESA:186]: [CON ERRORES] Fin de la traza de carga masiva.
-
-TXT DE EJEMPLO : 
-
-##
-@commonFields:  
-EMIdEmpresa=186  EMUsuarioUMod=25    
-##
-@fieldNames:
-EMIdSexo,EMNumeroEmpleado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,EMFechaNacimiento,EMFechaAntiguedadGMM,EMIdParentesco,EMFechaAlta,EMObservaciones,EMCertificado  
-##  
-@data:  F|18601|PRUEBA|DEPENDIENTE|DUMMY|CARGA|15/06/2015|01/01/2024|H|26/08/2026|QA CARGA B2 BF3 PRUEBA 1|1860101
-
-TEXT GENERADO CON CONSULTA : @commonFields:  EMIdEmpresa=186  EMUsuarioUMod=25    @fieldNames:EMIdSexo,EMNumeroEmpleado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,EMFechaNacimiento,EMFechaAntiguedadGMM,EMIdParentesco,EMFechaAlta,EMObservaciones,EMCertificado  ##  @data:  F|18601|PRUEBA|DEPENDIENTE|DUMMY|CARGA|15/06/2015|01/01/2024|H|26/08/2026|QA CARGA B2 BF3 PRUEBA 1|1860101
-
-CONSULTA USADA 
-
-http://localhost:4200/#/pages/administracion/solicitudes/defaulteo
-http://localhost:4200/#/pages/administracion/titulares/defaulteo
+[2026-08-26 18:03:14] [TRAZA:CM-186-1787788994906-7O1NE3] [FLUJO:B2] [EMPRESA:186]: [CLIENTE] Archivo TXT recibido y validado en navegador.
+[2026-08-26 18:03:14] [TRAZA:CM-186-1787788994906-7O1NE3] [FLUJO:B2] [EMPRESA:186]: [SOLICITUD] Archivo=B2_ALTA_TITULARES_Empresa_186 (5).txt; tamano=1039 bytes; operacion=2; registros=1; modo=TODOS.
+[2026-08-26 18:03:15.434] [TRAZA:CM-186-1787788994906-7O1NE3] [FLUJO:B2] [EMPRESA:186] [ETAPA:INICIO] Archivo='B2_ALTA_TITULARES_Empresa_186 (5).txt'; tamano=1039 bytes; usuario=25; modo=TODOS.
+[2026-08-26 18:03:15.434] [TRAZA:CM-186-1787788994906-7O1NE3] [FLUJO:B2] [EMPRESA:186] [ETAPA:CONFIGURACION] Operacion=2 ('ALTA TITULARES'); plantilla=507; procedimiento=ff_XCMTitularesAltaCMDeloitte.
+[2026-08-26 18:03:15.435] [TRAZA:CM-186-1787788994906-7O1NE3] [FLUJO:B2] [EMPRESA:186] [ETAPA:ESTRUCTURA_TXT] Registros=1; campos comunes=1 [EMEmpresa]; campos por registro=31 [EMNumeroEmpleado, EMPuestoDescripcion, EMNombre1, EMApellidoPaterno, EMApellidoMaterno, EMFechaNacimiento, EMIdSexo, EMFechaIngresoEmpresa, EMIdEstatus, EMFechaBaja, EMFechaEstatus, EMcurp, EMrfc, EMIdTransferido, EMEstadoFisical_text, EMnss, EMPuesto, EMCentroCostos_text, EMOficina_text, EMArea_text, EMArchivoInformacion, EMCorreoElectronico, EMCalleFisico, EMMunicipioDelegacionFiscal, EMJefe, EMEstadoFisico_text, EMColoniaFiscal, EMColoniaFisico, EMMunicipioDelegacionFisico, EMSalarioBase, EMCodigoPostalFisico].
+[2026-08-26 18:03:15.435] [TRAZA:CM-186-1787788994906-7O1NE3] [FLUJO:B2] [EMPRESA:186] [ETAPA:VALIDACIONES_B2] Plantilla activa con 32 campos; catalogos especificos=1; politica de errores=CONTINUAR_TODOS.
+[2026-08-26 18:03:15.435] [TRAZA:CM-186-1787788994906-7O1NE3] [FLUJO:B2] [EMPRESA:186] [ETAPA:CONTEXTO_SEGURO] EMIdEmpresa=186 y EMUsuarioUMod=25 se obtienen de la solicitud autenticada. EMEmpresa, cuando la plantilla legacy lo define, se conserva como clave externa.
+[2026-08-26 18:03:15.530] [TRAZA:CM-186-1787788994906-7O1NE3] [FLUJO:B2] [EMPRESA:186] [ETAPA:RENGLON_ERROR] Renglon=1/1; etapa=EJECUCION_SP; procedimiento=ff_XCMTitularesAltaCMDeloitte; duracion=95 ms; mensaje='Required input parameter 'EMPuesto2' is missing'.
+[2026-08-26 18:03:15.530] [TRAZA:CM-186-1787788994906-7O1NE3] [FLUJO:B2] [EMPRESA:186] [ETAPA:RESUMEN] Resultado=CON_ERRORES; total=1; procesados=1; correctos=0; errores=1; omitidos=0; duracionTotal=513 ms.
+[2026-08-26 18:03:15] [TRAZA:CM-186-1787788994906-7O1NE3] [FLUJO:B2] [EMPRESA:186]: [CON ERRORES] Fin de la traza de carga masiva.
 
 
-
-[2026-08-26 17:43:52] [TRAZA:CM-186-1787787832530-KF9V31] [FLUJO:B2] [EMPRESA:186]: [CLIENTE] Archivo TXT recibido y validado en navegador.
-[2026-08-26 17:43:52] [TRAZA:CM-186-1787787832530-KF9V31] [FLUJO:B2] [EMPRESA:186]: [SOLICITUD] Archivo=B2_ALTA_TITULARES_Empresa_186 (5).txt; tamano=1039 bytes; operacion=2; registros=1; modo=PRIMER_ERROR.
-[2026-08-26 17:43:53.052] [TRAZA:CM-186-1787787832530-KF9V31] [FLUJO:B2] [EMPRESA:186] [ETAPA:INICIO] Archivo='B2_ALTA_TITULARES_Empresa_186 (5).txt'; tamano=1039 bytes; usuario=25; modo=PRIMER_ERROR.
-[2026-08-26 17:43:53.058] [TRAZA:CM-186-1787787832530-KF9V31] [FLUJO:B2] [EMPRESA:186] [ETAPA:CONFIGURACION] Operacion=2 ('ALTA TITULARES'); plantilla=507; procedimiento=ff_XCMTitularesAltaCMDeloitte.
-[2026-08-26 17:43:53.061] [TRAZA:CM-186-1787787832530-KF9V31] [FLUJO:B2] [EMPRESA:186] [ETAPA:ESTRUCTURA_TXT] Registros=1; campos comunes=1 [EMEmpresa]; campos por registro=31 [EMNumeroEmpleado, EMPuestoDescripcion, EMNombre1, EMApellidoPaterno, EMApellidoMaterno, EMFechaNacimiento, EMIdSexo, EMFechaIngresoEmpresa, EMIdEstatus, EMFechaBaja, EMFechaEstatus, EMcurp, EMrfc, EMIdTransferido, EMEstadoFisical_text, EMnss, EMPuesto, EMCentroCostos_text, EMOficina_text, EMArea_text, EMArchivoInformacion, EMCorreoElectronico, EMCalleFisico, EMMunicipioDelegacionFiscal, EMJefe, EMEstadoFisico_text, EMColoniaFiscal, EMColoniaFisico, EMMunicipioDelegacionFisico, EMSalarioBase, EMCodigoPostalFisico].
-[2026-08-26 17:43:53.062] [TRAZA:CM-186-1787787832530-KF9V31] [FLUJO:B2] [EMPRESA:186] [ETAPA:VALIDACIONES_B2] Plantilla activa con 32 campos; catalogos especificos=1; politica de errores=DETENER_PRIMER_ERROR.
-[2026-08-26 17:43:53.156] [TRAZA:CM-186-1787787832530-KF9V31] [FLUJO:B2] [EMPRESA:186] [ETAPA:RENGLON_ERROR] Renglon=1/1; etapa=EJECUCION_SP; procedimiento=ff_XCMTitularesAltaCMDeloitte; duracion=91 ms; mensaje='Required input parameter 'EMIdEmpresa' is missing'.
-[2026-08-26 17:43:53.159] [TRAZA:CM-186-1787787832530-KF9V31] [FLUJO:B2] [EMPRESA:186] [ETAPA:RESUMEN] Resultado=CON_ERRORES; total=1; procesados=1; correctos=0; errores=1; omitidos=0; duracionTotal=519 ms.
-[2026-08-26 17:43:53] [TRAZA:CM-186-1787787832530-KF9V31] [FLUJO:B2] [EMPRESA:186]: [CON ERRORES] Fin de la traza de carga masiva.
-
-
-insumos 
 # Documento de ejemplo para Carga Masiva B2
 # Operacion: ALTA TITULARES
 # Empresa: 186
@@ -49,6 +23,3 @@ EMEmpresa=186edf
 # Sustituya los valores de ejemplo sin cambiar nombres, orden ni separador.
 @data:
 testA001|STAFF 5/8|DUMMY|ALTA|TITULAR|20/05/1990|M|26/08/2026|3||26/08/2026|QACM000001HDFLRN01|QAC000001AA1|0|CIUDAD DE MEXICO|18600000102|STAFF 5/8|35007|MEX|MEX|STAFF|qacm.186.p1@dummy.mx|DOMICILIO DUMMY||0|||0|0|4|0
-
-
-
