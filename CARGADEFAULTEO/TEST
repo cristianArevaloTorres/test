@@ -8,7 +8,11 @@
 
 Buen día,
 
-Comparto adjuntos los siguientes documentos para su revisión:
+Les informo que el desarrollo correspondiente a las funcionalidades de **Carga Masiva de Poblaciones** y **Defaulteo en BF3** ha concluido. El siguiente paso es realizar el envío y despliegue en el ambiente de **QA**, con el propósito de iniciar las pruebas funcionales y de validación correspondientes.
+
+Antes de avanzar con esta etapa, consideré conveniente compartirles los manuales de usuario, para que puedan conocer previamente el alcance, el flujo de operación y las nuevas funcionalidades incorporadas. Esto permitirá que la revisión en QA se realice con mayor claridad y con una referencia común sobre el comportamiento esperado de cada proceso.
+
+Comparto adjuntos los siguientes documentos:
 
 - Manual de usuario de **Carga Masiva de Poblaciones**.
 - Manual de usuario de **Defaulteo**.
@@ -42,7 +46,7 @@ Como parte de la simplificación de la interfaz solicitada, la pantalla nueva pr
 
 En resumen, el alcance realizado consiste en reutilizar una funcionalidad ya existente y publicarla en una nueva pantalla dentro del módulo de Administración de titulares, manteniendo intacta la pantalla base y conservando las reglas de negocio actuales.
 
-Quedo atento a sus comentarios y observaciones sobre los documentos adjuntos.
+Una vez compartida esta documentación, se continuará con el pase a **QA** para ejecutar las pruebas correspondientes. Quedo atento a sus comentarios u observaciones sobre los manuales y el alcance descrito.
 
 Saludos.
 
