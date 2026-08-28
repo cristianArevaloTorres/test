@@ -1,50 +1,37 @@
-$File = 'src/main/java/com/lockton/rpt/services/DefaulteoHistoricoService.java'
-
-
-el de api reportes esta saliendo esto:
-[INFO] --- maven-compiler-plugin:3.11.0:compile (default-compile) @ rpt ---
-[INFO] Changes detected - recompiling the module! :source
-[INFO] Compiling 228 source files with javac [debug target 11] to target\classes
+com\lockton\WSBeFlex\Services\package-info.java
+[INFO]
+[INFO] --- maven-resources-plugin:3.2.0:resources (default-resources) @ WSBeFlex ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Using 'UTF-8' encoding to copy filtered properties files.
+[INFO] Copying 1 resource
+[INFO] Copying 3 resources
+[INFO]
+[INFO] --- maven-compiler-plugin:3.10.1:compile (default-compile) @ WSBeFlex ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 1215 source files to C:\Proyectos_Lockton\QA\WSBeFlex-EmpAdm\target\classes
+[INFO] /C:/Proyectos_Lockton/QA/WSBeFlex-EmpAdm/src/main/java/com/lockton/WSBeFlex/Encrypter.java: Some input files use or override a deprecated API.
+[INFO] /C:/Proyectos_Lockton/QA/WSBeFlex-EmpAdm/src/main/java/com/lockton/WSBeFlex/Encrypter.java: Recompile with -Xlint:deprecation for details.
+[INFO] /C:/Proyectos_Lockton/QA/WSBeFlex-EmpAdm/src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java: Some input files use unchecked or unsafe operations.
+[INFO] /C:/Proyectos_Lockton/QA/WSBeFlex-EmpAdm/src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java: Recompile with -Xlint:unchecked for details.
 [INFO] -------------------------------------------------------------
 [ERROR] COMPILATION ERROR :
 [INFO] -------------------------------------------------------------
-[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoController.java:[5,32] cannot find symbol
-  symbol:   class DefaulteoHistoricoService
-  location: package com.lockton.rpt.services
-[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoController.java:[24,19] cannot find symbol
-  symbol:   class DefaulteoHistoricoService
-  location: class com.lockton.rpt.controllers.WSDefaulteoHistoricoController
-[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoController.java:[27,43] cannot find symbol
-  symbol:   class DefaulteoHistoricoService
-  location: class com.lockton.rpt.controllers.WSDefaulteoHistoricoController
-[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/services/impl/DefaulteoHistoricoServiceImpl.java:[5,32] cannot find symbol
-  symbol:   class DefaulteoHistoricoService
-  location: package com.lockton.rpt.services
-[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/services/impl/DefaulteoHistoricoServiceImpl.java:[11,55] cannot find symbol
-  symbol: class DefaulteoHistoricoService
-[INFO] 5 errors
+[ERROR] /C:/Proyectos_Lockton/QA/WSBeFlex-EmpAdm/src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java:[82,71] cannot find symbol
+  symbol:   variable parametroAcceso
+  location: variable datosOp of type com.lockton.WSBeFlex.POJO.Especiales.FfCOpcionesCargaMasiva
+[INFO] 1 error
 [INFO] -------------------------------------------------------------
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD FAILURE
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  6.814 s
-[INFO] Finished at: 2026-08-28T10:42:58-06:00
+[INFO] Total time:  37.053 s
+[INFO] Finished at: 2026-08-28T10:55:48-06:00
 [INFO] ------------------------------------------------------------------------
-[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-compile) on project rpt: Compilation failure: Compilation failure:
-[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoController.java:[5,32] cannot find symbol
-[ERROR]   symbol:   class DefaulteoHistoricoService
-[ERROR]   location: package com.lockton.rpt.services
-[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoController.java:[24,19] cannot find symbol
-[ERROR]   symbol:   class DefaulteoHistoricoService
-[ERROR]   location: class com.lockton.rpt.controllers.WSDefaulteoHistoricoController
-[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoController.java:[27,43] cannot find symbol
-[ERROR]   symbol:   class DefaulteoHistoricoService
-[ERROR]   location: class com.lockton.rpt.controllers.WSDefaulteoHistoricoController
-[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/services/impl/DefaulteoHistoricoServiceImpl.java:[5,32] cannot find symbol
-[ERROR]   symbol:   class DefaulteoHistoricoService
-[ERROR]   location: package com.lockton.rpt.services
-[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/services/impl/DefaulteoHistoricoServiceImpl.java:[11,55] cannot find symbol
-[ERROR]   symbol: class DefaulteoHistoricoService
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.10.1:compile (default-compile) on project WSBeFlex: Compilation failure
+[ERROR] /C:/Proyectos_Lockton/QA/WSBeFlex-EmpAdm/src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java:[82,71] cannot find symbol
+[ERROR]   symbol:   variable parametroAcceso
+[ERROR]   location: variable datosOp of type com.lockton.WSBeFlex.POJO.Especiales.FfCOpcionesCargaMasiva
+[ERROR]
 [ERROR] -> [Help 1]
 [ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
@@ -53,4 +40,4 @@ el de api reportes esta saliendo esto:
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
 Error: mvn compile ha fallado.
-PS C:\Proyectos_Lockton\QA\BeFlex3_Admin_API_Reportes>
+PS C:\Proyectos_Lockton\QA\WSBeFlex-EmpAdm>
