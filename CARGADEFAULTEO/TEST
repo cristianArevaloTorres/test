@@ -1,3 +1,65 @@
+
+select top 100 * from ff_Menu where MEidMenu = 583  -- MENombreMenu like '%carga%'
+select top 100 * from ff_Menu where MEidMenu = 771
+select top 100 * from ff_Menu where MEidMenu = 566
+
+
+begin tran 
+insert into ff_Menu 
+values ('Defaulteo tipo 1,2,3',	'/defaulteo',	'Defaulteo tipo 1,2,3',	0	,'centro',	10	,1,	580	,NULL,	3	,1	,NULL,	'2020-12-07 12:08:35.600',	NULL	,'2020-12-07 12:08:35.600'	,NULL	,NULL)
+
+commit;
+
+
+begin tran
+update ff_Menu set MENombreMenu = 'Crear y Actualizar Solicitudes' , MERutaLiga = '/defaulteo' ,MEComentarios = 'Crear y actualizar solicitudes' ,MEMenuPadre = 585 ,MEidTipoNegocio = 3
+where MEidMenu = 566
+
+commit
+
+
+select top 100 * from ff_Menu where MEidMenu = 583
+select  * from ff_MenuRol2 where MRidMenu in (583) and MRImagenMenu = 'Boton_CARGA MASIVA.png'
+
+begin tran 
+delete from ff_MenuRol2 where MRidMenu in (771)
+
+
+
+SELECT TOP 1 MEidMenu,* FROM ff_menu ORDER BY 1 DESC
+-- Hay que poner el MEidMenu que dio el primer insert
+begin tran 
+INSERT INTO FF_MENUROL2 (MRidRol,
+MRidMenu,
+MRidEstatus,	
+MRUsuarioAdd,
+MRFechaAdd,	
+MRUsuarioUMod,
+MRFechaUMod,
+MRUsuarioDel,
+MRFechaDel,
+MRRutaBanner,
+MRImagenMenu)
+SELECT 
+	MRidRol,
+	771, 
+	MRidEstatus,	
+	MRUsuarioAdd,
+	MRFechaAdd,	
+	MRUsuarioUMod,
+	MRFechaUMod,
+	MRUsuarioDel,
+	MRFechaDel,
+	MRRutaBanner,
+	MRImagenMenu
+	'Boton_CARGA MASIVA DE POBLACIONES.png'
+FROM FF_MENUROL2 
+where MRidMenu in (583) and MRImagenMenu = 'Boton_CARGA MASIVA.png'
+commit
+rollback
+----
+--------------------------------------------------------------------------------------------
+
 # Comandos Git — Carga Masiva y Defaulteo (solo código)
 
 Los bloques siguientes agregan únicamente los archivos de código modificados. No utilizan `git add .` ni `git add -A`.
