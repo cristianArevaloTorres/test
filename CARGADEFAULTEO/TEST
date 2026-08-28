@@ -1,3 +1,6 @@
+$File = 'src/main/java/com/lockton/rpt/services/DefaulteoHistoricoService.java'
+
+
 el de api reportes esta saliendo esto:
 [INFO] --- maven-compiler-plugin:3.11.0:compile (default-compile) @ rpt ---
 [INFO] Changes detected - recompiling the module! :source
