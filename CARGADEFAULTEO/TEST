@@ -1,291 +1,53 @@
-
-select top 100 * from ff_Menu where MEidMenu = 583  -- MENombreMenu like '%carga%'
-select top 100 * from ff_Menu where MEidMenu = 771
-select top 100 * from ff_Menu where MEidMenu = 566
-
-
-begin tran 
-insert into ff_Menu 
-values ('Defaulteo tipo 1,2,3',	'/defaulteo',	'Defaulteo tipo 1,2,3',	0	,'centro',	10	,1,	580	,NULL,	3	,1	,NULL,	'2020-12-07 12:08:35.600',	NULL	,'2020-12-07 12:08:35.600'	,NULL	,NULL)
-
-commit;
-
-
-begin tran
-update ff_Menu set MENombreMenu = 'Crear y Actualizar Solicitudes' , MERutaLiga = '/defaulteo' ,MEComentarios = 'Crear y actualizar solicitudes' ,MEMenuPadre = 585 ,MEidTipoNegocio = 3
-where MEidMenu = 566
-
-commit
-
-
-select top 100 * from ff_Menu where MEidMenu = 583
-select  * from ff_MenuRol2 where MRidMenu in (583) and MRImagenMenu = 'Boton_CARGA MASIVA.png'
-
-begin tran 
-delete from ff_MenuRol2 where MRidMenu in (771)
-
-
-
-SELECT TOP 1 MEidMenu,* FROM ff_menu ORDER BY 1 DESC
--- Hay que poner el MEidMenu que dio el primer insert
-begin tran 
-INSERT INTO FF_MENUROL2 (MRidRol,
-MRidMenu,
-MRidEstatus,	
-MRUsuarioAdd,
-MRFechaAdd,	
-MRUsuarioUMod,
-MRFechaUMod,
-MRUsuarioDel,
-MRFechaDel,
-MRRutaBanner,
-MRImagenMenu)
-SELECT 
-	MRidRol,
-	771, 
-	MRidEstatus,	
-	MRUsuarioAdd,
-	MRFechaAdd,	
-	MRUsuarioUMod,
-	MRFechaUMod,
-	MRUsuarioDel,
-	MRFechaDel,
-	MRRutaBanner,
-	MRImagenMenu
-	'Boton_CARGA MASIVA DE POBLACIONES.png'
-FROM FF_MENUROL2 
-where MRidMenu in (583) and MRImagenMenu = 'Boton_CARGA MASIVA.png'
-commit
-rollback
-----
---------------------------------------------------------------------------------------------
-
-# Comandos Git — Carga Masiva y Defaulteo (solo código)
-
-Los bloques siguientes agregan únicamente los archivos de código modificados. No utilizan `git add .` ni `git add -A`.
-
-Se excluyen expresamente:
-
-- `application.properties`, archivos de ambiente y configuración;
-- scripts SQL, configuración de menú y datos de la empresa 186;
-- manuales, documentación, resultados, paquetes y archivos ZIP;
-- archivos de la pantalla anterior de Defaulteo ubicada en `adm-reportes/reporte-defaulteo`, porque esa pantalla fue restaurada;
-- `pages.module.ts`, `components.module.ts` y `defaulteo-avanzado.service.ts`, que pertenecen a los ajustes restaurados de la ubicación anterior.
-
-Sí se incluye la pantalla trasladada a:
-
-`src/app/beflex/administracion/titulares/defaulteo`
-
-> **Importante:** las carpetas de trabajo actuales no contienen `.git`. Antes de ejecutar, cambie cada variable `$Repo...` si el clon real de Git se encuentra en otra ubicación.
-
-## Resultado de la revisión contra las copias base
-
-| Repositorio | Archivos confirmados | Resultado |
-|---|---:|---|
-| WSBeFlex | 36 | 16 archivos nuevos y 20 modificados. Son 18 de Carga Masiva, 17 de Defaulteo y 1 compartido por ambos flujos. |
-| Frontend BF3 | 23 | 17 archivos nuevos y 6 modificados. Son 7 de Carga Masiva y 16 de la nueva ubicación de Defaulteo. |
-| API Reportes | 7 | 7 archivos modificados. Se retiró de la lista `DefaulteoHistoricoService.java` porque resultó idéntico a la copia base. |
-
-## 1. Backend principal — WSBeFlex
-
-```powershell
-$RepoWs = 'C:\REPOS\CARGADEFAULTEO\WSBeFlex-EmpAdm-defaulteoCargaMaisva\WSBeFlex-EmpAdm-defaulteoCargaMaisva'
-Set-Location -LiteralPath $RepoWs
-
-if (-not (Test-Path -LiteralPath '.git')) {
-    throw "Esta carpeta no es un clon Git. Ajusta `$RepoWs: $RepoWs"
-}
-
-$WsFiles = @(
-    'src/main/java/com/lockton/WSBeFlex/AsyncConfig.java',
-    'src/main/java/com/lockton/WSBeFlex/WsBeFlexApplication.java',
-    'src/main/java/com/lockton/WSBeFlex/Config/CargaMasivaTraceFilter.java',
-    'src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaB2DAO.java',
-    'src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaFlujoDAO.java',
-    'src/main/java/com/lockton/WSBeFlex/DAO/FfDefaulteoAvanzadoDAO.java',
-    'src/main/java/com/lockton/WSBeFlex/DAO/FfTitularDAO.java',
-    'src/main/java/com/lockton/WSBeFlex/DAO/JDBCCargaMasivaFlujo.java',
-    'src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java',
-    'src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfDefaulteoAvanzado.java',
-    'src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfEmpresa.java',
-    'src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfTitular.java',
-    'src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FFConfiguracionFlujoCargaMasiva.java',
-    'src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FFAccionDefaulteoAvanzado.java',
-    'src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FFConfiguracionDefaulteo.java',
-    'src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FFDefaulteo.java',
-    'src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FFEjecutarDefaulteoAvanzado.java',
-    'src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FFFiltroDefaulteoAvanzado.java',
-    'src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaB2.java',
-    'src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaFlujo.java',
-    'src/main/java/com/lockton/WSBeFlex/REST/WSDefaulteoAvanzado.java',
-    'src/main/java/com/lockton/WSBeFlex/REST/WSDefaulteoTitulares.java',
-    'src/main/java/com/lockton/WSBeFlex/REST/WSTitulares.java',
-    'src/main/java/com/lockton/WSBeFlex/REST/WSTitularesAdm.java',
-    'src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaB2/CargaMasivaB2Service.java',
-    'src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaB2/CargaMasivaTxtDocumento.java',
-    'src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaB2/CargaMasivaTxtParser.java',
-    'src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaFlujoService.java',
-    'src/main/java/com/lockton/WSBeFlex/Services/DefaulteoAvanzadoAsyncRunner.java',
-    'src/main/java/com/lockton/WSBeFlex/Services/FfDefaulteoAvanzadoService.java',
-    'src/main/java/com/lockton/WSBeFlex/Services/LogicaFfDefaulteoAvanzado.java',
-    'src/main/java/com/lockton/WSBeFlex/Services/ProgresoDefaulteoRegistry.java',
-    'src/test/java/com/lockton/WSBeFlex/Config/CargaMasivaTraceFilterTest.java',
-    'src/test/java/com/lockton/WSBeFlex/REST/WSDefaulteoTitularesTest.java',
-    'src/test/java/com/lockton/WSBeFlex/Services/CargaMasivaB2/CargaMasivaB2ServiceTest.java',
-    'src/test/java/com/lockton/WSBeFlex/Services/CargaMasivaB2/CargaMasivaTxtParserTest.java'
-)
-
-$Missing = @($WsFiles | Where-Object { -not (Test-Path -LiteralPath $_) })
-if ($Missing.Count -gt 0) {
-    throw "Faltan archivos en WSBeFlex:`n$($Missing -join "`n")"
-}
-
-git remote -v
-git branch --show-current
-git status --short -- $WsFiles
-
-$Unexpected = @(git diff --cached --name-only | Where-Object { $_ -notin $WsFiles })
-if ($Unexpected.Count -gt 0) {
-    throw "Hay archivos previamente preparados que no pertenecen a esta entrega:`n$($Unexpected -join "`n")"
-}
-
-git add -- $WsFiles
-git diff --cached --check
-if ($LASTEXITCODE -ne 0) { throw 'Git detectó errores en los cambios preparados.' }
-
-git diff --cached --name-status
-git commit -m "Integra carga masiva B2/B3 y defaulteo guiado"
-if ($LASTEXITCODE -ne 0) { throw 'No fue posible crear el commit de WSBeFlex.' }
-
-$Branch = "$(git branch --show-current)".Trim()
-if ([string]::IsNullOrWhiteSpace($Branch)) { throw 'No se pudo determinar la rama actual.' }
-git push -u origin $Branch
-```
-
-`AsyncConfig.java` y `Config/CargaMasivaTraceFilter.java` son clases Java de ejecución; no son archivos de configuración de ambiente.
-
-## 2. Frontend BF3 — Angular
-
-```powershell
-$RepoFront = 'C:\REPOS\CARGADEFAULTEO\BeFlex3-EmpAdm-defaulteoCargaMaisva\BeFlex3-EmpAdm-defaulteoCargaMaisva'
-Set-Location -LiteralPath $RepoFront
-
-if (-not (Test-Path -LiteralPath '.git')) {
-    throw "Esta carpeta no es un clon Git. Ajusta `$RepoFront: $RepoFront"
-}
-
-$FrontFiles = @(
-    'src/app/beflex/cargamasivaadm/cargamasivaadm.component.ts',
-    'src/app/beflex/cargamasivaadm/cargamasivaadm.component.html',
-    'src/app/beflex/cargamasivaadm/cargamasivaadm.component.css',
-    'src/app/beflex/cargamasivaadm/carga-masiva-txt.parser.ts',
-    'src/app/beflex/cargamasivaadm/carga-masiva-txt.parser.spec.ts',
-    'src/app/services/auth-interceptor.service.ts',
-    'src/app/services/titulares.service.ts',
-    'src/app/beflex/pages-routing.module.ts',
-    'src/app/beflex/administracion/titulares/defaulteo/defaulteo-titulares.component.ts',
-    'src/app/beflex/administracion/titulares/defaulteo/defaulteo-titulares.component.html',
-    'src/app/beflex/administracion/titulares/defaulteo/defaulteo-titulares.component.css',
-    'src/app/beflex/administracion/titulares/defaulteo/defaulteo-titulares.module.ts',
-    'src/app/beflex/administracion/titulares/defaulteo/operacion-guiada/tabla-defaulteo-titulares.component.ts',
-    'src/app/beflex/administracion/titulares/defaulteo/operacion-guiada/tabla-defaulteo-titulares.component.html',
-    'src/app/beflex/administracion/titulares/defaulteo/operacion-guiada/tabla-defaulteo-titulares.component.css',
-    'src/app/beflex/administracion/titulares/defaulteo/filtros-avanzados/defaulteo-titulares-avanzado.component.ts',
-    'src/app/beflex/administracion/titulares/defaulteo/filtros-avanzados/defaulteo-titulares-avanzado.component.html',
-    'src/app/beflex/administracion/titulares/defaulteo/filtros-avanzados/defaulteo-titulares-avanzado.component.css',
-    'src/app/beflex/administracion/titulares/defaulteo/historico/defaulteo-titulares-historico.component.ts',
-    'src/app/beflex/administracion/titulares/defaulteo/historico/defaulteo-titulares-historico.component.html',
-    'src/app/beflex/administracion/titulares/defaulteo/historico/defaulteo-titulares-historico.component.css',
-    'src/app/services/defaulteo-titulares-avanzado.service.ts',
-    'src/app/services/defaulteo-titulares-historico.service.ts'
-)
-
-$Missing = @($FrontFiles | Where-Object { -not (Test-Path -LiteralPath $_) })
-if ($Missing.Count -gt 0) {
-    throw "Faltan archivos en el frontend:`n$($Missing -join "`n")"
-}
-
-git remote -v
-git branch --show-current
-git status --short -- $FrontFiles
-
-$Unexpected = @(git diff --cached --name-only | Where-Object { $_ -notin $FrontFiles })
-if ($Unexpected.Count -gt 0) {
-    throw "Hay archivos previamente preparados que no pertenecen a esta entrega:`n$($Unexpected -join "`n")"
-}
-
-git add -- $FrontFiles
-git diff --cached --check
-if ($LASTEXITCODE -ne 0) { throw 'Git detectó errores en los cambios preparados.' }
-
-git diff --cached --name-status
-git commit -m "Integra carga masiva y reubica defaulteo en Titulares"
-if ($LASTEXITCODE -ne 0) { throw 'No fue posible crear el commit del frontend.' }
-
-$Branch = "$(git branch --show-current)".Trim()
-if ([string]::IsNullOrWhiteSpace($Branch)) { throw 'No se pudo determinar la rama actual.' }
-git push -u origin $Branch
-```
-
-Los componentes de `filtros-avanzados` e `historico` permanecen en la lista porque el módulo nuevo todavía los importa y declara para compilar. La interfaz actual no muestra esas opciones. No se incluye ningún archivo de la pantalla anterior en `adm-reportes/reporte-defaulteo`.
-
-## 3. API de Reportes
-
-```powershell
-$RepoReports = 'C:\REPOS\CARGADEFAULTEO\BeFlex3_Admin_API_Reportes-defaulteoCargaMaisva\BeFlex3_Admin_API_Reportes-defaulteoCargaMaisva'
-Set-Location -LiteralPath $RepoReports
-
-if (-not (Test-Path -LiteralPath '.git')) {
-    throw "Esta carpeta no es un clon Git. Ajusta `$RepoReports: $RepoReports"
-}
-
-$ReportFiles = @(
-    'src/main/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoController.java',
-    'src/main/java/com/lockton/rpt/models/dto/DefaulteoHistoricoDTO.java',
-    'src/main/java/com/lockton/rpt/repositories/DefaulteoHistoricoRepository.java',
-    'src/main/java/com/lockton/rpt/repositories/jdbc/JDBCDefaulteoHistoricoRepository.java',
-    'src/main/java/com/lockton/rpt/services/impl/DefaulteoHistoricoServiceImpl.java',
-    'src/test/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoControllerTest.java',
-    'src/test/java/com/lockton/rpt/services/DefaulteoHistoricoServiceImplTest.java'
-)
-
-$Missing = @($ReportFiles | Where-Object { -not (Test-Path -LiteralPath $_) })
-if ($Missing.Count -gt 0) {
-    throw "Faltan archivos en API Reportes:`n$($Missing -join "`n")"
-}
-
-git remote -v
-git branch --show-current
-git status --short -- $ReportFiles
-
-$Unexpected = @(git diff --cached --name-only | Where-Object { $_ -notin $ReportFiles })
-if ($Unexpected.Count -gt 0) {
-    throw "Hay archivos previamente preparados que no pertenecen a esta entrega:`n$($Unexpected -join "`n")"
-}
-
-git add -- $ReportFiles
-git diff --cached --check
-if ($LASTEXITCODE -ne 0) { throw 'Git detectó errores en los cambios preparados.' }
-
-git diff --cached --name-status
-git commit -m "Agrega soporte de consulta histórica de defaulteo"
-if ($LASTEXITCODE -ne 0) { throw 'No fue posible crear el commit de API Reportes.' }
-
-$Branch = "$(git branch --show-current)".Trim()
-if ([string]::IsNullOrWhiteSpace($Branch)) { throw 'No se pudo determinar la rama actual.' }
-git push -u origin $Branch
-```
-
-Aunque la opción **Histórico** ya no se muestra en la pantalla nueva, este bloque conserva el código de soporte desarrollado en API Reportes. Si se decidió retirar también el endpoint y no solo ocultar la opción visual, omita por completo este bloque.
-
-## Verificación final en cada repositorio
-
-Después del `push`, ejecute:
-
-```powershell
-git status --short
-git log -1 --oneline
-git branch -vv
-```
-
-`git status --short` puede mostrar otros archivos locales que no pertenecen a esta entrega; al usarse listas explícitas, esos archivos no se agregan ni se incluyen en los commits anteriores.
+el de api reportes esta saliendo esto:
+[INFO] --- maven-compiler-plugin:3.11.0:compile (default-compile) @ rpt ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 228 source files with javac [debug target 11] to target\classes
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR :
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoController.java:[5,32] cannot find symbol
+  symbol:   class DefaulteoHistoricoService
+  location: package com.lockton.rpt.services
+[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoController.java:[24,19] cannot find symbol
+  symbol:   class DefaulteoHistoricoService
+  location: class com.lockton.rpt.controllers.WSDefaulteoHistoricoController
+[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoController.java:[27,43] cannot find symbol
+  symbol:   class DefaulteoHistoricoService
+  location: class com.lockton.rpt.controllers.WSDefaulteoHistoricoController
+[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/services/impl/DefaulteoHistoricoServiceImpl.java:[5,32] cannot find symbol
+  symbol:   class DefaulteoHistoricoService
+  location: package com.lockton.rpt.services
+[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/services/impl/DefaulteoHistoricoServiceImpl.java:[11,55] cannot find symbol
+  symbol: class DefaulteoHistoricoService
+[INFO] 5 errors
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.814 s
+[INFO] Finished at: 2026-08-28T10:42:58-06:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-compile) on project rpt: Compilation failure: Compilation failure:
+[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoController.java:[5,32] cannot find symbol
+[ERROR]   symbol:   class DefaulteoHistoricoService
+[ERROR]   location: package com.lockton.rpt.services
+[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoController.java:[24,19] cannot find symbol
+[ERROR]   symbol:   class DefaulteoHistoricoService
+[ERROR]   location: class com.lockton.rpt.controllers.WSDefaulteoHistoricoController
+[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/controllers/WSDefaulteoHistoricoController.java:[27,43] cannot find symbol
+[ERROR]   symbol:   class DefaulteoHistoricoService
+[ERROR]   location: class com.lockton.rpt.controllers.WSDefaulteoHistoricoController
+[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/services/impl/DefaulteoHistoricoServiceImpl.java:[5,32] cannot find symbol
+[ERROR]   symbol:   class DefaulteoHistoricoService
+[ERROR]   location: package com.lockton.rpt.services
+[ERROR] /C:/Proyectos_Lockton/QA/BeFlex3_Admin_API_Reportes/src/main/java/com/lockton/rpt/services/impl/DefaulteoHistoricoServiceImpl.java:[11,55] cannot find symbol
+[ERROR]   symbol: class DefaulteoHistoricoService
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+Error: mvn compile ha fallado.
+PS C:\Proyectos_Lockton\QA\BeFlex3_Admin_API_Reportes>
