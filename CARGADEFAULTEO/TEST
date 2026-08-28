@@ -1,3 +1,6 @@
+src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FfCOpcionesCargaMasiva.java
+
+
 com\lockton\WSBeFlex\Services\package-info.java
 [INFO]
 [INFO] --- maven-resources-plugin:3.2.0:resources (default-resources) @ WSBeFlex ---
