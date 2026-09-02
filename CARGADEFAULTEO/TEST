@@ -1,3 +1,4 @@
+EN AMBOS AMBIENTES DONDE LIBERE LSO CAMBIOS Y LSO SCIRPTS ME ARROJA ESTO EN ESTA PANTALLA 
 http://localhost:4200/#/pages/administracion/titulares/defaulteo
 
 LEDId	LEDIdLog	LEDIdEmpleado	LEDNumeroEmpleado	LEDIdEmpresa	LEDIdPerfil	LEDTipoEvento	LEDMensaje	LEDStackTrace	LEDFechaAdd
@@ -16,5 +17,11 @@ LEDId	LEDIdLog	LEDIdEmpleado	LEDNumeroEmpleado	LEDIdEmpresa	LEDIdPerfil	LEDTipoE
 	at java.base/java.lang.Thread.run(Thread.java:834)
 "	04:36.8
 
+EN QA NO JALA Y EN DEV SI JALA 
+https://belocktonha.com/#/pages/administracion/titulares/cargamasivapoblaciones
+No fue posible consultar la parametrización B2/B3.
+
+Y AL GUARDAR LA PARAMETRIZACION 
+No fue posible guardar la parametrización B2/B3. 
 
 
