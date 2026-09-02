@@ -17,7 +17,11 @@ IF OBJECT_ID('tempdb..#Base') IS NOT NULL DROP TABLE #Base;
 IF OBJECT_ID('tempdb..#Tipo13') IS NOT NULL DROP TABLE #Tipo13;
 IF OBJECT_ID('tempdb..#Tipo2') IS NOT NULL DROP TABLE #Tipo2;
 
-/* Vigencia que resolvería BF3 para cada empresa activa. */
+/*
+   Todas las vigencias activas que BF3 permite seleccionar por empresa.
+   Se marca cuál resolvería como actual; una vigencia activa distinta usa el
+   motor multivigencia y sus tarifas históricas.
+*/
 SELECT
     E.EMIdEmpresa AS IdEmpresa,
     E.EMNombre AS NombreEmpresa,
@@ -27,15 +31,15 @@ SELECT
     E.EMIdConfiguracion AS IdConfiguracion,
     V.VIIdVigencia AS IdVigenciaDestino,
     V.VINombre AS VigenciaDestino,
-    V.VIRenovada AS IdVigenciaOrigen
+    V.VIRenovada AS IdVigenciaOrigen,
+    CONVERT(BIT, CASE WHEN V.VIIdVigencia = VA.VIIdVigencia
+                      THEN 1 ELSE 0 END) AS EsVigenciaActual
 INTO #EmpresaVigencia
 FROM dbo.ff_Empresa E
 CROSS APPLY
 (
     SELECT TOP (1)
         VI.VIIdVigencia,
-        VI.VINombre,
-        VI.VIRenovada,
         VI.VIVigenciaIni
     FROM dbo.ff_Vigencia VI
     WHERE VI.VIIdConfiguracion = E.EMIdConfiguracion
@@ -47,7 +51,11 @@ CROSS APPLY
              THEN 0 ELSE 1 END,
         VI.VIVigenciaIni DESC,
         VI.VIIdVigencia DESC
-) V
+) VA
+INNER JOIN dbo.ff_Vigencia V
+    ON V.VIIdConfiguracion = E.EMIdConfiguracion
+   AND V.VIIdEstatus = 1
+   AND V.VITipoNegocio = 1
 WHERE E.EMIdEstatus = 1;
 
 /* Titulares que sí aparecen en el universo normal de la pantalla. */
@@ -61,6 +69,7 @@ SELECT
     EV.IdVigenciaDestino,
     EV.VigenciaDestino,
     EV.IdVigenciaOrigen,
+    EV.EsVigenciaActual,
     EM.Id AS IdEmpleado,
     EM.EMNumeroEmpleado AS NumeroEmpleado,
     LTRIM(RTRIM(CONCAT(
@@ -81,7 +90,6 @@ INNER JOIN dbo.ff_Empleado EM
    AND EM.EMNumeroEmpleado NOT LIKE 'PR%'
 INNER JOIN dbo.ff_Perfil P
     ON P.PEIdPerfil = EM.EMIdPerfil
-   AND P.PEIdEmpresa = EV.IdEmpresa
    AND P.PEIdEstatus = 1;
 
 CREATE CLUSTERED INDEX IX_Base_EmpresaEmpleado ON #Base(IdEmpresa, IdEmpleado);
@@ -193,18 +201,37 @@ CROSS APPLY
        AND PPE.PPIdEstatus = 1
        AND ISNULL(dbo.RegresaEdadEmpleado(M.Id), M.EMEdad)
            BETWEEN PPE.PPEdadMin AND PPE.PPEdadMax
-    INNER JOIN dbo.ff_Tarifa T
-        ON T.TAIdVigencia = B.IdVigenciaDestino
-       AND T.TAIdEstatus = 2
-    INNER JOIN dbo.ff_TarifaCosto TC
-        ON TC.TCIdTarifa = T.TAIdTarifa
-       AND TC.TCIdPlanOpcion = POS.POIdPlanOpcion
-       AND TC.TCIdEstatus = 1
     WHERE S.SOIdEmpresa = B.IdEmpresa
       AND S.SOIdEmpleado = B.IdEmpleado
       AND S.SOIdVigencia = B.IdVigenciaOrigen
       AND S.SOIdEstatus = 1
       AND S.SOEstatusSolicitud = 1
+      AND
+      (
+          (B.EsVigenciaActual = 1 AND EXISTS
+          (
+              SELECT 1
+              FROM dbo.ff_Tarifa T
+              INNER JOIN dbo.ff_TarifaCosto TC
+                  ON TC.TCIdTarifa = T.TAIdTarifa
+                 AND TC.TCIdPlanOpcion = POS.POIdPlanOpcion
+                 AND TC.TCIdEstatus = 1
+              WHERE T.TAIdVigencia = B.IdVigenciaDestino
+                AND T.TAIdEstatus = 2
+          ))
+          OR
+          (B.EsVigenciaActual = 0 AND EXISTS
+          (
+              SELECT 1
+              FROM dbo.ff_Tarifa T
+              INNER JOIN dbo.ff_TarifaCosto_hist TC
+                  ON TC.TCIdTarifa = T.TAIdTarifa
+                 AND TC.TCIdPlanOpcion = POS.POIdPlanOpcion
+                 AND TC.TCIdEstatus = 1
+              WHERE T.TAIdVigencia = B.IdVigenciaDestino
+                AND T.TAIdEstatus = 2
+          ))
+      )
 ) TA
 CROSS APPLY
 (
@@ -272,7 +299,7 @@ CROSS APPLY
              AND POP.PPIdPlanOpcionPerfil IS NOT NULL
              AND PS.PSIdPlanOpcionSexo IS NOT NULL
              AND PPE.PPIdPlanOpcionParentescoEdad IS NOT NULL
-             AND TC.TCIdTarifaCosto IS NOT NULL
+             AND COALESCE(TC.TCIdTarifaCosto, TCH.TCIdTarifaCosto) IS NOT NULL
                             THEN BAS.PBIdPlanBasico END) AS PlanesBasicosConTarifa
     FROM dbo.ff_PlanBasico BAS
     LEFT JOIN dbo.ff_PlanBasicoDetalle BD
@@ -309,6 +336,12 @@ CROSS APPLY
         ON TC.TCIdTarifa = T.TAIdTarifa
        AND TC.TCIdPlanOpcion = BAS.PBIdPlanOpcion
        AND TC.TCIdEstatus = 1
+       AND B.EsVigenciaActual = 1
+    LEFT JOIN dbo.ff_TarifaCosto_hist TCH
+        ON TCH.TCIdTarifa = T.TAIdTarifa
+       AND TCH.TCIdPlanOpcion = BAS.PBIdPlanOpcion
+       AND TCH.TCIdEstatus = 1
+       AND B.EsVigenciaActual = 0
     WHERE BAS.PBIdVigencia = B.IdVigenciaDestino
       AND BAS.PBIdPerfil = B.IdPerfil
       AND BAS.PBIdEstatus = 1
@@ -363,6 +396,7 @@ WHERE PB.PlanesBasicosDestino > 0
         T.IdVigenciaDestino,
         T.VigenciaDestino,
         T.IdVigenciaOrigen,
+        T.EsVigenciaActual,
         T.SolicitudesOrigenAprobadas,
         T.SeleccionesOrigen,
         T.SeleccionesElegiblesDestino,
@@ -374,7 +408,18 @@ WHERE PB.PlanesBasicosDestino > 0
                      T.IdEmpresa,
                      T.IdEmpleado
         ) AS Fila
-    FROM #Tipo13 T
+    FROM
+    (
+        SELECT T13.*,
+               ROW_NUMBER() OVER
+               (
+                   PARTITION BY T13.IdEmpresa, T13.IdEmpleado
+                   ORDER BY T13.EsVigenciaActual DESC,
+                            T13.IdVigenciaDestino DESC
+               ) AS MejorVigenciaEmpleado
+        FROM #Tipo13 T13
+    ) T
+    WHERE T.MejorVigenciaEmpleado = 1
 
     UNION ALL
 
@@ -394,6 +439,7 @@ WHERE PB.PlanesBasicosDestino > 0
         T.IdVigenciaDestino,
         T.VigenciaDestino,
         T.IdVigenciaOrigen,
+        T.EsVigenciaActual,
         CAST(NULL AS INT),
         CAST(NULL AS INT),
         CAST(NULL AS INT),
@@ -405,7 +451,18 @@ WHERE PB.PlanesBasicosDestino > 0
                      T.IdEmpresa,
                      T.IdEmpleado
         )
-    FROM #Tipo2 T
+    FROM
+    (
+        SELECT T2.*,
+               ROW_NUMBER() OVER
+               (
+                   PARTITION BY T2.IdEmpresa, T2.IdEmpleado
+                   ORDER BY T2.EsVigenciaActual DESC,
+                            T2.IdVigenciaDestino DESC
+               ) AS MejorVigenciaEmpleado
+        FROM #Tipo2 T2
+    ) T
+    WHERE T.MejorVigenciaEmpleado = 1
 
     UNION ALL
 
@@ -427,6 +484,7 @@ WHERE PB.PlanesBasicosDestino > 0
         T.IdVigenciaDestino,
         T.VigenciaDestino,
         T.IdVigenciaOrigen,
+        T.EsVigenciaActual,
         T.SolicitudesOrigenAprobadas,
         T.SeleccionesOrigen,
         T.SeleccionesElegiblesDestino,
@@ -440,7 +498,18 @@ WHERE PB.PlanesBasicosDestino > 0
                      T.IdEmpresa,
                      T.IdEmpleado
         )
-    FROM #Tipo13 T
+    FROM
+    (
+        SELECT T13.*,
+               ROW_NUMBER() OVER
+               (
+                   PARTITION BY T13.IdEmpresa, T13.IdEmpleado
+                   ORDER BY T13.EsVigenciaActual DESC,
+                            T13.IdVigenciaDestino DESC
+               ) AS MejorVigenciaEmpleado
+        FROM #Tipo13 T13
+    ) T
+    WHERE T.MejorVigenciaEmpleado = 1
 )
 SELECT
     TipoDefaulteo,
@@ -458,6 +527,7 @@ SELECT
     IdVigenciaDestino AS IdVigenciaSeleccionar,
     VigenciaDestino,
     IdVigenciaOrigen,
+    EsVigenciaActual,
     SolicitudesOrigenAprobadas,
     SeleccionesOrigen,
     SeleccionesElegiblesDestino,
@@ -480,14 +550,50 @@ FROM
 (
     SELECT 1 AS TipoDefaulteo,
            'Reutiliza selecciones anteriores' AS Descripcion,
-           COUNT(*) AS EmpleadosDisponibles
+           COUNT(DISTINCT CONCAT(IdEmpresa, '-', IdEmpleado)) AS EmpleadosDisponibles
     FROM #Tipo13
     UNION ALL
-    SELECT 2, 'Asigna plan básico del perfil', COUNT(*) FROM #Tipo2
+    SELECT 2, 'Asigna plan básico del perfil',
+           COUNT(DISTINCT CONCAT(IdEmpresa, '-', IdEmpleado)) FROM #Tipo2
     UNION ALL
-    SELECT 3, 'Recalcula titular y dependientes', COUNT(*) FROM #Tipo13
+    SELECT 3, 'Recalcula titular y dependientes',
+           COUNT(DISTINCT CONCAT(IdEmpresa, '-', IdEmpleado)) FROM #Tipo13
 ) X
 ORDER BY X.TipoDefaulteo;
+
+/*
+   Diagnóstico cuando el resultado anterior está vacío. Distingue entre:
+   información histórica existente y datos realmente alineados con una
+   vigencia activa que el motor BF3 permita procesar.
+*/
+SELECT 'EMPRESAS_CON_VIGENCIA_BF3_ACTIVA' AS Etapa,
+       COUNT(DISTINCT IdEmpresa) AS Registros
+FROM #EmpresaVigencia
+UNION ALL
+SELECT 'TITULARES_ACTIVOS_EN_ESAS_EMPRESAS',
+       COUNT(DISTINCT CONCAT(IdEmpresa, '-', IdEmpleado))
+FROM #Base
+UNION ALL
+SELECT 'TITULARES_CON_SOLICITUD_APROBADA_HISTORICA',
+       COUNT(DISTINCT CONCAT(B.IdEmpresa, '-', B.IdEmpleado))
+FROM #Base B
+WHERE EXISTS
+(
+    SELECT 1
+    FROM dbo.ff_Solicitud S
+    WHERE S.SOIdEmpresa = B.IdEmpresa
+      AND S.SOIdEmpleado = B.IdEmpleado
+      AND S.SOIdEstatus = 1
+      AND S.SOEstatusSolicitud = 1
+)
+UNION ALL
+SELECT 'CANDIDATOS_COMPLETOS_TIPO_1_Y_3',
+       COUNT(DISTINCT CONCAT(IdEmpresa, '-', IdEmpleado))
+FROM #Tipo13
+UNION ALL
+SELECT 'CANDIDATOS_COMPLETOS_TIPO_2',
+       COUNT(DISTINCT CONCAT(IdEmpresa, '-', IdEmpleado))
+FROM #Tipo2;
 
 DROP TABLE #Tipo2;
 DROP TABLE #Tipo13;
