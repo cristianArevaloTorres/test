@@ -1,25 +1,7 @@
-Bloque	Objeto	Resultado
-01_OBJETOS	dbo.bf_CargaMasivaFlujo_Guardar	FALTA
-01_OBJETOS	dbo.bf_CargaMasivaFlujo_Obtener	FALTA
-01_OBJETOS	dbo.bf_CargaMasivaFlujo_Resolver	FALTA
-01_OBJETOS	dbo.bf_ConfiguracionFlujoCargaMasiva	FALTA
-01_OBJETOS	dbo.bf_DefaulteoAvanzado_ResolverVigencia	OK
-01_OBJETOS	dbo.bf_LogDefaulteo	OK
-01_OBJETOS	dbo.bf_LogErroresDefaulteo	OK
+_QD3-186-001_error El motor no devolvio planes elegibles para el empleado y la vigencia seleccionada.
+GALAZ,YAMAZAKI,RUIZ URQUIZA, S.C.
+_QD1-186-001_error El motor no devolvio planes elegibles para el empleado y la vigencia seleccionada.
+GALAZ,YAMAZAKI,RUIZ URQUIZA, S.C.
+_QD2-186-001_error El motor no devolvio planes elegibles para el empleado y la vigencia seleccionada.
 
-esValida	esActual	idVigenciaActual	idVigenciaAnterior
-0	0	580	NULL
 
-Bloque	Objeto	Permiso	Resultado
-05_PERMISOS_SQL	dbo.bf_ConfiguracionFlujoCargaMasiva	SELECT	FALTA OBJETO
-05_PERMISOS_SQL	dbo.bf_ConfiguracionFlujoCargaMasiva	INSERT	FALTA OBJETO
-05_PERMISOS_SQL	dbo.bf_ConfiguracionFlujoCargaMasiva	UPDATE	FALTA OBJETO
-05_PERMISOS_SQL	dbo.bf_CargaMasivaFlujo_Obtener	EXECUTE	FALTA OBJETO
-05_PERMISOS_SQL	dbo.bf_CargaMasivaFlujo_Guardar	EXECUTE	FALTA OBJETO
-05_PERMISOS_SQL	dbo.bf_CargaMasivaFlujo_Resolver	EXECUTE	FALTA OBJETO
-
-Bloque	Resultado
-06_LECTURA_CARGA	FALTA EL SP bf_CargaMasivaFlujo_Obtener
-
-Bloque	Resultado
-07_GUARDADO_CARGA	NO EVALUADO: FALTA TABLA O SP DE GUARDADO
