@@ -1,27 +1,232 @@
-EN AMBOS AMBIENTES DONDE LIBERE LSO CAMBIOS Y LSO SCIRPTS ME ARROJA ESTO EN ESTA PANTALLA 
-http://localhost:4200/#/pages/administracion/titulares/defaulteo
+/*
+  DIAGNOSTICO QA - DEFAULTEO Y PARAMETRIZACION B2/B3
 
-LEDId	LEDIdLog	LEDIdEmpleado	LEDNumeroEmpleado	LEDIdEmpresa	LEDIdPerfil	LEDTipoEvento	LEDMensaje	LEDStackTrace	LEDFechaAdd
-69	16	172063	TEST1982	187		ERROR	La vigencia seleccionada no pertenece a la empresa del empleado	"java.lang.IllegalArgumentException: La vigencia seleccionada no pertenece a la empresa del empleado
-	at com.lockton.WSBeFlex.Services.DefaulteoAvanzadoAsyncRunner.buildUnicoEmpleado(DefaulteoAvanzadoAsyncRunner.java:156)
-	at com.lockton.WSBeFlex.Services.DefaulteoAvanzadoAsyncRunner.procesarLote(DefaulteoAvanzadoAsyncRunner.java:83)
-	at com.lockton.WSBeFlex.Services.DefaulteoAvanzadoAsyncRunner$$FastClassBySpringCGLIB$$b33b6fda.invoke(<generated>)
-	at org.springframework.cglib.proxy.MethodProxy.invoke(MethodProxy.java:218)
-	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.invokeJoinpoint(CglibAopProxy.java:792)
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
-	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:762)
-	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:115)
-	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
-	at java.base/java.lang.Thread.run(Thread.java:834)
-"	04:36.8
+  Solo valida. La prueba de guardado se revierte con ROLLBACK.
 
-EN QA NO JALA Y EN DEV SI JALA 
-https://belocktonha.com/#/pages/administracion/titulares/cargamasivapoblaciones
-No fue posible consultar la parametrización B2/B3.
+  IMPORTANTE: este archivo debe ejecutarse directamente en la base utilizada
+  por WSBeFlex del ambiente afectado. FlexiForbesv2 local solo se utilizo para
+  comprobar que el SQL compila; sus datos no representan DEV ni QA.
 
-Y AL GUARDAR LA PARAMETRIZACION 
-No fue posible guardar la parametrización B2/B3. 
+  Ajuste únicamente estos datos si se revisará otro caso:
+    @IdLote              lote mostrado en bf_LogDefaulteo.
+    @IdEmpleado          empleado que falló.
+    @IdEmpresaCarga      empresa abierta en Carga Masiva.
+    @IdAdministradorCarga administrador contenido en el token de BF3.
+                             Si queda NULL se intenta tomar del lote.
+*/
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
 
+DECLARE @IdLote INT = 16;
+DECLARE @IdEmpleado INT = 172063;
+DECLARE @IdEmpresaCarga INT = 187;
+DECLARE @IdAdministradorCarga INT = NULL;
 
+DECLARE @IdVigencia INT;
+
+IF OBJECT_ID(N'dbo.bf_LogDefaulteo', N'U') IS NOT NULL
+BEGIN
+    SELECT
+        @IdVigencia = LDIdVigencia,
+        @IdAdministradorCarga = COALESCE(@IdAdministradorCarga, LDIdAdmin)
+    FROM dbo.bf_LogDefaulteo
+    WHERE LDId = @IdLote;
+END;
+
+SELECT
+    '00_AMBIENTE' AS Bloque,
+    @@SERVERNAME AS Servidor,
+    DB_NAME() AS BaseDatos,
+    ORIGINAL_LOGIN() AS LoginSql,
+    GETDATE() AS FechaRevision,
+    @IdLote AS IdLote,
+    @IdEmpleado AS IdEmpleado,
+    @IdVigencia AS IdVigenciaDelLote,
+    @IdEmpresaCarga AS IdEmpresaCarga,
+    @IdAdministradorCarga AS IdAdministradorCarga;
+
+/* 1. Objetos indispensables. */
+SELECT
+    '01_OBJETOS' AS Bloque,
+    x.Objeto,
+    CASE WHEN OBJECT_ID(x.Objeto, x.Tipo) IS NULL THEN 'FALTA' ELSE 'OK' END AS Resultado
+FROM (VALUES
+    (N'dbo.bf_ConfiguracionFlujoCargaMasiva', N'U'),
+    (N'dbo.bf_CargaMasivaFlujo_Obtener', N'P'),
+    (N'dbo.bf_CargaMasivaFlujo_Guardar', N'P'),
+    (N'dbo.bf_CargaMasivaFlujo_Resolver', N'P'),
+    (N'dbo.bf_DefaulteoAvanzado_ResolverVigencia', N'P'),
+    (N'dbo.bf_LogDefaulteo', N'U'),
+    (N'dbo.bf_LogErroresDefaulteo', N'U')
+) x(Objeto, Tipo)
+ORDER BY x.Objeto;
+
+/* 2. Causa exacta del error de vigencia del empleado. */
+IF @IdVigencia IS NULL
+BEGIN
+    SELECT
+        '02_DEFAULTEO' AS Bloque,
+        'NO EVALUADO: EL LOTE NO EXISTE O NO TIENE VIGENCIA' AS Resultado;
+END
+ELSE
+BEGIN
+    SELECT
+        '02_DEFAULTEO' AS Bloque,
+        l.LDId AS IdLote,
+        l.LDIdVigencia AS IdVigenciaSeleccionada,
+        v.VIIdConfiguracion AS ConfiguracionVigencia,
+        em.Id AS IdEmpleado,
+        em.EMNumeroEmpleado AS NumeroEmpleado,
+        em.EMIdEmpresa AS EmpresaRealEmpleado,
+        e.EMIdConfiguracion AS ConfiguracionEmpresaEmpleado,
+        CASE
+            WHEN em.Id IS NULL THEN 'ERROR: EL EMPLEADO NO EXISTE'
+            WHEN e.EMIdEstatus <> 1 THEN 'ERROR: LA EMPRESA DEL EMPLEADO ESTA INACTIVA'
+            WHEN v.VIIdVigencia IS NULL THEN 'ERROR: LA VIGENCIA DEL LOTE NO EXISTE'
+            WHEN v.VIIdEstatus <> 1 THEN 'ERROR: LA VIGENCIA DEL LOTE ESTA INACTIVA'
+            WHEN e.EMIdConfiguracion = v.VIIdConfiguracion
+                THEN 'OK: EMPRESA Y VIGENCIA SON COMPATIBLES'
+            ELSE 'ERROR CONFIRMADO: LA VIGENCIA PERTENECE A OTRA CONFIGURACION'
+        END AS Resultado
+    FROM dbo.bf_LogDefaulteo l
+    LEFT JOIN dbo.ff_Vigencia v ON v.VIIdVigencia = l.LDIdVigencia
+    LEFT JOIN dbo.ff_Empleado em ON em.Id = @IdEmpleado
+    LEFT JOIN dbo.ff_Empresa e ON e.EMIdEmpresa = em.EMIdEmpresa
+    WHERE l.LDId = @IdLote;
+
+    SELECT
+        '03_VIGENCIAS_VALIDAS_EMPLEADO' AS Bloque,
+        em.EMIdEmpresa AS IdEmpresa,
+        e.EMIdConfiguracion AS ConfiguracionEmpresa,
+        v.VIIdVigencia AS IdVigenciaValida,
+        v.VINombre,
+        v.VIVigenciaIni,
+        v.VIVigenciaFin,
+        v.VIRenovada AS IdVigenciaAnterior,
+        CASE WHEN v.VIIdVigencia = @IdVigencia THEN 'SELECCIONADA' ELSE 'ALTERNATIVA' END AS Tipo
+    FROM dbo.ff_Empleado em
+    INNER JOIN dbo.ff_Empresa e
+        ON e.EMIdEmpresa = em.EMIdEmpresa
+    INNER JOIN dbo.ff_Vigencia v
+        ON v.VIIdConfiguracion = e.EMIdConfiguracion
+       AND v.VIIdEstatus = 1
+    WHERE em.Id = @IdEmpleado
+    ORDER BY v.VIVigenciaIni DESC, v.VIIdVigencia DESC;
+
+    IF OBJECT_ID(N'dbo.bf_DefaulteoAvanzado_ResolverVigencia', N'P') IS NOT NULL
+    BEGIN
+        DECLARE @EmpresaReal INT =
+            (SELECT EMIdEmpresa FROM dbo.ff_Empleado WHERE Id = @IdEmpleado);
+
+        EXEC dbo.bf_DefaulteoAvanzado_ResolverVigencia
+            @IdEmpresa = @EmpresaReal,
+            @IdVigenciaSeleccionada = @IdVigencia;
+    END;
+END;
+
+/* 3. Acceso utilizado por GET y PUT de Carga Masiva. */
+SELECT
+    '04_ACCESO_CARGA' AS Bloque,
+    @IdAdministradorCarga AS IdAdministrador,
+    @IdEmpresaCarga AS IdEmpresa,
+    CASE
+        WHEN @IdAdministradorCarga IS NULL
+            THEN 'NO EVALUADO: CAPTURE @IdAdministradorCarga'
+        WHEN e.EMIdEmpresa IS NULL
+            THEN 'ERROR: LA EMPRESA NO EXISTE'
+        WHEN e.EMIdEstatus <> 1
+            THEN 'ERROR: LA EMPRESA ESTA INACTIVA'
+        WHEN ae.AEIdr IS NULL
+            THEN 'ERROR 403: EL ADMINISTRADOR NO TIENE ASIGNACION ACTIVA A LA EMPRESA'
+        ELSE 'OK: EL ADMINISTRADOR TIENE ACCESO ACTIVO'
+    END AS Resultado
+FROM (SELECT 1 AS n) x
+LEFT JOIN dbo.ff_Empresa e
+    ON e.EMIdEmpresa = @IdEmpresaCarga
+LEFT JOIN dbo.ff_AdministradorEmpresa ae
+    ON ae.ADIdAdministrador = @IdAdministradorCarga
+   AND ae.AEIdEmpresa = @IdEmpresaCarga
+   AND ae.AEIdEstatus = 1;
+
+/* 4. Permisos de la conexión con la que se ejecuta este diagnóstico. */
+SELECT
+    '05_PERMISOS_SQL' AS Bloque,
+    x.Objeto,
+    x.Permiso,
+    CASE
+        WHEN OBJECT_ID(x.Objeto) IS NULL THEN 'FALTA OBJETO'
+        WHEN HAS_PERMS_BY_NAME(x.Objeto, 'OBJECT', x.Permiso) = 1 THEN 'OK'
+        ELSE 'SIN PERMISO'
+    END AS Resultado
+FROM (VALUES
+    (N'dbo.bf_ConfiguracionFlujoCargaMasiva', N'SELECT'),
+    (N'dbo.bf_ConfiguracionFlujoCargaMasiva', N'INSERT'),
+    (N'dbo.bf_ConfiguracionFlujoCargaMasiva', N'UPDATE'),
+    (N'dbo.bf_CargaMasivaFlujo_Obtener', N'EXECUTE'),
+    (N'dbo.bf_CargaMasivaFlujo_Guardar', N'EXECUTE'),
+    (N'dbo.bf_CargaMasivaFlujo_Resolver', N'EXECUTE')
+) x(Objeto, Permiso);
+
+/* 5. Prueba real de lectura. */
+IF OBJECT_ID(N'dbo.bf_CargaMasivaFlujo_Obtener', N'P') IS NOT NULL
+BEGIN TRY
+    EXEC dbo.bf_CargaMasivaFlujo_Obtener @IdEmpresa = @IdEmpresaCarga;
+    SELECT '06_LECTURA_CARGA' AS Bloque, 'OK' AS Resultado;
+END TRY
+BEGIN CATCH
+    SELECT '06_LECTURA_CARGA' AS Bloque, 'ERROR' AS Resultado,
+           ERROR_NUMBER() AS Numero, ERROR_MESSAGE() AS Mensaje;
+END CATCH;
+ELSE
+    SELECT '06_LECTURA_CARGA' AS Bloque, 'FALTA EL SP bf_CargaMasivaFlujo_Obtener' AS Resultado;
+
+/* 6. Prueba real de guardado, siempre reversible. */
+IF OBJECT_ID(N'dbo.bf_CargaMasivaFlujo_Guardar', N'P') IS NOT NULL
+   AND OBJECT_ID(N'dbo.bf_ConfiguracionFlujoCargaMasiva', N'U') IS NOT NULL
+BEGIN TRY
+    BEGIN TRANSACTION;
+
+    DECLARE @IdUsuarioPrueba INT = COALESCE(@IdAdministradorCarga, 1);
+
+    EXEC dbo.bf_CargaMasivaFlujo_Guardar
+        @IdEmpresa = @IdEmpresaCarga,
+        @FlujoPantalla = 'B3',
+        @FlujoAutomatico = 'B2',
+        @IdUsuario = @IdUsuarioPrueba;
+
+    ROLLBACK TRANSACTION;
+    SELECT '07_GUARDADO_CARGA' AS Bloque, 'OK; PRUEBA REVERTIDA CON ROLLBACK' AS Resultado;
+END TRY
+BEGIN CATCH
+    IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
+    SELECT '07_GUARDADO_CARGA' AS Bloque, 'ERROR; NO SE CONSERVO NINGUN CAMBIO' AS Resultado,
+           ERROR_NUMBER() AS Numero, ERROR_MESSAGE() AS Mensaje;
+END CATCH;
+ELSE
+    SELECT '07_GUARDADO_CARGA' AS Bloque, 'NO EVALUADO: FALTA TABLA O SP DE GUARDADO' AS Resultado;
+
+/*
+  INTERPRETACION:
+
+  - 02_DEFAULTEO = ERROR CONFIRMADO:
+      la pantalla tomó una vigencia de una configuración distinta a la empresa
+      real del empleado. No se debe cambiar ff_Empleado ni ff_Vigencia para
+      forzar el proceso. La pantalla debe consultar/filtrar vigencias compatibles
+      con las empresas seleccionadas, o ejecutar un lote por configuración.
+
+  - 01_OBJETOS = FALTA:
+      ejecutar database/001_catalogo_y_flujo_carga_masiva.sql en la misma base
+      a la que apunta WSBeFlex de QA.
+
+  - 04_ACCESO_CARGA = ERROR 403:
+      corregir la asignación real del administrador a la empresa; no crear una
+      asignación sin autorización funcional.
+
+  - 06 o 07 = ERROR con objetos existentes:
+      revisar el mensaje SQL y ejecutar este diagnóstico con el mismo usuario
+      de base de datos configurado para WSBeFlex.
+
+  - SQL completo en OK, pero la pantalla falla:
+      revisar Network en el navegador. GET/PUT 401 = token; 403 = asignación;
+      500 = el WAR apunta a otra base o su usuario no tiene permisos.
+*/
