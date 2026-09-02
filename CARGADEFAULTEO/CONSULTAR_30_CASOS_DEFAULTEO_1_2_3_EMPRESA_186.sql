@@ -35,6 +35,7 @@ SELECT
     EM.EMIdPerfil AS IdPerfil,
     @IdVigenciaOrigen AS IdVigenciaOrigen,
     @IdVigenciaDestino AS IdVigenciaDestino,
+    dbo.VerificaCC(EM.Id) AS AperturaVigenciaActual,
     SO.SolicitudesOrigenAprobadas,
     POS.SeleccionesOrigen,
     EL.OpcionesElegiblesDestino,
@@ -42,21 +43,32 @@ SELECT
     PB.PlanesBasicosDestino,
     DEP.DependientesActivos,
     SD.SolicitudesDestinoActivas,
+    TV.TarifasDestino,
+    GP.GruposPlanB3,
     CONVERT(BIT,CASE
         WHEN EM.EMNumeroEmpleado LIKE 'QD1-186-%'
+         AND dbo.VerificaCC(EM.Id)>0
          AND SO.SolicitudesOrigenAprobadas>0
          AND POS.SeleccionesOrigen>0
          AND EL.OpcionesElegiblesDestino>0
          AND TA.OpcionesConTarifaDestino>0
+         AND TV.TarifasDestino=1
+         AND GP.GruposPlanB3>0
          AND SD.SolicitudesDestinoActivas=0 THEN 1
         WHEN EM.EMNumeroEmpleado LIKE 'QD2-186-%'
+         AND dbo.VerificaCC(EM.Id)>0
          AND PB.PlanesBasicosDestino>0
+         AND TV.TarifasDestino=1
+         AND GP.GruposPlanB3>0
          AND SD.SolicitudesDestinoActivas=0 THEN 1
         WHEN EM.EMNumeroEmpleado LIKE 'QD3-186-%'
+         AND dbo.VerificaCC(EM.Id)>0
          AND SO.SolicitudesOrigenAprobadas>0
          AND POS.SeleccionesOrigen>0
          AND EL.OpcionesElegiblesDestino>0
          AND TA.OpcionesConTarifaDestino>0
+         AND TV.TarifasDestino=1
+         AND GP.GruposPlanB3>0
          AND SD.SolicitudesDestinoActivas=0
          AND
          (
@@ -101,7 +113,7 @@ OUTER APPLY
         ON PL.PLIdPlan=O.POIdPlan AND PL.PLIdEstatus=1
     INNER JOIN dbo.ff_PlanOpcionVigencia V
         ON V.VCIdPlanOpcion=P.POIdPlanOpcion
-       AND V.VCIdVigencia=@IdVigenciaDestino AND V.VCIdEstatus=2
+       AND V.VCIdVigencia=@IdVigenciaDestino AND V.VCIdEstatus=1
     INNER JOIN dbo.ff_PlanOpcionPerfil PP
         ON PP.PPIdPlanOpcion=P.POIdPlanOpcion
        AND PP.PPIdPerfil=EM.EMIdPerfil AND PP.PPIdEstatus=1
@@ -124,7 +136,7 @@ OUTER APPLY
     SELECT COUNT(DISTINCT P.POIdPlanOpcion) AS OpcionesConTarifaDestino
     FROM dbo.ff_PlanOpcionSeleccion P
     INNER JOIN dbo.ff_Tarifa T
-        ON T.TAIdVigencia=@IdVigenciaDestino AND T.TAIdEstatus=2
+        ON T.TAIdVigencia=@IdVigenciaDestino AND T.TAIdEstatus=1
     INNER JOIN dbo.ff_TarifaCosto TC
         ON TC.TCIdTarifa=T.TAIdTarifa
        AND TC.TCIdPlanOpcion=P.POIdPlanOpcion
@@ -163,6 +175,19 @@ OUTER APPLY
       AND S.SOIdEstatus IN(1,10)
       AND S.SOEstatusSolicitud IN(1,3)
 ) SD
+OUTER APPLY
+(
+    SELECT COUNT(*) AS TarifasDestino
+    FROM dbo.ff_Tarifa T
+    WHERE T.TAIdVigencia=@IdVigenciaDestino
+) TV
+OUTER APPLY
+(
+    SELECT COUNT(*) AS GruposPlanB3
+    FROM dbo.bf_GrupoPlanesCorporativo G
+    WHERE G.GPIdPlan=2050
+      AND G.GPIdEstatus=1
+) GP
 WHERE EM.EMIdEmpresa=@IdEmpresa
   AND EM.EMIdEstatus=1
   AND EM.EMIdTitular=1
@@ -177,10 +202,10 @@ WHERE EM.EMIdEmpresa=@IdEmpresa
 SELECT
     TipoDefaulteo,Consecutivo,IdEmpresa,EmpresaLogin,ClaveAccesoEmpresa,
     IdEmpleado,NumeroEmpleado,NombreEmpleado,IdPerfil,
-    IdVigenciaOrigen,IdVigenciaDestino,
+    IdVigenciaOrigen,IdVigenciaDestino,AperturaVigenciaActual,
     SolicitudesOrigenAprobadas,SeleccionesOrigen,OpcionesElegiblesDestino,
     OpcionesConTarifaDestino,PlanesBasicosDestino,DependientesActivos,
-    SolicitudesDestinoActivas,
+    SolicitudesDestinoActivas,TarifasDestino,GruposPlanB3,
     CASE WHEN Listo=1 THEN 'LISTO'
          ELSE 'REVISAR INSUMOS DEL TIPO ASIGNADO' END AS Resultado
 FROM #CasosDefaulteo
