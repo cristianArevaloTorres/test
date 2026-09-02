@@ -11,9 +11,11 @@ SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
 DECLARE @IdEmpresa INT=186;
+DECLARE @IdVigenciaOrigen INT=3924;
 DECLARE @IdVigenciaDestino INT=4235;
 DECLARE @IdPlanOpcion INT=1775;
 DECLARE @IdPlan INT=2050;
+DECLARE @IdRamo INT=159;
 DECLARE @IdTarifaReal INT=2047;
 DECLARE @IdTarifaDummy INT=918604;
 DECLARE @IdTarifaDummyOrigen INT=918605;
@@ -211,6 +213,153 @@ BEGIN TRY
         WHERE GPIdPlan=@IdPlan AND GPIdEstatus=1
     )
         THROW 51408, 'El plan 2050 no tiene grupo activo y V31Test no lo devolveria a Java.', 1;
+
+    /*
+       Defaulteo 1 y 3 necesitan historia en la vigencia origen. La primera
+       versión del paquete podía dejar solamente los empleados y los planes
+       básicos; por eso tipo 2 quedaba LISTO y 1/3 aparecían en REVISAR.
+
+       Se reparan exclusivamente los QD1/QD3 existentes. No se crean nuevos
+       empleados ni se cambian sus números.
+    */
+    DECLARE @IdEmpleado INT;
+    DECLARE @NumeroEmpleado VARCHAR(50);
+    DECLARE @IdSolicitud INT;
+    DECLARE @IdSeleccion INT;
+
+    DECLARE CurHistoria CURSOR LOCAL FAST_FORWARD FOR
+        SELECT E.Id,E.EMNumeroEmpleado
+        FROM dbo.ff_Empleado E
+        WHERE E.EMIdEmpresa=@IdEmpresa
+          AND E.EMIdTitular=1
+          AND E.EMIdEstatus=1
+          AND
+          (
+              E.EMNumeroEmpleado LIKE 'QD1-186-%'
+              OR E.EMNumeroEmpleado LIKE 'QD3-186-%'
+          )
+        ORDER BY E.EMNumeroEmpleado;
+
+    OPEN CurHistoria;
+    FETCH NEXT FROM CurHistoria INTO @IdEmpleado,@NumeroEmpleado;
+    WHILE @@FETCH_STATUS=0
+    BEGIN
+        SET @IdSolicitud=NULL;
+
+        SELECT TOP(1) @IdSolicitud=S.SOIdSolicitud
+        FROM dbo.ff_Solicitud S
+        WHERE S.SOIdEmpresa=@IdEmpresa
+          AND S.SOIdEmpleado=@IdEmpleado
+          AND S.SOIdVigencia=@IdVigenciaOrigen
+        ORDER BY CASE WHEN S.SOIdEstatus=1 AND S.SOEstatusSolicitud=1 THEN 0 ELSE 1 END,
+                 S.SOIdSolicitud;
+
+        IF @IdSolicitud IS NULL
+        BEGIN
+            INSERT dbo.ff_Solicitud
+            (
+                SOSolicitudEmpleado,SOIdEmpresa,SOIdEmpleado,SONumEmpleado,
+                SOIdRamo,SOIdSolicitudTipo,SOIdEstatus,SOFechaEstatus,
+                SODetalleEstatus,SOUsuarioAdd,SOFechaAdd,SOUsuarioUMod,
+                SOFechaUMod,SONumeroSolicitud,SOFechaAprovacion,
+                SOEstatusSolicitud,SOAnexoSolicitud,SOIdVigencia
+            )
+            VALUES
+            (
+                @IdEmpleado,@IdEmpresa,@IdEmpleado,@NumeroEmpleado,
+                @IdRamo,1,1,@Ahora,'QA DUMMY APROBADA',0,@Ahora,0,@Ahora,
+                CONVERT(VARCHAR(20),980000000+(@IdEmpleado%10000000)),
+                DATEADD(DAY,-1,@Ahora),1,0,@IdVigenciaOrigen
+            );
+            SET @IdSolicitud=CONVERT(INT,SCOPE_IDENTITY());
+        END
+        ELSE
+            UPDATE dbo.ff_Solicitud
+            SET SOIdEstatus=1,
+                SOEstatusSolicitud=1,
+                SOFechaAprovacion=COALESCE(SOFechaAprovacion,DATEADD(DAY,-1,@Ahora)),
+                SONumeroSolicitud=CASE
+                    WHEN TRY_CONVERT(INT,SONumeroSolicitud) IS NULL
+                    THEN CONVERT(VARCHAR(20),980000000+(@IdEmpleado%10000000))
+                    ELSE SONumeroSolicitud END,
+                SOUsuarioUMod=0,
+                SOFechaUMod=@Ahora
+            WHERE SOIdSolicitud=@IdSolicitud;
+
+        IF EXISTS
+        (
+            SELECT 1 FROM dbo.ff_PlanOpcionSeleccion P
+            WHERE P.POIdEmpresa=@IdEmpresa
+              AND P.POIdEmpleado=@IdEmpleado
+              AND P.POIdVigencia=@IdVigenciaOrigen
+              AND P.POIdPlanOpcion=@IdPlanOpcion
+        )
+            UPDATE dbo.ff_PlanOpcionSeleccion
+            SET POIdSolicitud=@IdSolicitud,
+                POIdEstatus=1,
+                POAutorizado=1,
+                POFechaAutorizacion=COALESCE(POFechaAutorizacion,DATEADD(DAY,-1,@Ahora)),
+                POUsuarioUMod=0,
+                POFechaUMod=@Ahora
+            WHERE POIdEmpresa=@IdEmpresa
+              AND POIdEmpleado=@IdEmpleado
+              AND POIdVigencia=@IdVigenciaOrigen
+              AND POIdPlanOpcion=@IdPlanOpcion;
+        ELSE
+        BEGIN
+            SELECT @IdSeleccion=ISNULL(MAX(POIdPlanOpcionSeleccion),900000000)+1
+            FROM dbo.ff_PlanOpcionSeleccion WITH(UPDLOCK,HOLDLOCK);
+
+            INSERT dbo.ff_PlanOpcionSeleccion
+            (
+                POIdPlanOpcionSeleccion,POIdEmpresaFlexiForbes,POIdEmpresa,
+                PONumeroEmpleado,POIdEmpleado,POIdParentesco,POEdad,
+                POIdGrupoParentesco,POIdPlanOpcion,POTarifaNeta,POIdSolicitud,
+                POAnexo,POCostoRestante,POIdPeriodicidadPago,
+                PORequiereAutorizacion,POIdVigencia,PODefaulteo,POIdEstatus,
+                POUsuarioAdd,POFechaAdd,POUsuarioUMod,POFechaUMod,
+                POAutorizado,POFechaAutorizacion
+            )
+            VALUES
+            (
+                @IdSeleccion,'S001',@IdEmpresa,@NumeroEmpleado,@IdEmpleado,
+                1,41,1,@IdPlanOpcion,100,@IdSolicitud,0,0,8,'0',
+                @IdVigenciaOrigen,0,1,0,@Ahora,0,@Ahora,1,DATEADD(DAY,-1,@Ahora)
+            );
+        END;
+
+        FETCH NEXT FROM CurHistoria INTO @IdEmpleado,@NumeroEmpleado;
+    END;
+    CLOSE CurHistoria;
+    DEALLOCATE CurHistoria;
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM dbo.ff_Empleado E
+        WHERE E.EMIdEmpresa=@IdEmpresa
+          AND E.EMIdTitular=1
+          AND E.EMIdEstatus=1
+          AND (E.EMNumeroEmpleado LIKE 'QD1-186-%' OR E.EMNumeroEmpleado LIKE 'QD3-186-%')
+          AND
+          (
+              NOT EXISTS
+              (
+                  SELECT 1 FROM dbo.ff_Solicitud S
+                  WHERE S.SOIdEmpresa=@IdEmpresa AND S.SOIdEmpleado=E.Id
+                    AND S.SOIdVigencia=@IdVigenciaOrigen
+                    AND S.SOIdEstatus=1 AND S.SOEstatusSolicitud=1
+              )
+              OR NOT EXISTS
+              (
+                  SELECT 1 FROM dbo.ff_PlanOpcionSeleccion P
+                  WHERE P.POIdEmpresa=@IdEmpresa AND P.POIdEmpleado=E.Id
+                    AND P.POIdVigencia=@IdVigenciaOrigen
+                    AND P.POIdPlanOpcion=@IdPlanOpcion AND P.POIdEstatus=1
+              )
+          )
+    )
+        THROW 51409, 'No fue posible completar la historia de los QD1/QD3 en la vigencia 3924.', 1;
 
     COMMIT TRANSACTION;
 
