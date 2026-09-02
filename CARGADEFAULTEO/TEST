@@ -1,46 +1,20 @@
-src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FfCOpcionesCargaMasiva.java
+http://localhost:4200/#/pages/administracion/titulares/defaulteo
+
+LEDId	LEDIdLog	LEDIdEmpleado	LEDNumeroEmpleado	LEDIdEmpresa	LEDIdPerfil	LEDTipoEvento	LEDMensaje	LEDStackTrace	LEDFechaAdd
+69	16	172063	TEST1982	187		ERROR	La vigencia seleccionada no pertenece a la empresa del empleado	"java.lang.IllegalArgumentException: La vigencia seleccionada no pertenece a la empresa del empleado
+	at com.lockton.WSBeFlex.Services.DefaulteoAvanzadoAsyncRunner.buildUnicoEmpleado(DefaulteoAvanzadoAsyncRunner.java:156)
+	at com.lockton.WSBeFlex.Services.DefaulteoAvanzadoAsyncRunner.procesarLote(DefaulteoAvanzadoAsyncRunner.java:83)
+	at com.lockton.WSBeFlex.Services.DefaulteoAvanzadoAsyncRunner$$FastClassBySpringCGLIB$$b33b6fda.invoke(<generated>)
+	at org.springframework.cglib.proxy.MethodProxy.invoke(MethodProxy.java:218)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.invokeJoinpoint(CglibAopProxy.java:792)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:762)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:115)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+"	04:36.8
 
 
-com\lockton\WSBeFlex\Services\package-info.java
-[INFO]
-[INFO] --- maven-resources-plugin:3.2.0:resources (default-resources) @ WSBeFlex ---
-[INFO] Using 'UTF-8' encoding to copy filtered resources.
-[INFO] Using 'UTF-8' encoding to copy filtered properties files.
-[INFO] Copying 1 resource
-[INFO] Copying 3 resources
-[INFO]
-[INFO] --- maven-compiler-plugin:3.10.1:compile (default-compile) @ WSBeFlex ---
-[INFO] Changes detected - recompiling the module!
-[INFO] Compiling 1215 source files to C:\Proyectos_Lockton\QA\WSBeFlex-EmpAdm\target\classes
-[INFO] /C:/Proyectos_Lockton/QA/WSBeFlex-EmpAdm/src/main/java/com/lockton/WSBeFlex/Encrypter.java: Some input files use or override a deprecated API.
-[INFO] /C:/Proyectos_Lockton/QA/WSBeFlex-EmpAdm/src/main/java/com/lockton/WSBeFlex/Encrypter.java: Recompile with -Xlint:deprecation for details.
-[INFO] /C:/Proyectos_Lockton/QA/WSBeFlex-EmpAdm/src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java: Some input files use unchecked or unsafe operations.
-[INFO] /C:/Proyectos_Lockton/QA/WSBeFlex-EmpAdm/src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java: Recompile with -Xlint:unchecked for details.
-[INFO] -------------------------------------------------------------
-[ERROR] COMPILATION ERROR :
-[INFO] -------------------------------------------------------------
-[ERROR] /C:/Proyectos_Lockton/QA/WSBeFlex-EmpAdm/src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java:[82,71] cannot find symbol
-  symbol:   variable parametroAcceso
-  location: variable datosOp of type com.lockton.WSBeFlex.POJO.Especiales.FfCOpcionesCargaMasiva
-[INFO] 1 error
-[INFO] -------------------------------------------------------------
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD FAILURE
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  37.053 s
-[INFO] Finished at: 2026-08-28T10:55:48-06:00
-[INFO] ------------------------------------------------------------------------
-[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.10.1:compile (default-compile) on project WSBeFlex: Compilation failure
-[ERROR] /C:/Proyectos_Lockton/QA/WSBeFlex-EmpAdm/src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java:[82,71] cannot find symbol
-[ERROR]   symbol:   variable parametroAcceso
-[ERROR]   location: variable datosOp of type com.lockton.WSBeFlex.POJO.Especiales.FfCOpcionesCargaMasiva
-[ERROR]
-[ERROR] -> [Help 1]
-[ERROR]
-[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
-[ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR]
-[ERROR] For more information about the errors and possible solutions, please read the following articles:
-[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
-Error: mvn compile ha fallado.
-PS C:\Proyectos_Lockton\QA\WSBeFlex-EmpAdm>
+
