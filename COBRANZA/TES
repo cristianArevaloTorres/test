@@ -1,78 +1,18 @@
-# PowerShell - actualiza y publica en la MISMA rama.
-# El commit 64a3d8a ya contiene solamente los 6 archivos Java de Cobranza.
-# Los demas cambios locales se guardan temporalmente y se restauran al final.
+Mens. 55200, Nivel 16, Estado 1, Línea 12
+No existe dbo.ObtenCobranzaConcentrada (B2).
+Mensaje 3701, nivel 14, estado 20, procedimiento ObtenCobranzaConcentrada_otro_V2_BF3, línea 2 [línea de inicio de lote 204]
+Cannot alter the procedure 'ObtenCobranzaConcentrada_otro_V2_BF3', because it does not exist or you do not have permission.
+Mensaje 3701, nivel 14, estado 20, procedimiento ObtenCobranzaConcentrada_otro_V2_BF3_Cache, línea 2 [línea de inicio de lote 261]
+Cannot alter the procedure 'ObtenCobranzaConcentrada_otro_V2_BF3_Cache', because it does not exist or you do not have permission.
+Mensaje 3701, nivel 14, estado 20, procedimiento ReporteCobranzaConcentrada_BF3_Cache, línea 2 [línea de inicio de lote 380]
+Cannot alter the procedure 'ReporteCobranzaConcentrada_BF3_Cache', because it does not exist or you do not have permission.
+Mensaje 262, nivel 14, estado 18, procedimiento PrecargaUniversoCobranzaVigencia_BF3_Cache, línea 8 [línea de inicio de lote 431]
+CREATE PROCEDURE permission denied in database 'FlexiForbesv2'.
+Mens. 229, Nivel 14, Estado 5, Línea 600
+The INSERT permission was denied on the object 'ff_Parametro', database 'FlexiForbesv2', schema 'dbo'.
+Mens. 229, Nivel 14, Estado 5, Línea 668
+The UPDATE permission was denied on the object 'ff_Parametro', database 'FlexiForbesv2', schema 'dbo'.
+Mens. 229, Nivel 14, Estado 5, Línea 718
+The EXECUTE permission was denied on the object 'ListInt', database 'FlexiForbesv2', schema 'dbo'.
 
-$RepoApi = 'C:\repo\reportes\APIREPORTS'
-$Rama = 'ReporteSabanaHomologacionOK-clean'
-$CommitCobranza = '64a3d8a'
-
-Set-Location -LiteralPath $RepoApi
-
-if (-not (Test-Path -LiteralPath '.git')) {
-    throw "Esta carpeta no es un clon Git: $RepoApi"
-}
-
-# Confirma que estas en la rama correcta.
-git switch $Rama
-if ($LASTEXITCODE -ne 0) { throw "No se pudo cambiar a la rama $Rama." }
-
-# Comprueba que el commit que se publicara solo contiene los 6 Java autorizados.
-$ArchivosEsperados = @(
-    'src/main/java/com/lockton/rpt/dao/JDBCCobranza.java',
-    'src/main/java/com/lockton/rpt/jobs/CobranzaCacheWorker.java',
-    'src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java',
-    'src/test/java/com/lockton/rpt/dao/JDBCCobranzaTest.java',
-    'src/test/java/com/lockton/rpt/jobs/CobranzaCacheWorkerTest.java',
-    'src/test/java/com/lockton/rpt/services/impl/CobranzaServiceImplTest.java'
-)
-
-$ArchivosCommit = @(
-    git diff-tree --no-commit-id --name-only -r $CommitCobranza |
-        ForEach-Object { $_.Trim() } |
-        Where-Object { $_ }
-)
-if ($LASTEXITCODE -ne 0) { throw "No existe el commit $CommitCobranza." }
-
-$Diferencias = Compare-Object `
-    -ReferenceObject ($ArchivosEsperados | Sort-Object) `
-    -DifferenceObject ($ArchivosCommit | Sort-Object)
-
-if ($Diferencias) {
-    $Diferencias | Format-Table
-    throw 'El commit contiene archivos distintos a los 6 autorizados. No se hara push.'
-}
-
-# Guarda todos los cambios locales sin commit, incluidos archivos nuevos.
-# Esto no los agrega al commit ni los sube a GitHub.
-$HabiaCambiosLocales = [bool](git status --porcelain)
-if ($HabiaCambiosLocales) {
-    git stash push --include-untracked -m 'respaldo-local-antes-push-cobranza'
-    if ($LASTEXITCODE -ne 0) { throw 'No se pudieron guardar los cambios locales.' }
-}
-
-# Baja la rama remota y reaplica encima el commit local de Cobranza.
-git pull --rebase origin $Rama
-if ($LASTEXITCODE -ne 0) {
-    Write-Host 'El rebase encontro un conflicto. No se hizo push.'
-    Write-Host 'Ejecuta: git status'
-    throw 'Comparte la salida de git status para resolverlo.'
-}
-
-# Muestra exactamente lo que quedara publicado respecto de GitHub.
-git diff --name-only "origin/$Rama..HEAD"
-
-# Publica en la misma rama.
-git push origin $Rama
-if ($LASTEXITCODE -ne 0) { throw 'El push fue rechazado.' }
-
-# Restaura los demas cambios locales; siguen sin commit y no fueron subidos.
-if ($HabiaCambiosLocales) {
-    git stash pop
-    if ($LASTEXITCODE -ne 0) {
-        throw 'El push termino, pero hubo conflicto al restaurar cambios locales. Ejecuta git status.'
-    }
-}
-
-Write-Host 'Push terminado en la misma rama.'
-Write-Host 'Solo se publico el commit de los 6 archivos Java de Cobranza.'
-Write-Host 'Los demas cambios locales fueron restaurados y no se subieron.'
+Hora de finalización: 2026-09-04T13:14:10.5250866-06:00
