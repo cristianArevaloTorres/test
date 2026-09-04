@@ -1,17 +1,22 @@
-# PowerShell - publica exclusivamente los 6 archivos Java del commit 64a3d8a
-# No hace stash, no agrega SQL y no modifica los cambios locales sin commit.
+# PowerShell - actualiza y publica en la MISMA rama.
+# El commit 64a3d8a ya contiene solamente los 6 archivos Java de Cobranza.
+# Los demas cambios locales se guardan temporalmente y se restauran al final.
 
 $RepoApi = 'C:\repo\reportes\APIREPORTS'
-$RamaRemota = 'ReporteSabanaHomologacionOK-clean'
+$Rama = 'ReporteSabanaHomologacionOK-clean'
 $CommitCobranza = '64a3d8a'
-$Worktree = 'C:\repo\reportes\APIREPORTS_PUSH_SOLO_COBRANZA'
-$RamaTemporal = 'push-solo-cobranza-64a3d8a'
 
-if (-not (Test-Path -LiteralPath "$RepoApi\.git")) {
+Set-Location -LiteralPath $RepoApi
+
+if (-not (Test-Path -LiteralPath '.git')) {
     throw "Esta carpeta no es un clon Git: $RepoApi"
 }
 
-# Verifica que el commit contenga solamente los archivos autorizados.
+# Confirma que estas en la rama correcta.
+git switch $Rama
+if ($LASTEXITCODE -ne 0) { throw "No se pudo cambiar a la rama $Rama." }
+
+# Comprueba que el commit que se publicara solo contiene los 6 Java autorizados.
 $ArchivosEsperados = @(
     'src/main/java/com/lockton/rpt/dao/JDBCCobranza.java',
     'src/main/java/com/lockton/rpt/jobs/CobranzaCacheWorker.java',
@@ -22,13 +27,11 @@ $ArchivosEsperados = @(
 )
 
 $ArchivosCommit = @(
-    git -C $RepoApi diff-tree --no-commit-id --name-only -r $CommitCobranza |
+    git diff-tree --no-commit-id --name-only -r $CommitCobranza |
         ForEach-Object { $_.Trim() } |
         Where-Object { $_ }
 )
-if ($LASTEXITCODE -ne 0) {
-    throw "No existe el commit $CommitCobranza en el repositorio."
-}
+if ($LASTEXITCODE -ne 0) { throw "No existe el commit $CommitCobranza." }
 
 $Diferencias = Compare-Object `
     -ReferenceObject ($ArchivosEsperados | Sort-Object) `
@@ -36,43 +39,40 @@ $Diferencias = Compare-Object `
 
 if ($Diferencias) {
     $Diferencias | Format-Table
-    throw 'El commit contiene archivos diferentes a los seis autorizados. No se hara push.'
+    throw 'El commit contiene archivos distintos a los 6 autorizados. No se hara push.'
 }
 
-if (Test-Path -LiteralPath $Worktree) {
-    throw "Ya existe el directorio temporal: $Worktree"
+# Guarda todos los cambios locales sin commit, incluidos archivos nuevos.
+# Esto no los agrega al commit ni los sube a GitHub.
+$HabiaCambiosLocales = [bool](git status --porcelain)
+if ($HabiaCambiosLocales) {
+    git stash push --include-untracked -m 'respaldo-local-antes-push-cobranza'
+    if ($LASTEXITCODE -ne 0) { throw 'No se pudieron guardar los cambios locales.' }
 }
 
-# Actualiza solamente las referencias remotas. No toca el working tree original.
-git -C $RepoApi fetch origin
-if ($LASTEXITCODE -ne 0) { throw 'Fallo git fetch.' }
-
-# Crea una copia temporal limpia basada en la rama remota actual.
-git -C $RepoApi worktree add -b $RamaTemporal $Worktree "origin/$RamaRemota"
-if ($LASTEXITCODE -ne 0) { throw 'No se pudo crear el worktree temporal.' }
-
-# Aplica exclusivamente el commit que contiene los seis archivos Java.
-git -C $Worktree cherry-pick $CommitCobranza
+# Baja la rama remota y reaplica encima el commit local de Cobranza.
+git pull --rebase origin $Rama
 if ($LASTEXITCODE -ne 0) {
-    git -C $Worktree status
-    throw 'El cherry-pick tiene conflictos. No se hizo push.'
+    Write-Host 'El rebase encontro un conflicto. No se hizo push.'
+    Write-Host 'Ejecuta: git status'
+    throw 'Comparte la salida de git status para resolverlo.'
 }
 
-# Ultima comprobacion: deben mostrarse solamente los seis archivos autorizados.
-git -C $Worktree diff --name-only "origin/$RamaRemota...HEAD"
+# Muestra exactamente lo que quedara publicado respecto de GitHub.
+git diff --name-only "origin/$Rama..HEAD"
 
-# Publica la rama temporal sobre la rama de GitHub.
-git -C $Worktree push origin "HEAD:$RamaRemota"
+# Publica en la misma rama.
+git push origin $Rama
 if ($LASTEXITCODE -ne 0) { throw 'El push fue rechazado.' }
 
-# Elimina exclusivamente el worktree y la rama temporal creados arriba.
-git -C $RepoApi worktree remove $Worktree
-if ($LASTEXITCODE -ne 0) { throw 'El push termino, pero no se pudo retirar el worktree temporal.' }
+# Restaura los demas cambios locales; siguen sin commit y no fueron subidos.
+if ($HabiaCambiosLocales) {
+    git stash pop
+    if ($LASTEXITCODE -ne 0) {
+        throw 'El push termino, pero hubo conflicto al restaurar cambios locales. Ejecuta git status.'
+    }
+}
 
-git -C $RepoApi branch -D $RamaTemporal
-
-Write-Host 'Push terminado. Se publicaron solamente los seis archivos Java de Cobranza.'
-Write-Host 'Los cambios locales originales permanecen intactos y no se subieron SQL.'
-
-# Si el cherry-pick reporta conflictos, NO ejecutes git push. Comparte primero
-# la salida de: git -C $Worktree status
+Write-Host 'Push terminado en la misma rama.'
+Write-Host 'Solo se publico el commit de los 6 archivos Java de Cobranza.'
+Write-Host 'Los demas cambios locales fueron restaurados y no se subieron.'
