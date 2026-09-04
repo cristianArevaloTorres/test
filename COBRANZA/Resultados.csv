@@ -1,0 +1,80 @@
+﻿CONTEXTO,2026-09-04 13:56:31.273,NULL,NULL,Servidor,LOCKMX-DBQA,NULL
+CONTEXTO,2026-09-04 13:56:31.273,NULL,NULL,BaseDatos,FlexiForbesv2,NULL
+CONTEXTO,2026-09-04 13:56:31.273,NULL,NULL,Login,UserBeflex,NULL
+CONTEXTO,2026-09-04 13:56:31.273,917,NULL,Empresa,917,NULL
+CONTEXTO,2026-09-04 13:56:31.273,4251,NULL,Vigencia,4251,NULL
+CONTEXTO,2026-09-04 13:56:31.273,11,NULL,ReporteId esperado por Java,11,NULL
+CONTEXTO,2026-09-04 13:56:31.273,NULL,NULL,Desde,2026-09-01T13:56:31.270,Ventana consultada
+CATALOGO_REPORTE,NULL,11,NULL,Cobranza,11,Coincide con el ID fijo usado por Java.
+CATALOGO_ESTATUS,NULL,1,En proceso,Estatus de seguimiento,1,NULL
+CATALOGO_ESTATUS,NULL,2,Disponible,Estatus de seguimiento,2,NULL
+CATALOGO_ESTATUS,NULL,3,Error,Estatus de seguimiento,3,NULL
+CATALOGO_ESTATUS,NULL,4,Programado,Estatus de seguimiento,4,NULL
+CATALOGO_ESTATUS,NULL,5,Depurado,Estatus de seguimiento,5,NULL
+CATALOGO_ESTATUS,NULL,6,Sin datos,Estatus de seguimiento,6,NULL
+SEGUIMIENTO,2026-09-04 13:52:00.000,3607,Sin datos,Solicitud Cobranza,NULL,Observaciones=class java.lang.Boolean cannot be cast to class java.lang.Number (java.lang.Boolean and java.lang.Number are in module java.base of loader 'bootstrap') | Params= | FechaGeneracion=2026-09-04T13:53:00 | Usuario=25 | IdReporte=11
+SEGUIMIENTO,2026-09-04 13:51:00.000,3606,Disponible,Solicitud Cobranza,C://dev//ReportesBeflex3//DocumentoEmpresa//917/Cobranza/empty,Observaciones= | Params= | FechaGeneracion=2026-09-04T13:51:00 | Usuario=0 | IdReporte=11
+SEGUIMIENTO,2026-09-04 13:40:00.000,3605,Sin datos,Solicitud Cobranza,NULL,Observaciones=class java.lang.Boolean cannot be cast to class java.lang.Number (java.lang.Boolean and java.lang.Number are in module java.base of loader 'bootstrap') | Params= | FechaGeneracion=2026-09-04T13:41:00 | Usuario=25 | IdReporte=11
+SEGUIMIENTO,2026-09-04 13:40:00.000,3604,Disponible,Solicitud Cobranza,C://dev//ReportesBeflex3//DocumentoEmpresa//917/Cobranza/empty,Observaciones= | Params= | FechaGeneracion=2026-09-04T13:40:00 | Usuario=0 | IdReporte=11
+SEGUIMIENTO,2026-09-04 13:35:00.000,3603,Sin datos,Solicitud Cobranza,NULL,Observaciones=class java.lang.Boolean cannot be cast to class java.lang.Number (java.lang.Boolean and java.lang.Number are in module java.base of loader 'bootstrap') | Params= | FechaGeneracion=2026-09-04T13:35:00 | Usuario=25 | IdReporte=11
+SEGUIMIENTO,2026-09-04 13:35:00.000,3602,Disponible,Solicitud Cobranza,C://dev//ReportesBeflex3//DocumentoEmpresa//917/Cobranza/empty,Observaciones= | Params= | FechaGeneracion=2026-09-04T13:35:00 | Usuario=0 | IdReporte=11
+SEGUIMIENTO,2026-09-04 11:45:00.000,3601,Sin datos,Solicitud Cobranza,NULL,Observaciones=class java.lang.Boolean cannot be cast to class java.lang.Number (java.lang.Boolean and java.lang.Number are in module java.base of loader 'bootstrap') | Params= | FechaGeneracion=2026-09-04T11:46:00 | Usuario=25 | IdReporte=11
+SEGUIMIENTO,2026-09-04 11:45:00.000,3600,Disponible,Solicitud Cobranza,C://dev//ReportesBeflex3//DocumentoEmpresa//917/Cobranza/empty,Observaciones= | Params= | FechaGeneracion=2026-09-04T11:45:00 | Usuario=0 | IdReporte=11
+SEGUIMIENTO,2026-09-03 12:45:00.000,3599,Sin datos,Solicitud Cobranza,NULL,Observaciones=class java.lang.Boolean cannot be cast to class java.lang.Number (java.lang.Boolean and java.lang.Number are in module java.base of loader 'bootstrap') | Params= | FechaGeneracion=2026-09-03T12:45:00 | Usuario=25 | IdReporte=11
+SEGUIMIENTO,2026-09-03 12:45:00.000,3598,Disponible,Solicitud Cobranza,C://dev//ReportesBeflex3//DocumentoEmpresa//917/Cobranza/empty,Observaciones= | Params= | FechaGeneracion=2026-09-03T12:45:00 | Usuario=0 | IdReporte=11
+SEGUIMIENTO,2026-09-03 10:55:00.000,3597,Sin datos,Solicitud Cobranza,NULL,Observaciones=class java.lang.Boolean cannot be cast to class java.lang.Number (java.lang.Boolean and java.lang.Number are in module java.base of loader 'bootstrap') | Params= | FechaGeneracion=2026-09-03T10:56:00 | Usuario=25 | IdReporte=11
+SEGUIMIENTO,2026-09-03 10:55:00.000,3596,Disponible,Solicitud Cobranza,C://dev//ReportesBeflex3//DocumentoEmpresa//917/Cobranza/empty,Observaciones= | Params= | FechaGeneracion=2026-09-03T10:55:00 | Usuario=0 | IdReporte=11
+DEBUG_SQL,2026-09-04 13:51:31.800,2734,NULL,cobranza_bf3_ruta_sql,NULL,ruta=B2_HOMOLOGADA; empresa=917; vigencia=4251; perfiles=4; perfilB2=NULL; cache=0
+DEBUG_SQL,2026-09-04 13:39:58.853,2733,NULL,cobranza_bf3_ruta_sql,NULL,ruta=B2_HOMOLOGADA; empresa=917; vigencia=4251; perfiles=4; perfilB2=NULL; cache=1
+DEBUG_SQL,2026-09-04 13:32:06.323,2732,NULL,cobranza_bf3_ruta_sql,NULL,ruta=B2_HOMOLOGADA; empresa=917; vigencia=4251; perfiles=4; perfilB2=NULL; cache=1
+DEBUG_SQL,2026-09-04 13:20:49.170,2731,NULL,cobranza_bf3_ruta_sql,NULL,ruta=B2_HOMOLOGADA; empresa=917; vigencia=4251; perfiles=4; perfilB2=NULL; cache=1
+DEBUG_SQL,2026-09-04 11:45:04.370,2730,NULL,cobranza_bf3_ruta_sql,NULL,ruta=B2_HOMOLOGADA; empresa=917; vigencia=4251; perfiles=4; perfilB2=NULL; cache=0
+DEBUG_SQL,2026-09-03 12:45:13.180,2720,NULL,cobranza_bf3_desg_set_inicio,NULL,empresa=917; vigencia=4251
+DEBUG_SQL,2026-09-03 12:45:04.840,2718,NULL,cobranza_bf3_ruta_sql,NULL,ruta=SET_UNICA; empresa=917; vigencia=4251; cache=0
+DEBUG_SQL,2026-09-03 10:55:45.840,2708,NULL,cobranza_bf3_desg_set_inicio,NULL,empresa=917; vigencia=4251
+DEBUG_SQL,2026-09-03 10:55:23.217,2706,NULL,cobranza_bf3_ruta_sql,NULL,ruta=SET_UNICA; empresa=917; vigencia=4251; cache=0
+CACHE_ESTADO,2026-09-04 13:39:58.794,9,COMPLETA,2026-05-16 a 2026-09-30,Concentrada=446; Desglosada=1069,"IdSolTipo=1; IdVencida=1; EsUniverso=0; Perfiles=3056,3057,3058,9986; Fin=2026-09-04T13:41:19.041; Mensaje=Carga completa"
+CACHE_ESTADO,2026-09-04 13:32:06.294,8,COMPLETA,2026-09-01 a 2026-09-30,Concentrada=446; Desglosada=1069,"IdSolTipo=1; IdVencida=1; EsUniverso=0; Perfiles=3056,3057,3058,9986; Fin=2026-09-04T13:33:24.730; Mensaje=Carga completa"
+CACHE_LOG,2026-09-04 13:41:19.041,134,COMPLETA,CARGA_COMPLETA,9,Resultado=CARGA_COMPLETA; modo=FULL
+CACHE_LOG,2026-09-04 13:41:19.041,133,CARGANDO,SP_ORIGINAL_FIN,9,Finalizo ObtenCobranzaConcentrada_otro_V2_BF3.
+CACHE_LOG,2026-09-04 13:39:58.841,132,CARGANDO,SP_ORIGINAL_INICIO,9,Inicia ObtenCobranzaConcentrada_otro_V2_BF3; modo=FULL
+CACHE_LOG,2026-09-04 13:39:58.810,131,CARGANDO,CACHE_PREPARADA,9,"Modo=FULL; universo=0; perfiles=3056,3057,3058,9986"
+CACHE_LOG,2026-09-04 13:39:58.810,130,CARGANDO,BLOQUEO_OBTENIDO,NULL,BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1
+CACHE_LOG,2026-09-04 13:39:58.810,129,SOLICITADA,SOLICITUD_CARGA,NULL,"Recurso=BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1; perfiles=3056,3057,3058,9986"
+CACHE_LOG,2026-09-04 13:39:03.234,128,CARGANDO,CACHE_PREPARADA,8,"Modo=DELTA; universo=0; perfiles=3056,3057,3058,9986"
+CACHE_LOG,2026-09-04 13:39:03.218,127,CARGANDO,BLOQUEO_OBTENIDO,NULL,BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1
+CACHE_LOG,2026-09-04 13:39:03.218,126,SOLICITADA,SOLICITUD_CARGA,NULL,"Recurso=BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1; perfiles=3056,3057,3058,9986"
+CACHE_LOG,2026-09-04 13:37:13.083,125,CARGANDO,CACHE_PREPARADA,8,"Modo=DELTA; universo=0; perfiles=3056,3057,3058,9986"
+CACHE_LOG,2026-09-04 13:37:13.083,124,CARGANDO,BLOQUEO_OBTENIDO,NULL,BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1
+CACHE_LOG,2026-09-04 13:37:13.067,123,SOLICITADA,SOLICITUD_CARGA,NULL,"Recurso=BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1; perfiles=3056,3057,3058,9986"
+CACHE_LOG,2026-09-04 13:36:47.598,122,CARGANDO,CACHE_PREPARADA,8,"Modo=DELTA; universo=0; perfiles=3056,3057,3058,9986"
+CACHE_LOG,2026-09-04 13:36:47.598,121,CARGANDO,BLOQUEO_OBTENIDO,NULL,BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1
+CACHE_LOG,2026-09-04 13:36:47.582,120,SOLICITADA,SOLICITUD_CARGA,NULL,"Recurso=BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1; perfiles=3056,3057,3058,9986"
+CACHE_LOG,2026-09-04 13:35:10.091,119,CARGANDO,CACHE_PREPARADA,8,"Modo=DELTA; universo=0; perfiles=3056,3057,3058,9986"
+CACHE_LOG,2026-09-04 13:35:10.076,118,CARGANDO,BLOQUEO_OBTENIDO,NULL,BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1
+CACHE_LOG,2026-09-04 13:35:10.076,117,SOLICITADA,SOLICITUD_CARGA,NULL,"Recurso=BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1; perfiles=3056,3057,3058,9986"
+CACHE_LOG,2026-09-04 13:33:24.746,116,COMPLETA,CARGA_COMPLETA,8,Resultado=CARGA_COMPLETA; modo=FULL
+CACHE_LOG,2026-09-04 13:33:24.730,115,CARGANDO,SP_ORIGINAL_FIN,8,Finalizo ObtenCobranzaConcentrada_otro_V2_BF3.
+CACHE_LOG,2026-09-04 13:32:06.310,114,CARGANDO,SP_ORIGINAL_INICIO,8,Inicia ObtenCobranzaConcentrada_otro_V2_BF3; modo=FULL
+CACHE_LOG,2026-09-04 13:32:06.294,113,CARGANDO,CACHE_PREPARADA,8,"Modo=FULL; universo=0; perfiles=3056,3057,3058,9986"
+CACHE_LOG,2026-09-04 13:32:06.294,112,CARGANDO,BLOQUEO_OBTENIDO,NULL,BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1
+CACHE_LOG,2026-09-04 13:32:06.294,111,SOLICITADA,SOLICITUD_CARGA,NULL,"Recurso=BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1; perfiles=3056,3057,3058,9986"
+CACHE_LOG,2026-09-04 13:22:08.743,110,ERROR,CARGA_ERROR,8,"Error 208 en bf_CobranzaCache_CapturaBasesV2, linea 119, etapa EJECUCION_SP_ORIGINAL: Invalid object name '#isEmpresaTC'."
+CACHE_LOG,2026-09-04 13:20:49.174,109,CARGANDO,SP_ORIGINAL_INICIO,8,Inicia ObtenCobranzaConcentrada_otro_V2_BF3; modo=FULL
+CACHE_LOG,2026-09-04 13:20:49.157,108,CARGANDO,CACHE_PREPARADA,8,"Modo=FULL; universo=0; perfiles=3056,3057,3058,9986"
+CACHE_LOG,2026-09-04 13:20:49.142,107,CARGANDO,BLOQUEO_OBTENIDO,NULL,BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1
+CACHE_LOG,2026-09-04 13:20:49.142,106,SOLICITADA,SOLICITUD_CARGA,NULL,"Recurso=BF3-CobranzaCache-917-4251-1C66BFBAAFA33B9FB6C051F621574DE109E84B351E9BDB9F98915B8FCC7C83BB-1; perfiles=3056,3057,3058,9986"
+CONFIGURACION,2026-09-04 13:39:03.153,281,1,"COBRANZA_CACHE_HORA           ","01:00                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ",Empresa=0; Horario diario del worker de cache Cobranza (HH:mm America/Mexico_City)
+CONFIGURACION,2026-09-04 13:39:03.123,283,0,"COBRANZA_CACHE                ","1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ",Empresa=917; Habilita cache B2 homologado de cobranza para la empresa
+VERSION_SQL,2020-11-18 17:21:37.187,NULL,OK,dbo.ObtenCobranzaConcentrada,658A83C5FB5C56B39090A4D77EFF31F082BA1420E0845C8F3785CE979707988D,Marcador1=<NO APLICA>; Marcador2=<NO APLICA>
+VERSION_SQL,2026-09-04 13:39:02.957,NULL,OK,dbo.ObtenCobranzaConcentrada_otro_V2_BF3,1104D237FFB7CC7CD298B2C43BD6AE3B5E97F56C69EBA6CE41668FE8621F5336,Marcador1=EXEC dbo.ObtenCobranzaConcentrada; Marcador2=<NO APLICA>
+VERSION_SQL,2026-09-04 13:39:02.990,NULL,OK,dbo.ObtenCobranzaConcentrada_otro_V2_BF3_Cache,D01083B1E0EFFED3502271421C302F4E554FFD000A3BCF9F45CDD1908368E3A7,Marcador1=EXEC dbo.ff_ObtenPlanConcentrado_Adaptado; Marcador2=<NO APLICA>
+VERSION_SQL,2026-09-04 13:39:03.023,NULL,OK,dbo.ReporteCobranzaConcentrada_BF3_Cache,3A4AD14F5162BA316D9FAB87BE7D799423144105ED4959E4CCFBF8B975D48585,Marcador1=EXEC dbo.bf_CobranzaCache_CargarUnaV2; Marcador2=<NO APLICA>
+VERSION_SQL,2026-09-04 13:39:02.927,NULL,OK,dbo.bf_CobranzaCache_CargarUnaV2,87A15DC24B2D21038B73A2298DDBB4E712AD386AB468673FFEB7A08EA0110467,Marcador1=La ruta homologada necesita una fotografia exacta; Marcador2=B2 no consume #FiltroIncrementalEmps
+VERSION_SQL,2026-09-04 13:39:02.850,NULL,OK,dbo.ff_ObtenDivisionCtos_Adaptado_B2_CacheCapture,E5F42C7C71D3123C3BB82F9A75D7EAD323C42CCFBFE1E58B6A51D7E9C4816DD9,Marcador1=CREATE TABLE #isEmpresaTC; Marcador2=CREATE TABLE #CobranzaBanwire
+EMPRESA_VIGENCIA,NULL,917,1,Vigencia,4251,Configuracion empresa=263; configuracion vigencia=263; inicio=2026-05-02T00:00:00; fin=2027-05-02T00:00:00; enrollment=2026-05-16T00:00:00; estatus vigencia=6
+PERFIL,NULL,3055,1,Perfil empresa,1,Valor=PEAdministrador; la precarga usa activos con PEAdministrador=0.
+PERFIL,NULL,3056,1,Perfil empresa,0,Valor=PEAdministrador; la precarga usa activos con PEAdministrador=0.
+PERFIL,NULL,3057,1,Perfil empresa,0,Valor=PEAdministrador; la precarga usa activos con PEAdministrador=0.
+PERFIL,NULL,3058,1,Perfil empresa,0,Valor=PEAdministrador; la precarga usa activos con PEAdministrador=0.
+PERFIL,NULL,9986,1,Perfil empresa,0,Valor=PEAdministrador; la precarga usa activos con PEAdministrador=0.
