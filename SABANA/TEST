@@ -1,37 +1,896 @@
-id	fecha	etapa	detalle
-3302	2026-08-25 11:19:58.703	bf_RepConf_Tabla	reporteId=3 idEmpresaParam=1039 filas=5
-3193	2026-08-25 11:14:40.327	bf_RepConf_Tabla	reporteId=3 idEmpresaParam=1039 filas=5
-3084	2026-08-25 10:56:21.540	bf_RepConf_Tabla	reporteId=3 idEmpresaParam=1039 filas=5
-2963	2026-08-25 10:47:45.817	bf_RepConf_Tabla	reporteId=3 idEmpresaParam=332 filas=8
-2842	2026-08-25 10:13:27.020	bf_RepConf_Tabla	reporteId=3 idEmpresaParam=332 filas=8
-2709	2026-08-25 10:05:16.237	bf_RepConf_Tabla	reporteId=3 idEmpresaParam=166 filas=8
-2576	2026-08-25 01:41:41.050	bf_RepConf_Tabla	reporteId=3 idEmpresaParam=166 filas=8
-2455	2026-08-25 01:02:23.797	bf_RepConf_Tabla	reporteId=3 idEmpresaParam=332 filas=8
-2334	2026-08-25 00:58:50.577	bf_RepConf_Tabla	reporteId=3 idEmpresaParam=332 filas=8
-2214	2026-08-24 22:18:04.527	bf_RepConf_Tabla	reporteId=3 idEmpresaParam=332 filas=8
+/*
+    EXTRACTOR DE DATOS PARA HOMOLOGAR B2 CONTRA B3
 
+    Empresa:              2185 - ZURICH ASEGURADORA
+    Vigencia:             4067 - 2025-2026
+    Periodo Sabana:       2025-10-13 a 2026-09-30
+    Periodo Cobranza:     2026-09-01 a 2026-09-30
+    Base:                 FlexiForbesv2
 
-id	fecha	etapa	detalle
-3308	2026-08-25 11:19:58.860	bf_RepConf_Columna	grupo='GMM' idEmpresaConfig=0 catReportesId=3 colsRaw=58 hayColsEspecificas=true colsEfectivas=58 campos=EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,Nombres,PADescripcion,SEDescripcion,EMFechaNacimiento,EMedad,EMFechaIngresoEmpresa,GPDescripcion,SONumeroSolicitud,EMOFicina,Oficina,EMArea,EMIdCentroCostos,Perfil,PrimeNeta,Costo,Maternidad,Bronce1000SMGM,Plata2000SMGM,OroSinLimite,VisionPlanBasico,VisionPlanPlus,Dental,DC_EMER_EX_MEX,DC_AMP_EMER_EX_MEX,DC_EMER_EX_GDL,DC_AMP_EMER_EX_GDL,DC_AMP_EMER_EX_MTY,DC_EMER_EX_MTY,DC_EMER_EX_ALT,DC_AMP_EMER_EX_ALT,IDEmp,INFO,Calle,NumExt,NumInt,Colonia,Del_Municipio,EstadoFiscal,CP,GMM_ANT,Exceso_ante,Ubicacion,Folio,NombrePestana,TipoSabana,POidPlan,EMidParentesco,poidplanopcion,POidGrupoParentesco,PLNombre,EMNombre1,EMNombre2,EMFechaAlta,RFC
-3199	2026-08-25 11:14:40.500	bf_RepConf_Columna	grupo='GMM' idEmpresaConfig=0 catReportesId=3 colsRaw=58 hayColsEspecificas=true colsEfectivas=58 campos=EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,Nombres,PADescripcion,SEDescripcion,EMFechaNacimiento,EMedad,EMFechaIngresoEmpresa,GPDescripcion,SONumeroSolicitud,EMOFicina,Oficina,EMArea,EMIdCentroCostos,Perfil,PrimeNeta,Costo,Maternidad,Bronce1000SMGM,Plata2000SMGM,OroSinLimite,VisionPlanBasico,VisionPlanPlus,Dental,DC_EMER_EX_MEX,DC_AMP_EMER_EX_MEX,DC_EMER_EX_GDL,DC_AMP_EMER_EX_GDL,DC_AMP_EMER_EX_MTY,DC_EMER_EX_MTY,DC_EMER_EX_ALT,DC_AMP_EMER_EX_ALT,IDEmp,INFO,Calle,NumExt,NumInt,Colonia,Del_Municipio,EstadoFiscal,CP,GMM_ANT,Exceso_ante,Ubicacion,Folio,NombrePestana,TipoSabana,POidPlan,EMidParentesco,poidplanopcion,POidGrupoParentesco,PLNombre,EMNombre1,EMNombre2,EMFechaAlta,RFC
-3090	2026-08-25 10:56:21.730	bf_RepConf_Columna	grupo='GMM' idEmpresaConfig=0 catReportesId=3 colsRaw=58 hayColsEspecificas=true colsEfectivas=58 campos=EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,Nombres,PADescripcion,SEDescripcion,EMFechaNacimiento,EMedad,EMFechaIngresoEmpresa,GPDescripcion,SONumeroSolicitud,EMOFicina,Oficina,EMArea,EMIdCentroCostos,Perfil,PrimeNeta,Costo,Maternidad,Bronce1000SMGM,Plata2000SMGM,OroSinLimite,VisionPlanBasico,VisionPlanPlus,Dental,DC_EMER_EX_MEX,DC_AMP_EMER_EX_MEX,DC_EMER_EX_GDL,DC_AMP_EMER_EX_GDL,DC_AMP_EMER_EX_MTY,DC_EMER_EX_MTY,DC_EMER_EX_ALT,DC_AMP_EMER_EX_ALT,IDEmp,INFO,Calle,NumExt,NumInt,Colonia,Del_Municipio,EstadoFiscal,CP,GMM_ANT,Exceso_ante,Ubicacion,Folio,NombrePestana,TipoSabana,POidPlan,EMidParentesco,poidplanopcion,POidGrupoParentesco,PLNombre,EMNombre1,EMNombre2,EMFechaAlta,RFC
-2972	2026-08-25 10:47:46.080	bf_RepConf_Columna	grupo='GMM' idEmpresaConfig=332 catReportesId=3 colsRaw=99 hayColsEspecificas=true colsEfectivas=41 campos=EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,SEDescripcion,PADescripcion,EMFechaNacimiento,RFC,EMedad,EMFechaIngresoEmpresa,PrimeNeta,Costo,EMOFicina,Oficina,Perfil,NombrePestana,TipoSabana,POidPlan,EMidParentesco,Nombres,poidplanopcion,POidGrupoParentesco,PLNombre,EMFechaAlta,GPDescripcion,Ubicacion,SONumeroSolicitud,IDEmp,EMArea,EMIdCentroCostos,INFO,EMIdParentesco1,Calle,Colonia,CP,Del_Municipio,EstadoFiscal,NumExt,NumInt
-2851	2026-08-25 10:13:27.333	bf_RepConf_Columna	grupo='GMM' idEmpresaConfig=332 catReportesId=3 colsRaw=92 hayColsEspecificas=true colsEfectivas=34 campos=EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,SEDescripcion,PADescripcion,EMFechaNacimiento,RFC,EMedad,EMFechaIngresoEmpresa,PrimeNeta,Costo,EMOFicina,Oficina,Perfil,NombrePestana,TipoSabana,POidPlan,EMidParentesco,Nombres,poidplanopcion,POidGrupoParentesco,PLNombre,EMFechaAlta,GPDescripcion,Ubicacion,SONumeroSolicitud,IDEmp,EMArea,EMIdCentroCostos,INFO,EMIdParentesco1
-2718	2026-08-25 10:05:16.547	bf_RepConf_Columna	grupo='GMM' idEmpresaConfig=166 catReportesId=3 colsRaw=94 hayColsEspecificas=true colsEfectivas=36 campos=EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,PADescripcion,SEDescripcion,EMFechaNacimiento,EMedad,EMFechaIngresoEmpresa,PrimeNeta,Costo,EMOFicina,Oficina,Perfil,RFC,GMM_ANT,Exceso_ante,NombrePestana,TipoSabana,POidPlan,EMidParentesco,Nombres,poidplanopcion,POidGrupoParentesco,PLNombre,EMFechaAlta,GPDescripcion,Ubicacion,SONumeroSolicitud,IDEmp,EMArea,EMIdCentroCostos,INFO,EMIdParentesco1
-2585	2026-08-25 01:41:41.423	bf_RepConf_Columna	grupo='GMM' idEmpresaConfig=166 catReportesId=3 colsRaw=94 hayColsEspecificas=true colsEfectivas=36 campos=EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,PADescripcion,SEDescripcion,EMFechaNacimiento,EMedad,EMFechaIngresoEmpresa,PrimeNeta,Costo,EMOFicina,Oficina,Perfil,RFC,GMM_ANT,Exceso_ante,NombrePestana,TipoSabana,POidPlan,EMidParentesco,Nombres,poidplanopcion,POidGrupoParentesco,PLNombre,EMFechaAlta,GPDescripcion,Ubicacion,SONumeroSolicitud,IDEmp,EMArea,EMIdCentroCostos,INFO,EMIdParentesco1
-2464	2026-08-25 01:02:24.233	bf_RepConf_Columna	grupo='GMM' idEmpresaConfig=332 catReportesId=3 colsRaw=92 hayColsEspecificas=true colsEfectivas=34 campos=EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,SEDescripcion,PADescripcion,EMFechaNacimiento,RFC,EMedad,EMFechaIngresoEmpresa,PrimeNeta,Costo,EMOFicina,Oficina,Perfil,NombrePestana,TipoSabana,POidPlan,EMidParentesco,Nombres,poidplanopcion,POidGrupoParentesco,PLNombre,EMFechaAlta,GPDescripcion,Ubicacion,SONumeroSolicitud,IDEmp,EMArea,EMIdCentroCostos,INFO,EMIdParentesco1
-2343	2026-08-25 00:58:51.030	bf_RepConf_Columna	grupo='GMM' idEmpresaConfig=332 catReportesId=3 colsRaw=92 hayColsEspecificas=true colsEfectivas=34 campos=EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,SEDescripcion,PADescripcion,EMFechaNacimiento,RFC,EMedad,EMFechaIngresoEmpresa,PrimeNeta,Costo,EMOFicina,Oficina,Perfil,NombrePestana,TipoSabana,POidPlan,EMidParentesco,Nombres,poidplanopcion,POidGrupoParentesco,PLNombre,EMFechaAlta,GPDescripcion,Ubicacion,SONumeroSolicitud,IDEmp,EMArea,EMIdCentroCostos,INFO,EMIdParentesco1
-2223	2026-08-24 22:18:04.917	bf_RepConf_Columna	grupo='GMM' idEmpresaConfig=332 catReportesId=3 colsRaw=92 hayColsEspecificas=true colsEfectivas=34 campos=EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,SEDescripcion,PADescripcion,EMFechaNacimiento,RFC,EMedad,EMFechaIngresoEmpresa,PrimeNeta,Costo,EMOFicina,Oficina,Perfil,NombrePestana,TipoSabana,POidPlan,EMidParentesco,Nombres,poidplanopcion,POidGrupoParentesco,PLNombre,EMFechaAlta,GPDescripcion,Ubicacion,SONumeroSolicitud,IDEmp,EMArea,EMIdCentroCostos,INFO,EMIdParentesco1
+    USO
+    1. Ejecutar en la base ORIGEN que si contiene la informacion real.
+    2. Exportar cada resultset conservando el nombre indicado en __Tabla.
+    3. No ejecutar como script de carga: este archivo solo hace SELECT.
 
+    El alcance incluye los datos fuente usados por los SP de Sabana y
+    Cobranza B2/B3, la configuracion del Excel y los folios consultados por
+    la API Java. No exporta las tablas de cache como insumo: el cache es
+    derivado y debe reconstruirse en local despues de cargar las fuentes.
+*/
 
+USE [FlexiForbesv2];
+GO
 
-SELECT TOP (1) Orden,etapa,detalle
-FROM dbo.bf_RepConf_Debug
-WHERE etapa=N'bf_RepConf_Tabla'
-ORDER BY Orden DESC;
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
-SELECT TOP (1) Orden,etapa,detalle
-FROM dbo.bf_RepConf_Debug
-WHERE etapa=N'bf_RepConf_Columna'
-  AND detalle LIKE N'%grupo=''GMM''%'
-ORDER BY Orden DESC;
+DECLARE @IdEmpresa                int  = 2185,
+        @IdVigencia               int  = 4067,
+        @FechaInicioSabana        date = '20251013',
+        @FechaFinSabana           date = '20260930',
+        @FechaFinSabanaExclusiva  date = '20261001',
+        @FechaInicioCobranza      date = '20260901',
+        @FechaFinCobranza         date = '20260930',
+        @FechaFinCobExclusiva     date = '20261001',
+        @IdConfiguracion          int,
+        @IdCorporativo            int;
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM dbo.ff_Empresa
+    WHERE EMIdEmpresa = @IdEmpresa
+)
+    THROW 55000, 'No existe la empresa 2185 en la base origen.', 1;
+
+SELECT @IdConfiguracion = E.EMIdConfiguracion,
+       @IdCorporativo = E.EMIdCorporativo
+FROM dbo.ff_Empresa AS E
+WHERE E.EMIdEmpresa = @IdEmpresa;
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM dbo.ff_Vigencia
+    WHERE VIIdVigencia = @IdVigencia
+      AND VIIdConfiguracion = @IdConfiguracion
+)
+    THROW 55001, 'La vigencia 4067 no pertenece a la configuracion de la empresa 2185.', 1;
+
+DECLARE @Empresas TABLE
+(
+    IdEmpresa int NOT NULL PRIMARY KEY
+);
+
+INSERT @Empresas(IdEmpresa)
+VALUES (@IdEmpresa);
+
+/* Solo se agregan filiales cuando la empresa solicitada es el corporativo. */
+IF @IdCorporativo = @IdEmpresa
+BEGIN
+    INSERT @Empresas(IdEmpresa)
+    SELECT E.EMIdEmpresa
+    FROM dbo.ff_Empresa AS E
+    WHERE E.EMIdCorporativo = @IdEmpresa
+      AND E.EMIdEmpresa <> @IdEmpresa
+      AND E.EMIdEstatus = 1
+      AND NOT EXISTS
+          (SELECT 1 FROM @Empresas AS X WHERE X.IdEmpresa = E.EMIdEmpresa);
+END;
+
+DECLARE @EmpresasConfiguracion TABLE
+(
+    IdEmpresa int NOT NULL PRIMARY KEY
+);
+
+INSERT @EmpresasConfiguracion(IdEmpresa)
+VALUES (0);
+
+INSERT @EmpresasConfiguracion(IdEmpresa)
+SELECT E.IdEmpresa
+FROM @Empresas AS E
+WHERE NOT EXISTS
+      (SELECT 1 FROM @EmpresasConfiguracion C WHERE C.IdEmpresa = E.IdEmpresa);
+
+IF ISNULL(@IdCorporativo, 0) <> 0
+   AND NOT EXISTS
+       (SELECT 1 FROM @EmpresasConfiguracion WHERE IdEmpresa = @IdCorporativo)
+BEGIN
+    INSERT @EmpresasConfiguracion(IdEmpresa)
+    VALUES (@IdCorporativo);
+END;
+
+DECLARE @Solicitudes TABLE
+(
+    IdSolicitud int NOT NULL,
+    IdEmpresa   int NOT NULL,
+    PRIMARY KEY (IdSolicitud, IdEmpresa)
+);
+
+/*
+   La vigencia cubre el universo B3. Las fechas adicionales cubren B2, cuyo
+   SP de Cobranza no recibe vigencia y decide movimientos por fecha.
+*/
+INSERT @Solicitudes(IdSolicitud, IdEmpresa)
+SELECT DISTINCT S.SOIdSolicitud, S.SOIdEmpresa
+FROM dbo.ff_Solicitud AS S
+INNER JOIN @Empresas AS E
+        ON E.IdEmpresa = S.SOIdEmpresa
+WHERE S.SOIdVigencia = @IdVigencia
+   OR (S.SOFechaAprovacion >= @FechaInicioSabana
+       AND S.SOFechaAprovacion < @FechaFinSabanaExclusiva)
+   OR (S.SOFechaEstatus >= @FechaInicioSabana
+       AND S.SOFechaEstatus < @FechaFinSabanaExclusiva);
+
+DECLARE @Empleados TABLE
+(
+    IdEmpleado     int         NOT NULL PRIMARY KEY,
+    IdEmpresa      int         NOT NULL,
+    NumeroEmpleado varchar(50) NULL
+);
+
+INSERT @Empleados(IdEmpleado, IdEmpresa, NumeroEmpleado)
+SELECT E.Id, E.EMIdEmpresa, E.EMNumeroEmpleado
+FROM dbo.ff_Empleado AS E
+INNER JOIN @Empresas AS X
+        ON X.IdEmpresa = E.EMIdEmpresa;
+
+DECLARE @Perfiles TABLE
+(
+    IdPerfil int NOT NULL PRIMARY KEY
+);
+
+INSERT @Perfiles(IdPerfil)
+SELECT DISTINCT P.PEIdPerfil
+FROM dbo.ff_Perfil AS P
+INNER JOIN @Empresas AS E
+        ON E.IdEmpresa = P.PEIdEmpresa
+UNION
+SELECT DISTINCT E.EMIdPerfil
+FROM dbo.ff_Empleado AS E
+INNER JOIN @Empresas AS X
+        ON X.IdEmpresa = E.EMIdEmpresa
+WHERE E.EMIdPerfil IS NOT NULL;
+
+DECLARE @PlanOpciones TABLE
+(
+    IdPlanOpcion int NOT NULL PRIMARY KEY
+);
+
+INSERT @PlanOpciones(IdPlanOpcion)
+SELECT DISTINCT PP.PPIdPlanOpcion
+FROM dbo.ff_PlanOpcionPerfil AS PP
+WHERE PP.PPIdPerfil IN (SELECT IdPerfil FROM @Perfiles)
+UNION
+SELECT DISTINCT POS.POIdPlanOpcion
+FROM dbo.ff_PlanOpcionSeleccion AS POS
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = POS.POIdSolicitud
+       AND S.IdEmpresa = POS.POIdEmpresa
+WHERE POS.POIdPlanOpcion IS NOT NULL
+UNION
+SELECT DISTINCT POS.POIdPlanOpcion
+FROM dbo.ff_PlanOpcionSeleccionCobranza AS POS
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = POS.POIdSolicitud
+       AND S.IdEmpresa = POS.POIdEmpresa
+WHERE POS.POIdPlanOpcion IS NOT NULL
+UNION
+SELECT DISTINCT POS.POIdPlanOpcion
+FROM dbo.ff_PlanOpcionSeleccionCobranza2 AS POS
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = POS.POIdSolicitud
+       AND S.IdEmpresa = POS.POIdEmpresa
+WHERE POS.POIdPlanOpcion IS NOT NULL
+UNION
+SELECT DISTINCT EC.ECIdPlanOpcion
+FROM dbo.ff_EdoCuenta AS EC
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = EC.ECIdSolicitud
+       AND S.IdEmpresa = EC.ECIdEmpresa
+WHERE EC.ECIdPlanOpcion IS NOT NULL
+UNION
+SELECT DISTINCT EC.ECIdPlanOpcion
+FROM dbo.ff_EdoCuentaCobranza AS EC
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = EC.ECIdSolicitud
+       AND S.IdEmpresa = EC.ECIdEmpresa
+WHERE EC.ECIdPlanOpcion IS NOT NULL
+UNION
+SELECT DISTINCT EC.ECIdPlanOpcion
+FROM dbo.ff_EdoCuentaCobranza2 AS EC
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = EC.ECIdSolicitud
+       AND S.IdEmpresa = EC.ECIdEmpresa
+WHERE EC.ECIdPlanOpcion IS NOT NULL
+UNION
+SELECT DISTINCT CS.CSIdPlanOpcion
+FROM dbo.ff_ConfiguracionSabana AS CS
+WHERE CS.CSIdConfiguracion = @IdConfiguracion
+  AND CS.CSIdPlanOpcion IS NOT NULL
+UNION
+SELECT DISTINCT M.idPlan
+FROM dbo.ff_InfoPlanMascota AS M
+WHERE M.idPlan IS NOT NULL
+  AND
+  (
+      M.idSolicitud IN (SELECT IdSolicitud FROM @Solicitudes)
+      OR M.idBeneficiario IN (SELECT IdEmpleado FROM @Empleados)
+  );
+
+DECLARE @Planes TABLE
+(
+    IdPlan int NOT NULL PRIMARY KEY
+);
+
+INSERT @Planes(IdPlan)
+SELECT DISTINCT PO.POIdPlan
+FROM dbo.ff_PlanOpcion AS PO
+WHERE PO.POIdPlanOpcion IN (SELECT IdPlanOpcion FROM @PlanOpciones)
+UNION
+/* Compatibilidad: en algunos ambientes InfoPlanMascota.idPlan guarda plan. */
+SELECT DISTINCT P.PLIdPlan
+FROM dbo.ff_Plan AS P
+WHERE P.PLIdPlan IN
+      (
+          SELECT M.idPlan
+          FROM dbo.ff_InfoPlanMascota AS M
+          WHERE M.idSolicitud IN (SELECT IdSolicitud FROM @Solicitudes)
+             OR M.idBeneficiario IN (SELECT IdEmpleado FROM @Empleados)
+      );
+
+DECLARE @Tarifas TABLE
+(
+    IdTarifa int NOT NULL PRIMARY KEY
+);
+
+INSERT @Tarifas(IdTarifa)
+SELECT DISTINCT T.TAIdTarifa
+FROM dbo.ff_Tarifa AS T
+WHERE T.TAIdVigencia = @IdVigencia;
+
+DECLARE @Reportes TABLE
+(
+    IdReporte int NOT NULL PRIMARY KEY
+);
+
+/* 3 = Sabana; 10 = catalogo Cobranza; 11 = layout usado por JDBCCobranza. */
+INSERT @Reportes(IdReporte)
+SELECT R.catReportesId
+FROM dbo.bf_CatReportes AS R
+WHERE R.catReportesId IN (3, 10, 11)
+   OR R.catReportesNombre LIKE N'%Sabana%'
+   OR R.catReportesNombre LIKE N'%Sábana%'
+   OR R.catReportesNombre LIKE N'%Cobranza%';
+
+/* ======================================================================
+   1. ALCANCE Y CONTEOS
+   ====================================================================== */
+SELECT N'ALCANCE' AS __Tabla,
+       @IdEmpresa AS IdEmpresa,
+       @IdCorporativo AS IdCorporativo,
+       @IdConfiguracion AS IdConfiguracion,
+       @IdVigencia AS IdVigencia,
+       @FechaInicioSabana AS FechaInicioSabana,
+       @FechaFinSabana AS FechaFinSabana,
+       @FechaInicioCobranza AS FechaInicioCobranza,
+       @FechaFinCobranza AS FechaFinCobranza,
+       (SELECT COUNT(*) FROM @Empresas) AS EmpresasIncluidas,
+       (SELECT COUNT(*) FROM @Perfiles) AS Perfiles,
+       (SELECT COUNT(*) FROM @Empleados) AS Empleados,
+       (SELECT COUNT(*) FROM @Solicitudes) AS Solicitudes,
+       (SELECT COUNT(*) FROM @PlanOpciones) AS PlanOpciones,
+       (SELECT COUNT(*) FROM @Planes) AS Planes;
+
+SELECT N'EMPRESAS_INCLUIDAS' AS __Tabla, E.*
+FROM dbo.ff_Empresa AS E
+INNER JOIN @Empresas AS X ON X.IdEmpresa = E.EMIdEmpresa
+ORDER BY E.EMIdEmpresa;
+
+SELECT N'CONTEOS' AS __Tabla, N'ff_Empleado' AS NombreTabla, COUNT_BIG(*) AS Filas
+FROM dbo.ff_Empleado AS T
+INNER JOIN @Empresas AS E ON E.IdEmpresa = T.EMIdEmpresa
+UNION ALL
+SELECT N'CONTEOS', N'ff_Solicitud', COUNT_BIG(*)
+FROM dbo.ff_Solicitud AS T
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = T.SOIdSolicitud AND S.IdEmpresa = T.SOIdEmpresa
+UNION ALL
+SELECT N'CONTEOS', N'ff_PlanOpcionSeleccion', COUNT_BIG(*)
+FROM dbo.ff_PlanOpcionSeleccion AS T
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = T.POIdSolicitud AND S.IdEmpresa = T.POIdEmpresa
+UNION ALL
+SELECT N'CONTEOS', N'ff_EdoCuenta', COUNT_BIG(*)
+FROM dbo.ff_EdoCuenta AS T
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = T.ECIdSolicitud AND S.IdEmpresa = T.ECIdEmpresa
+UNION ALL
+SELECT N'CONTEOS', N'ff_InfoPlanMascota', COUNT_BIG(*)
+FROM dbo.ff_InfoPlanMascota AS T
+WHERE T.idSolicitud IN (SELECT IdSolicitud FROM @Solicitudes)
+   OR T.idBeneficiario IN (SELECT IdEmpleado FROM @Empleados);
+
+/* ======================================================================
+   2. EMPRESA, VIGENCIA, PERFILES Y EMPLEADOS
+   ====================================================================== */
+SELECT N'ff_Empresa' AS __Tabla, E.*
+FROM dbo.ff_Empresa AS E
+WHERE E.EMIdEmpresa IN (SELECT IdEmpresa FROM @EmpresasConfiguracion)
+ORDER BY E.EMIdEmpresa;
+
+SELECT N'ff_Parametro' AS __Tabla, P.*
+FROM dbo.ff_Parametro AS P
+WHERE P.paIdEmpresa IN (SELECT IdEmpresa FROM @EmpresasConfiguracion)
+ORDER BY P.paIdEmpresa, P.paClase;
+
+SELECT N'ff_Vigencia' AS __Tabla, V.*
+FROM dbo.ff_Vigencia AS V
+WHERE V.VIIdVigencia = @IdVigencia
+   OR V.VIIdVigencia IN
+      (
+          SELECT DISTINCT S.SOIdVigencia
+          FROM dbo.ff_Solicitud AS S
+          INNER JOIN @Solicitudes AS X
+                  ON X.IdSolicitud = S.SOIdSolicitud
+                 AND X.IdEmpresa = S.SOIdEmpresa
+      )
+ORDER BY V.VIIdVigencia;
+
+SELECT N'ff_VigenciaCalendarioPago' AS __Tabla, VC.*
+FROM dbo.ff_VigenciaCalendarioPago AS VC
+WHERE VC.VCIdVigencia IN
+      (
+          SELECT V.VIIdVigencia
+          FROM dbo.ff_Vigencia AS V
+          WHERE V.VIIdVigencia = @IdVigencia
+             OR V.VIIdVigencia IN
+                (
+                    SELECT DISTINCT S.SOIdVigencia
+                    FROM dbo.ff_Solicitud AS S
+                    INNER JOIN @Solicitudes AS X
+                            ON X.IdSolicitud = S.SOIdSolicitud
+                           AND X.IdEmpresa = S.SOIdEmpresa
+                )
+      )
+ORDER BY VC.VCIdVigencia;
+
+SELECT N'ff_PeriodicidadPago' AS __Tabla, PP.*
+FROM dbo.ff_PeriodicidadPago AS PP
+WHERE PP.PPIdPeriodicidadPago IN
+      (
+          SELECT DISTINCT VC.VCIdPeriodicidadPago
+          FROM dbo.ff_VigenciaCalendarioPago AS VC
+          WHERE VC.VCIdVigencia = @IdVigencia
+             OR VC.VCIdVigencia IN
+                (
+                    SELECT DISTINCT S.SOIdVigencia
+                    FROM dbo.ff_Solicitud AS S
+                    INNER JOIN @Solicitudes AS X
+                            ON X.IdSolicitud = S.SOIdSolicitud
+                           AND X.IdEmpresa = S.SOIdEmpresa
+                )
+      )
+ORDER BY PP.PPIdPeriodicidadPago;
+
+SELECT N'ff_Perfil' AS __Tabla, P.*
+FROM dbo.ff_Perfil AS P
+WHERE P.PEIdPerfil IN (SELECT IdPerfil FROM @Perfiles)
+ORDER BY P.PEIdEmpresa, P.PEIdPerfil;
+
+SELECT N'ff_Rol' AS __Tabla, R.*
+FROM dbo.ff_Rol AS R
+WHERE R.ROIdRol IN
+      (
+          SELECT DISTINCT E.EMIdRol
+          FROM dbo.ff_Empleado AS E
+          WHERE E.Id IN (SELECT IdEmpleado FROM @Empleados)
+          UNION
+          SELECT DISTINCT P.PEIdRolDefault
+          FROM dbo.ff_Perfil AS P
+          WHERE P.PEIdPerfil IN (SELECT IdPerfil FROM @Perfiles)
+      )
+ORDER BY R.ROIdRol;
+
+SELECT N'ff_TipoSalario' AS __Tabla, TS.*
+FROM dbo.ff_TipoSalario AS TS
+WHERE TS.IdTipoSalario IN
+      (
+          SELECT DISTINCT E.EMIdTipoSalario
+          FROM dbo.ff_Empleado AS E
+          WHERE E.Id IN (SELECT IdEmpleado FROM @Empleados)
+      )
+ORDER BY TS.IdTipoSalario;
+
+SELECT N'ff_Empleado' AS __Tabla, E.*
+FROM dbo.ff_Empleado AS E
+WHERE E.Id IN (SELECT IdEmpleado FROM @Empleados)
+ORDER BY E.EMIdEmpresa, E.EMNumeroEmpleado, E.EMIdParentesco, E.Id;
+
+SELECT N'ff_Empleado_Historico' AS __Tabla, H.*
+FROM dbo.ff_Empleado_Historico AS H
+INNER JOIN @Empresas AS E ON E.IdEmpresa = H.EMIdEmpresa
+WHERE H.EMFechaCambio >= @FechaInicioSabana
+  AND H.EMFechaCambio < @FechaFinSabanaExclusiva
+ORDER BY H.EMId, H.EMHIdHist;
+
+SELECT N'ff_Transferencia' AS __Tabla, T.*
+FROM dbo.ff_Transferencia AS T
+WHERE (T.TRIdEmpresaOrigen IN (SELECT IdEmpresa FROM @Empresas)
+    OR T.TRIdEmpresaDestino IN (SELECT IdEmpresa FROM @Empresas))
+  AND T.TRFechaTransferencia >= @FechaInicioSabana
+  AND T.TRFechaTransferencia < @FechaFinSabanaExclusiva
+ORDER BY T.TRFechaTransferencia;
+
+/* ======================================================================
+   3. SOLICITUDES, SELECCIONES Y MOVIMIENTOS DE COBRANZA
+   ====================================================================== */
+SELECT N'ff_Solicitud' AS __Tabla, S.*
+FROM dbo.ff_Solicitud AS S
+INNER JOIN @Solicitudes AS X
+        ON X.IdSolicitud = S.SOIdSolicitud AND X.IdEmpresa = S.SOIdEmpresa
+ORDER BY S.SOIdEmpresa, S.SOIdVigencia, S.SOIdSolicitud;
+
+SELECT N'ff_PlanOpcionSeleccion' AS __Tabla, POS.*
+FROM dbo.ff_PlanOpcionSeleccion AS POS
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = POS.POIdSolicitud AND S.IdEmpresa = POS.POIdEmpresa
+ORDER BY POS.POIdEmpresa, POS.POIdSolicitud, POS.POIdEmpleado;
+
+SELECT N'ff_PlanOpcionSeleccionCobranza' AS __Tabla, POS.*
+FROM dbo.ff_PlanOpcionSeleccionCobranza AS POS
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = POS.POIdSolicitud AND S.IdEmpresa = POS.POIdEmpresa
+ORDER BY POS.POIdEmpresa, POS.POIdSolicitud, POS.POIdEmpleado;
+
+SELECT N'ff_PlanOpcionSeleccionCobranza2' AS __Tabla, POS.*
+FROM dbo.ff_PlanOpcionSeleccionCobranza2 AS POS
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = POS.POIdSolicitud AND S.IdEmpresa = POS.POIdEmpresa
+ORDER BY POS.POIdEmpresa, POS.POIdSolicitud, POS.POIdEmpleado;
+
+SELECT N'ff_EdoCuenta' AS __Tabla, EC.*
+FROM dbo.ff_EdoCuenta AS EC
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = EC.ECIdSolicitud AND S.IdEmpresa = EC.ECIdEmpresa
+ORDER BY EC.ECIdEmpresa, EC.ECIdSolicitud, EC.ECIdEmpleado;
+
+SELECT N'ff_EdoCuentaCobranza' AS __Tabla, EC.*
+FROM dbo.ff_EdoCuentaCobranza AS EC
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = EC.ECIdSolicitud AND S.IdEmpresa = EC.ECIdEmpresa
+ORDER BY EC.ECIdEmpresa, EC.ECIdSolicitud, EC.ECIdEmpleado;
+
+SELECT N'ff_EdoCuentaCobranza2' AS __Tabla, EC.*
+FROM dbo.ff_EdoCuentaCobranza2 AS EC
+INNER JOIN @Solicitudes AS S
+        ON S.IdSolicitud = EC.ECIdSolicitud AND S.IdEmpresa = EC.ECIdEmpresa
+ORDER BY EC.ECIdEmpresa, EC.ECIdSolicitud, EC.ECIdEmpleado;
+
+SELECT N'ff_CobranzaConcentrada' AS __Tabla, CC.*
+FROM dbo.ff_CobranzaConcentrada AS CC
+INNER JOIN @Empresas AS E ON E.IdEmpresa = CC.CCIdEmpresa
+WHERE CC.CCIdVigencia = @IdVigencia
+ORDER BY CC.CCIdEmpresa, CC.CCIdVigencia, CC.CCIdEmpleado;
+
+SELECT N'ff_CobranzaSubtotal' AS __Tabla, CS.*
+FROM dbo.ff_CobranzaSubtotal AS CS
+INNER JOIN @Empresas AS E ON E.IdEmpresa = CS.CSIdEmpresa
+ORDER BY CS.CSIdEmpresa;
+
+SELECT N'ff_CompensacionEmpleado' AS __Tabla, CE.*
+FROM dbo.ff_CompensacionEmpleado AS CE
+WHERE CE.CEIdEmpleado IN (SELECT IdEmpleado FROM @Empleados)
+ORDER BY CE.CEIdEmpleado;
+
+SELECT N'ff_CompensacionPlanOpcion' AS __Tabla, CP.*
+FROM dbo.ff_CompensacionPlanOpcion AS CP
+WHERE CP.CPIdPlanOpcion IN (SELECT IdPlanOpcion FROM @PlanOpciones)
+   OR CP.CPIdCompensacion IN
+      (
+          SELECT EC.ECIdCompensacion
+          FROM dbo.ff_EdoCuenta AS EC
+          INNER JOIN @Solicitudes AS S
+                  ON S.IdSolicitud = EC.ECIdSolicitud
+                 AND S.IdEmpresa = EC.ECIdEmpresa
+          WHERE EC.ECIdCompensacion IS NOT NULL
+          UNION
+          SELECT EC.ECIdCompensacion
+          FROM dbo.ff_EdoCuentaCobranza2 AS EC
+          INNER JOIN @Solicitudes AS S
+                  ON S.IdSolicitud = EC.ECIdSolicitud
+                 AND S.IdEmpresa = EC.ECIdEmpresa
+          WHERE EC.ECIdCompensacion IS NOT NULL
+      );
+
+/* B2/B3 consultan el descuento del periodo anterior: agosto de 2026. */
+SELECT N'ff_DescuentoEmpleado' AS __Tabla, DE.*
+FROM dbo.ff_DescuentoEmpleado AS DE
+WHERE DE.DEIdEmpresa IN (SELECT IdEmpresa FROM @Empresas)
+  AND DE.DENumeroEmpleado IN
+      (SELECT NumeroEmpleado FROM @Empleados WHERE NumeroEmpleado IS NOT NULL)
+  AND DE.DEIdAno = YEAR(DATEADD(MONTH, -1, @FechaFinCobranza))
+  AND DE.DEIdMes = MONTH(DATEADD(MONTH, -1, @FechaFinCobranza))
+ORDER BY DE.DENumeroEmpleado, DE.DEIdAno, DE.DEIdMes, DE.DEIdQuincena;
+
+/* Referencias legacy: los SP aun consultan septiembre de 2015. Se extraen
+   los septiembres de la empresa para evitar depender del identificador con
+   letra enye, que sqlcmd interpreta distinto entre codificaciones. */
+SELECT N'ff_CobranzaDetallada' AS __Tabla, CD.*
+FROM dbo.ff_CobranzaDetallada AS CD
+WHERE CD.CDIdEmpresa IN (SELECT IdEmpresa FROM @Empresas)
+  AND CD.CDMes = 9
+ORDER BY CD.CDIdEmpresa, CD.CDNumeroEmpleado, CD.CDIdPlan;
+
+/* ======================================================================
+   4. CONFIGURACION DE SABANA, PLANES, TARIFAS Y CATALOGOS
+   ====================================================================== */
+SELECT N'ff_ConfiguracionSabana' AS __Tabla, CS.*
+FROM dbo.ff_ConfiguracionSabana AS CS
+WHERE CS.CSIdConfiguracion = @IdConfiguracion
+ORDER BY CS.CSIdTipoSabana, CS.CSIdPlan, CS.CSIdPlanOpcion,
+         CS.CSColumna, CS.CSIdConfiguracionSabana;
+
+SELECT N'ff_TipoSabana' AS __Tabla, TS.*
+FROM dbo.ff_TipoSabana AS TS
+WHERE TS.TSIdTipoSabana IN
+      (
+          SELECT DISTINCT CS.CSIdTipoSabana
+          FROM dbo.ff_ConfiguracionSabana AS CS
+          WHERE CS.CSIdConfiguracion = @IdConfiguracion
+      );
+
+SELECT N'ff_PlanOpcionPerfil' AS __Tabla, PP.*
+FROM dbo.ff_PlanOpcionPerfil AS PP
+WHERE PP.PPIdPerfil IN (SELECT IdPerfil FROM @Perfiles)
+ORDER BY PP.PPIdPerfil, PP.PPIdPlanOpcion;
+
+SELECT N'ff_PlanOpcion' AS __Tabla, PO.*
+FROM dbo.ff_PlanOpcion AS PO
+WHERE PO.POIdPlanOpcion IN (SELECT IdPlanOpcion FROM @PlanOpciones)
+ORDER BY PO.POIdPlan, PO.POIdPlanOpcion;
+
+SELECT N'ff_Plan' AS __Tabla, P.*
+FROM dbo.ff_Plan AS P
+WHERE P.PLIdPlan IN (SELECT IdPlan FROM @Planes)
+ORDER BY P.PLIdPlan;
+
+SELECT N'ff_PlanOpcionVigencia' AS __Tabla, POV.*
+FROM dbo.ff_PlanOpcionVigencia AS POV
+WHERE POV.VCIdVigencia = @IdVigencia
+  AND POV.VCIdPlanOpcion IN (SELECT IdPlanOpcion FROM @PlanOpciones)
+ORDER BY POV.VCIdVigencia, POV.VCIdPlanOpcion;
+
+SELECT N'ff_Tarifa' AS __Tabla, T.*
+FROM dbo.ff_Tarifa AS T
+WHERE T.TAIdTarifa IN (SELECT IdTarifa FROM @Tarifas)
+ORDER BY T.TAIdTarifa;
+
+SELECT N'ff_TarifaCosto' AS __Tabla, TC.*
+FROM dbo.ff_TarifaCosto AS TC
+WHERE TC.TCIdPlanOpcion IN (SELECT IdPlanOpcion FROM @PlanOpciones)
+  AND (TC.TCIdTarifa IN (SELECT IdTarifa FROM @Tarifas)
+       OR NOT EXISTS (SELECT 1 FROM @Tarifas))
+ORDER BY TC.TCIdTarifa, TC.TCIdPlanOpcion;
+
+SELECT N'ff_TarifaCosto_hist' AS __Tabla, TC.*
+FROM dbo.ff_TarifaCosto_hist AS TC
+WHERE TC.TCIdPlanOpcion IN (SELECT IdPlanOpcion FROM @PlanOpciones)
+ORDER BY TC.TCIdTarifa, TC.TCIdPlanOpcion, TC.TCIdTarifaCosto;
+
+SELECT N'ff_TarifaCostoPerfil' AS __Tabla, TCP.*
+FROM dbo.ff_TarifaCostoPerfil AS TCP
+WHERE TCP.TPIdPlanOpcion IN (SELECT IdPlanOpcion FROM @PlanOpciones)
+  AND TCP.TPIdPerfil IN (SELECT IdPerfil FROM @Perfiles)
+  AND (TCP.TPIdTarifa IN (SELECT IdTarifa FROM @Tarifas)
+       OR NOT EXISTS (SELECT 1 FROM @Tarifas))
+ORDER BY TCP.TPIdTarifa, TCP.TPIdPlanOpcion, TCP.TPIdPerfil;
+
+SELECT N'bf_TipoPagoPlan' AS __Tabla, TP.*
+FROM dbo.bf_TipoPagoPlan AS TP
+WHERE TP.TPIdTipoPago IN
+      (
+          SELECT DISTINCT P.PLIdTipoPago
+          FROM dbo.ff_Plan AS P
+          WHERE P.PLIdPlan IN (SELECT IdPlan FROM @Planes)
+      )
+ORDER BY TP.TPIdTipoPago;
+
+SELECT N'ff_Ramo' AS __Tabla, R.*
+FROM dbo.ff_Ramo AS R
+WHERE R.RAIdRamo IN
+      (
+          SELECT DISTINCT P.PLIdRamo
+          FROM dbo.ff_Plan AS P
+          WHERE P.PLIdPlan IN (SELECT IdPlan FROM @Planes)
+      )
+ORDER BY R.RAIdRamo;
+
+SELECT N'ff_ConcepAgrupaCob' AS __Tabla, CA.*
+FROM dbo.ff_ConcepAgrupaCob AS CA
+INNER JOIN @Empresas AS E ON E.IdEmpresa = CA.CAIdEmpresa
+WHERE CA.CAIdPlanOpcion IN (SELECT IdPlanOpcion FROM @PlanOpciones)
+ORDER BY CA.CAIdEmpresa, CA.CAIdPlanOpcion;
+
+SELECT N'ff_GMMDesgCob' AS __Tabla, G.*
+FROM dbo.ff_GMMDesgCob AS G
+INNER JOIN @Empresas AS E ON E.IdEmpresa = G.GDIdEmpresa
+WHERE G.GDIdPlanOpcion IN (SELECT IdPlanOpcion FROM @PlanOpciones)
+ORDER BY G.GDIdEmpresa, G.GDIdPlanOpcion;
+
+SELECT N'ff_ValidaSAVida' AS __Tabla, V.*
+FROM dbo.ff_ValidaSAVida AS V
+WHERE V.VSIdVigencia = @IdVigencia
+  AND V.VSIdEmpleado IN (SELECT IdEmpleado FROM @Empleados)
+ORDER BY V.VSIdVigencia, V.VSIdEmpleado, V.VSIdPlanOpcion;
+
+SELECT N'ff_ConfiguracionParentesco' AS __Tabla, C.*
+FROM dbo.ff_ConfiguracionParentesco AS C
+WHERE C.PCIdConfiguracion = @IdConfiguracion
+ORDER BY C.PCIdConfiguracion;
+
+SELECT N'ff_Sexo' AS __Tabla, S.*
+FROM dbo.ff_Sexo AS S
+WHERE S.SEIdSexo IN
+      (
+          SELECT DISTINCT E.EMIdSexo
+          FROM dbo.ff_Empleado AS E
+          WHERE E.Id IN (SELECT IdEmpleado FROM @Empleados)
+      )
+ORDER BY S.SEIdSexo;
+
+SELECT N'ff_Estado' AS __Tabla, ES.*
+FROM dbo.ff_Estado AS ES
+WHERE ES.ESIdEstado IN
+      (
+          SELECT DISTINCT E.EMEstadoFiscal
+          FROM dbo.ff_Empleado AS E
+          WHERE E.Id IN (SELECT IdEmpleado FROM @Empleados)
+            AND E.EMEstadoFiscal IS NOT NULL
+      )
+ORDER BY ES.ESIdEstado;
+
+SELECT N'ff_GrupoParentesco' AS __Tabla, GP.*
+FROM dbo.ff_GrupoParentesco AS GP
+WHERE GP.GPIdGrupoParentesco IN
+      (
+          SELECT DISTINCT POS.POIdGrupoParentesco
+          FROM dbo.ff_PlanOpcionSeleccion AS POS
+          INNER JOIN @Solicitudes AS S
+                  ON S.IdSolicitud = POS.POIdSolicitud
+                 AND S.IdEmpresa = POS.POIdEmpresa
+          WHERE POS.POIdGrupoParentesco IS NOT NULL
+          UNION
+          SELECT DISTINCT POS.POIdGrupoParentesco
+          FROM dbo.ff_PlanOpcionSeleccionCobranza2 AS POS
+          INNER JOIN @Solicitudes AS S
+                  ON S.IdSolicitud = POS.POIdSolicitud
+                 AND S.IdEmpresa = POS.POIdEmpresa
+          WHERE POS.POIdGrupoParentesco IS NOT NULL
+      )
+ORDER BY GP.GPIdGrupoParentesco;
+
+SELECT N'ff_GrupoParentescoParentesco' AS __Tabla, GPP.*
+FROM dbo.ff_GrupoParentescoParentesco AS GPP
+WHERE GPP.GPIdGrupoParentesco IN
+      (
+          SELECT GP.GPIdGrupoParentesco
+          FROM dbo.ff_GrupoParentesco AS GP
+          WHERE GP.GPIdGrupoParentesco IN
+                (
+                    SELECT DISTINCT POS.POIdGrupoParentesco
+                    FROM dbo.ff_PlanOpcionSeleccion AS POS
+                    INNER JOIN @Solicitudes AS S
+                            ON S.IdSolicitud = POS.POIdSolicitud
+                           AND S.IdEmpresa = POS.POIdEmpresa
+                    WHERE POS.POIdGrupoParentesco IS NOT NULL
+                )
+      )
+ORDER BY GPP.GPIdGrupoParentesco;
+
+SELECT N'ff_Parentesco' AS __Tabla, P.*
+FROM dbo.ff_Parentesco AS P
+WHERE P.PAIdParentesco IN
+      (
+          SELECT DISTINCT E.EMIdParentesco
+          FROM dbo.ff_Empleado AS E
+          WHERE E.Id IN (SELECT IdEmpleado FROM @Empleados)
+            AND E.EMIdParentesco IS NOT NULL
+      )
+ORDER BY P.PAIdParentesco;
+
+SELECT N'ff_TablaEncabezado' AS __Tabla, EN.*
+FROM dbo.ff_TablaEncabezado AS EN
+INNER JOIN @Empresas AS E ON E.IdEmpresa = EN.ENIdEmpresa
+ORDER BY EN.ENIdEmpresa, EN.ENClave;
+
+SELECT N'ff_TablaEncabezadoDetalle' AS __Tabla, TD.*
+FROM dbo.ff_TablaEncabezadoDetalle AS TD
+WHERE TD.TEEnClave IN
+      (
+          SELECT EN.ENClave
+          FROM dbo.ff_TablaEncabezado AS EN
+          INNER JOIN @Empresas AS E ON E.IdEmpresa = EN.ENIdEmpresa
+      )
+ORDER BY TD.TEEnClave, TD.TEIdDetalle;
+
+SELECT N'bf_MobileDatoAseguradoraProveedor' AS __Tabla, AP.*
+FROM dbo.bf_MobileDatoAseguradoraProveedor AS AP
+WHERE AP.DAPIdAseguradoraProveedor IN
+      (
+          SELECT DISTINCT P.PLIdAseguradora
+          FROM dbo.ff_Plan AS P
+          WHERE P.PLIdPlan IN (SELECT IdPlan FROM @Planes)
+      )
+ORDER BY AP.DAPIdAseguradoraProveedor;
+
+/* ======================================================================
+   5. MASCOTAS Y FOLIOS/MEMBRESIAS USADOS POR LA API
+   ====================================================================== */
+SELECT N'ff_InfoPlanMascota' AS __Tabla, M.*
+FROM dbo.ff_InfoPlanMascota AS M
+WHERE M.idSolicitud IN (SELECT IdSolicitud FROM @Solicitudes)
+   OR M.idBeneficiario IN (SELECT IdEmpleado FROM @Empleados)
+ORDER BY M.idSolicitud, M.NumEmpleado, M.idBeneficiario;
+
+SELECT N'bf_SolicitudFolio' AS __Tabla, SF.*
+FROM dbo.bf_SolicitudFolio AS SF
+WHERE SF.SFIdSolicitud IN (SELECT IdSolicitud FROM @Solicitudes)
+   OR SF.SFIdEmpleado IN (SELECT IdEmpleado FROM @Empleados)
+ORDER BY SF.SFIdEmpleado, SF.SFIdSolicitud, SF.SFId;
+
+SELECT N'bf_PlanFolio' AS __Tabla, PF.*
+FROM dbo.bf_PlanFolio AS PF
+WHERE PF.PFIdEmpresa IN (SELECT IdEmpresa FROM @Empresas)
+   OR PF.PFId IN
+      (
+          SELECT SF.SFIdPlanFolio
+          FROM dbo.bf_SolicitudFolio AS SF
+          WHERE SF.SFIdSolicitud IN (SELECT IdSolicitud FROM @Solicitudes)
+             OR SF.SFIdEmpleado IN (SELECT IdEmpleado FROM @Empleados)
+      )
+ORDER BY PF.PFIdEmpresa, PF.PFIdPlan, PF.PFId;
+
+/* ======================================================================
+   6. COBROS CON TARJETA
+   ====================================================================== */
+SELECT N'bf_RegistroTarjetaEmpleado' AS __Tabla, RT.*
+FROM dbo.bf_RegistroTarjetaEmpleado AS RT
+WHERE RT.RTEIdVigencia = @IdVigencia
+  AND RT.RTEIdEmpleadoTitular IN (SELECT IdEmpleado FROM @Empleados)
+ORDER BY RT.RTEIdVigencia, RT.RTEIdEmpleadoTitular;
+
+SELECT N'bf_BanwireRecibos' AS __Tabla, BR.*
+FROM dbo.bf_BanwireRecibos AS BR
+WHERE EXISTS
+      (
+          SELECT 1
+          FROM dbo.bf_RegistroTarjetaEmpleado AS RT
+          WHERE RT.RTEIdRegistroTarjeta = BR.BRIdRegistroTarjeta
+            AND RT.RTEIdVigencia = @IdVigencia
+            AND RT.RTEIdEmpleadoTitular IN (SELECT IdEmpleado FROM @Empleados)
+      )
+ORDER BY BR.BRIdRegistroTarjeta, BR.BRFechaDeCobro;
+
+SELECT N'bf_BanwireRecibosDetalle' AS __Tabla, BD.*
+FROM dbo.bf_BanwireRecibosDetalle AS BD
+WHERE EXISTS
+      (
+          SELECT 1
+          FROM dbo.bf_BanwireRecibos AS BR
+          INNER JOIN dbo.bf_RegistroTarjetaEmpleado AS RT
+                  ON RT.RTEIdRegistroTarjeta = BR.BRIdRegistroTarjeta
+          WHERE RT.RTEIdVigencia = @IdVigencia
+            AND RT.RTEIdEmpleadoTitular IN (SELECT IdEmpleado FROM @Empleados)
+            AND BD.BRDIdDetalle = BR.BRIdDetalle
+            AND BD.BRDIdDelEmpleado = RT.RTEIdEmpleadoTitular
+      )
+ORDER BY BD.BRDIdDelEmpleado, BD.BRDIdDetalle;
+
+/* ======================================================================
+   7. CONFIGURACION DE GENERACION DEL EXCEL B3
+   ====================================================================== */
+SELECT N'bf_CatReportes' AS __Tabla, R.*
+FROM dbo.bf_CatReportes AS R
+WHERE R.catReportesId IN (SELECT IdReporte FROM @Reportes)
+ORDER BY R.catReportesId;
+
+SELECT N'bf_CatReportesSP' AS __Tabla, SP.*
+FROM dbo.bf_CatReportesSP AS SP
+WHERE SP.catReportesId IN (SELECT IdReporte FROM @Reportes)
+ORDER BY SP.catReportesId, SP.catReportesSPOrden;
+
+SELECT N'bf_CatReportesParams' AS __Tabla, RP.*
+FROM dbo.bf_CatReportesParams AS RP
+WHERE RP.catReportesSPId IN
+      (
+          SELECT SP.catReportesSPId
+          FROM dbo.bf_CatReportesSP AS SP
+          WHERE SP.catReportesId IN (SELECT IdReporte FROM @Reportes)
+      )
+ORDER BY RP.catReportesSPId, RP.catReportesParamsOrden;
+
+SELECT N'bf_CatReportesTipoDatos' AS __Tabla, TD.*
+FROM dbo.bf_CatReportesTipoDatos AS TD
+WHERE TD.catReportesTipoDatoId IN
+      (
+          SELECT DISTINCT RP.catReportesTipoDatoId
+          FROM dbo.bf_CatReportesParams AS RP
+          WHERE RP.catReportesSPId IN
+                (
+                    SELECT SP.catReportesSPId
+                    FROM dbo.bf_CatReportesSP AS SP
+                    WHERE SP.catReportesId IN (SELECT IdReporte FROM @Reportes)
+                )
+      )
+ORDER BY TD.catReportesTipoDatoId;
+
+SELECT N'bf_CatReportesTipoArchivo' AS __Tabla, TA.*
+FROM dbo.bf_CatReportesTipoArchivo AS TA
+WHERE TA.catReportesTAId IN
+      (
+          SELECT DISTINCT R.catReportesTAId
+          FROM dbo.bf_CatReportes AS R
+          WHERE R.catReportesId IN (SELECT IdReporte FROM @Reportes)
+      )
+ORDER BY TA.catReportesTAId;
+
+SELECT N'bf_CatTipoReportes' AS __Tabla, TR.*
+FROM dbo.bf_CatTipoReportes AS TR
+WHERE TR.catTipoReportesId IN
+      (
+          SELECT DISTINCT R.catTipoReporteId
+          FROM dbo.bf_CatReportes AS R
+          WHERE R.catReportesId IN (SELECT IdReporte FROM @Reportes)
+      )
+ORDER BY TR.catTipoReportesId;
+
+SELECT N'bf_RepConf_Tabla' AS __Tabla, T.*
+FROM dbo.bf_RepConf_Tabla AS T
+WHERE T.catReportesId IN (3, 11)
+  AND T.idEmpresa IN (SELECT IdEmpresa FROM @EmpresasConfiguracion)
+ORDER BY T.catReportesId, T.idEmpresa, T.indexTable, T.grupo;
+
+SELECT N'bf_RepConf_Columna' AS __Tabla, C.*
+FROM dbo.bf_RepConf_Columna AS C
+WHERE C.catReportesId IN (3, 11)
+  AND C.idEmpresa IN (SELECT IdEmpresa FROM @EmpresasConfiguracion)
+ORDER BY C.catReportesId, C.idEmpresa, C.grupo, C.orden;
+
+SELECT N'bf_RepConf_Remover' AS __Tabla, R.*
+FROM dbo.bf_RepConf_Remover AS R
+WHERE R.catReportesId IN (3, 11)
+  AND R.idEmpresa IN (SELECT IdEmpresa FROM @EmpresasConfiguracion)
+ORDER BY R.catReportesId, R.idEmpresa, R.grupo, R.campo;
+
+/* ======================================================================
+   8. VERSIONES DE OBJETOS: confirma si origen y local tienen el mismo SQL.
+   ====================================================================== */
+SELECT N'OBJETOS_SQL' AS __Tabla,
+       SCHEMA_NAME(O.schema_id) AS Esquema,
+       O.name AS Objeto,
+       O.type_desc AS Tipo,
+       O.create_date AS FechaCreacion,
+       O.modify_date AS FechaModificacion,
+       DATALENGTH(M.definition) AS BytesDefinicion
+FROM sys.objects AS O
+LEFT JOIN sys.sql_modules AS M ON M.object_id = O.object_id
+WHERE O.name IN
+      (N'ff_orquestadorReportes',
+       N'ff_SabanaGMM', N'ff_SabanaVIDA',
+       N'ff_Sabana_BF3', N'ff_SabanaGMM_BF3',
+       N'ff_SabanaVIDA_BF3', N'ff_SabanaOPC_BF3',
+       N'ff_SabanaMascotas_BF3', N'ff_Sabana_v2',
+       N'ff_SabanaGMM_v2', N'ff_SabanaVIDA_v2', N'ff_SabanaOPC_v2',
+       N'ObtenCobranzaConcentrada',
+       N'ObtenCobranzaConcentrada_otro_V2_BF3',
+       N'ReporteCobranzaConcentrada_BF3_Cache',
+       N'ff_CobranzaSincronizacion_V3_bf3',
+       N'ff_ObtenEmpleadosCob_v2_bf3',
+       N'ff_ObtenCobranzaDesg_Adaptada',
+       N'ff_ObtenCobranzaDesg_Adaptada_bf3_nousar')
+ORDER BY O.name;
+
+SELECT N'FIN_EXTRACCION' AS __Tabla,
+       N'Los resultsets anteriores son de solo lectura y estan listos para exportarse.' AS Resultado;
