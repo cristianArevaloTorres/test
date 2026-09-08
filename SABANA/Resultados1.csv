@@ -1,0 +1,43 @@
+﻿01_CONTEXTO,INFO,Servidor,LOCKMX-DBDEV16,Debe ser el mismo servidor configurado en APIREPORTS.
+01_CONTEXTO,INFO,Maquina,LOCKMX-DBDEV16,NULL
+01_CONTEXTO,INFO,Instancia,(predeterminada),NULL
+01_CONTEXTO,INFO,BaseDatos,FlexiForbesv2,Debe ser la misma base configurada en APIREPORTS.
+01_CONTEXTO,INFO,Login,MX\consultor.ti40,NULL
+01_CONTEXTO,INFO,Parametros,Empresa=2185; Vigencia=4067; Inicio=2025-10-13; Fin=2026-09-30; Estatus=1; Confidencial=1,NULL
+01_CONTEXTO,OK,EmpresaExiste,1,Debe ser 1.
+01_CONTEXTO,OK,VigenciaExiste,1,Debe ser 1.
+02_OBJETOS_SQL,OK,ff_Sabana_v2,EXISTE; modificado=2026-09-07 20:46:41; bytes=3218,Objeto requerido por la ruta corregida.
+02_OBJETOS_SQL,OK,ff_SabanaGMM_v2,EXISTE; modificado=2026-09-07 20:46:40; bytes=27888,Objeto requerido por la ruta corregida.
+02_OBJETOS_SQL,OK,ff_SabanaVIDA_v2,EXISTE; modificado=2026-09-07 20:46:41; bytes=49194,Objeto requerido por la ruta corregida.
+02_OBJETOS_SQL,OK,ff_SabanaOPC_v2,EXISTE; modificado=2026-09-07 20:46:41; bytes=43050,Objeto requerido por la ruta corregida.
+02_OBJETOS_SQL,OK,ff_SabanaMascotas_BF3,EXISTE; modificado=2026-09-07 20:46:41; bytes=6510,Objeto requerido por la ruta corregida.
+02_OBJETOS_SQL,OK,ff_orquestadorReportes,EXISTE; modificado=2026-08-17 13:46:42; bytes=15754,Objeto requerido por la ruta corregida.
+02_OBJETOS_SQL,OK,ff_Sabana_BF3,EXISTE; modificado=2026-08-17 13:45:06; bytes=3724,Objeto legacy mostrado solamente para comparar.
+02_OBJETOS_SQL,OK,ff_SabanaGMM_BF3,EXISTE; modificado=2026-08-17 13:45:06; bytes=26880,Objeto legacy mostrado solamente para comparar.
+02_OBJETOS_SQL,OK,ff_SabanaVIDA_BF3,EXISTE; modificado=2026-08-17 13:45:06; bytes=48062,Objeto legacy mostrado solamente para comparar.
+02_OBJETOS_SQL,OK,ff_SabanaOPC_BF3,EXISTE; modificado=2026-08-17 13:45:06; bytes=35864,Objeto legacy mostrado solamente para comparar.
+03_LOGICA_OPC,OK,UneSolicitudConEmpresa,1,Debe ser 1.
+03_LOGICA_OPC,OK,FiltraSolicitudActiva,1,Debe ser 1.
+03_LOGICA_OPC,OK,FiltraEmpresa,1,Debe ser 1.
+03_LOGICA_OPC,OK,FiltraVigencia,1,Debe ser 1.
+04_RUTA_REPORTE,OK,catReportesSPId=3,nombre=ff_Sabana_v2; orden=1; ESId=1,Ruta activa esperada.
+04_RUTA_REPORTE,OK,ResumenRuta,Activas=1; correctas=1,Debe existir una sola ruta activa y debe llamarse ff_Sabana_v2.
+05_PARAMETROS,INFO,SP=3; Param=@IdEmpresa,SPActivo=1; OrdenSP=1; OrdenParam=1; ParamActivo=1,ff_Sabana_v2
+05_PARAMETROS,INFO,SP=3; Param=@FechaIni,SPActivo=1; OrdenSP=1; OrdenParam=2; ParamActivo=1,ff_Sabana_v2
+05_PARAMETROS,INFO,SP=3; Param=@FechaFin,SPActivo=1; OrdenSP=1; OrdenParam=3; ParamActivo=1,ff_Sabana_v2
+05_PARAMETROS,INFO,SP=3; Param=@IdEstatus,SPActivo=1; OrdenSP=1; OrdenParam=4; ParamActivo=1,ff_Sabana_v2
+05_PARAMETROS,INFO,SP=3; Param=@IdVigencia,SPActivo=1; OrdenSP=1; OrdenParam=5; ParamActivo=1,ff_Sabana_v2
+05_PARAMETROS,INFO,SP=3; Param=@confidencial,SPActivo=1; OrdenSP=1; OrdenParam=6; ParamActivo=1,ff_Sabana_v2
+05_PARAMETROS,OK,ParametrosDuplicados,0,Debe ser 0.
+06_CONTEOS_FUENTE,ALERTA,GASTOS FUNERARIOS,AnteriorB3=217; CorregidoTodos=217; CorregidoSegunConfidencial=217; Excluidos=0,Con la extraccion recibida se esperan 215 en Gastos Funerarios y 255 en Plan de Pension.
+06_CONTEOS_FUENTE,ALERTA,PLAN DE PENSIÓN,AnteriorB3=256; CorregidoTodos=256; CorregidoSegunConfidencial=256; Excluidos=0,Con la extraccion recibida se esperan 215 en Gastos Funerarios y 255 en Plan de Pension.
+07_FILAS_RECHAZADAS,ALERTA,TotalFilasQueNoDebenSalir,0,Con la extraccion recibida se esperan tres: dos de Gastos Funerarios y una de Pension.
+08_ULTIMA_EJECUCION,INFO,Permiso,SIN VIEW SERVER STATE,La falta de este permiso no invalida las demas secciones.
+09_TRAZA_SITIO,INFO,opc_inicio id=4534,2026-09-07 22:42:09.060,idEmpresa=2185 idVigencia=4067 FechaIni=2025-10-13 00:00:00 FechaFin=2026-09-30 22:51:00 idEstatus=1 SOIdEstatus=1
+09_TRAZA_SITIO,INFO,opc_inicio id=4370,2026-09-07 21:02:14.750,idEmpresa=2185 idVigencia=4067 FechaIni=2025-10-13 00:00:00 FechaFin=2026-10-01 21:12:00 idEstatus=1 SOIdEstatus=1
+09_TRAZA_SITIO,INFO,opc_inicio id=4206,2026-09-07 20:55:24.170,idEmpresa=2185 idVigencia=4067 FechaIni=2025-10-13 00:00:00 FechaFin=2026-09-30 21:05:00 idEstatus=1 SOIdEstatus=1
+09_TRAZA_SITIO,INFO,opc_inicio id=4039,2026-09-07 19:53:27.393,idEmpresa=2185 idVigencia=4067 FechaIni=2025-10-13 00:00:00 FechaFin=2026-09-30 20:03:00 idEstatus=1 SOIdEstatus=1
+09_TRAZA_SITIO,INFO,opc_inicio id=3952,2026-09-07 19:49:37.827,idEmpresa=2185 idVigencia=4067 FechaIni=2026-09-01 00:00:00 FechaFin=2026-09-30 19:59:00 idEstatus=1 SOIdEstatus=1
+09_TRAZA_SITIO,INFO,opc_inicio id=1638,2026-08-21 02:36:51.090,idEmpresa=2185 idVigencia=4067 FechaIni=2025-10-13 00:00:00 FechaFin=2026-08-31 02:46:00 idEstatus=1 SOIdEstatus=1
+09_TRAZA_SITIO,INFO,opc_inicio id=982,2026-08-18 14:01:59.123,idEmpresa=2185 idVigencia=4067 FechaIni=2025-10-13 00:00:00 FechaFin=2026-08-31 14:11:00 idEstatus=1 SOIdEstatus=1
+10_LECTURA,INFO,Instruccion,Exportar este unico resultset completo.,Una ALERTA identifica la seccion que explica por que el sitio sigue diferente.
