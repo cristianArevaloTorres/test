@@ -1,1188 +1,376 @@
-USE [FlexiForbesv2]
+USE [FlexiForbesv2];
 GO
 
 SET NOCOUNT ON;
-SET XACT_ABORT ON;
-GO
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
 /*
-    Homologacion B3 con B2 (B2 es solo referencia y no se modifica):
-    - Vida entrega una fila por empleado, aun cuando tenga cobertura adicional.
-    - Opcionales descarta solicitudes rechazadas/canceladas.
-    - Mascotas vuelve a emitirse como cuarto resultset y acepta que idPlan
-      contenga tanto el plan como la opcion de plan, segun el ambiente.
-    - La configuracion global de la hoja Mascotas queda instalada de forma
-      idempotente para no depender del estado previo de cada base.
+    DIAGNOSTICO DE SOLO LECTURA - SABANA B3 - UN SOLO RESULTSET
+
+    Empresa:       2185 - Zurich
+    Vigencia:      4067
+    Periodo:       2025-10-13 a 2026-09-30
+    Tipo:          altas (@IdEstatus = 1)
+
+    USO
+    1. Generar un reporte NUEVO desde el sitio.
+    2. Ejecutar este archivo inmediatamente en la misma base de APIREPORTS.
+    3. Exportar el unico resultset a CSV y compartirlo completo.
+
+    No crea, modifica ni elimina informacion persistente y no ejecuta los SP
+    del reporte. #Resultado y #DatosOpcionales existen solamente durante esta
+    conexion y se eliminan automaticamente al terminar.
 */
 
--- =============================================================================
--- SCRIPT 1: ff_SabanaGMM_v2
--- =============================================================================
-CREATE OR ALTER PROCEDURE [dbo].[ff_SabanaGMM_v2] (
-@idEmpresa int,
-@FechaIni varchar(20),
-@FechaFin varchar(20),
-@idEstatus int,
-@idVigencia int,
-@Confidencial INT = 0)
-AS
-BEGIN
-
-DECLARE @IDConfiguracion INT
-SET @IDConfiguracion = ISNULL((Select EMidConfiguracion FROM ff_Empresa where EMidEmpresa = @idEmpresa),0)
-
-DECLARE @Kueri as Varchar(max)
-DECLARE @KueriII as Varchar(max)
-
-SET @FechaFin = @FechaFin
-
-DECLARE @SOIdEstatus int
-
-SELECT @SOIdEstatus= CASE WHEN EXISTS (select 'k' from ff_Vigencia v2 where v2.VIRenovada= v1.VIidVigencia) THEN 10
-        WHEN VIidEstatus not in (1,6) THEN 10  ELSE 1 END
-  FROM  ff_Vigencia v1 INNER JOIN ff_Empresa WITH (NOLOCK) ON VIidConfiguracion=EMidConfiguracion
-  WHERE EMidEmpresa = @idEmpresa
-    AND VIidVigencia = @idVigencia
-    AND VITipoNegocio = 1
-
-
-IF @idEstatus = 1
-BEGIN
-
-SET @Kueri = 'SELECT   ''GMM'' as grupo, CS.CSAlias AS NombrePestana, CS.CSidTipoSabana as TipoSabana, PO.POidPlan, EM.EMidParentesco, PA.PADescripcion ,PO.poidplanopcion, POS.POidGrupoParentesco, PL.PLNombre,
-RTRIM(EM.EMNumeroEmpleado) as EMNumeroEmpleado, EM.EMCertificado, EM.EMApellidoPaterno, EM.EMApellidoMaterno, EM.EMNombre1, EM.EMNombre2,
-ISNULL(EM.EMNombre1,'+ char(39) + ' '+ char(39) + ') + SPACE(1) + ISNULL(EM.EMNombre2,'+ char(39) + ' '+ char(39) + ') as Nombres ,
-convert(char(10),EM.EMFechaNacimiento,103) AS EMFechaNacimiento,  convert(char(10),EM.EMFechaantiguedadgmm, 103) AS EMFechaIngresoEmpresa,
-convert(char(10),ISNULL(EM.EMFechaAlta,EM.EMFechaIngresoEmpresa), 103) AS EMFechaAlta,
-SO.SONumeroSolicitud, SE.SEDescripcion, ISNULL(GPDescripcion, PA.PADescripcion) AS GPDescripcion, EMedad, EM.EMIdParentesco AS EMIdParentesco1, EMOFicina,
-(Select RTRIM(TEDescripcion) from ff_tablaencabezadoDetalle WHERE TEIDDetalle=EMOFicina AND TEEnClave=(Select ENClave from ff_tablaencabezado WHERE ENNombreCampo='+ CHAR(39)+'EMOFICINA'+CHAR(39)
-+ 'AND ENIdEstatus=1 AND ENIdEmpresa=EM.EMIdEmpresa)) as '+CHAR(39)+'Oficina' + CHAR(39)+',RTRIM(EMRFC) as RFC,
-Perfil=(select pedescripcion from ff_perfil where peidperfil=em.emidperfil),
-isnull(emCalleFiscal,'''') as Calle,isnull(EMColoniaFisico,'''') as NumExt,isnull(EMCalleFisico,'''') as NumInt,isnull(emColoniaFiscal,'''') as Colonia,
- isnull(EMMunicipioDelegacionFiscal,'''') as Del_Municipio,
- EstadoFiscal = (Select esDescripcion from ff_Estado where esidEstado = emEstadofiscal),
- isnull(''''+emcodigoPostalFiscal,'''') as CP,
-GMM_ANT= ISNULL((select TOP 1 RTRIM(CDPlanOpcion) from ff_cobranzaDetallada col WHERE CDMES=9 and CDA'+CHAR(241)+'o=2015 AND col.cdidplan in(140,141,162,170,51,52)
-and col.CDNumeroEmpleado=POS.PONumeroEmpleado AND POS.poIDEmpresa=col.cdIdEmpresa and col.cdidempleado=POS.Poidempleado),''NUEVO''),
-Exceso_ante= ISNULL((select TOP 1 RTRIM(CDPlanOpcion) from ff_cobranzaDetallada col WHERE CDMES=9 and CDA'+CHAR(241)+'o=2015 AND col.cdidplan in(146,163,168,169,54,53)
-and col.CDNumeroEmpleado=POS.PONumeroEmpleado AND POS.poIDEmpresa=col.cdIdEmpresa  and col.cdidempleado=POS.Poidempleado),''NUEVO'' ),
-PrimeNeta=
-CASE WHEN  EMIdParentesco= 1 AND POS.POIDGrupoParentesco IS NOT NULL  THEN
-  ( SELECT CONVERT(CHAR(20),SUM(TCPrimaNeta),103) from ff_TarifaCosto ppp WHERE ppp.TCidParentesco =EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-          and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion )
-  WHEN  POS.POIDGrupoParentesco IS NULL  THEN
-  ISNULL((SELECT CONVERT(CHAR(20),TPPrimaNeta,103) FROM ff_tarifaCostoPerfil WHERE TPidplanopcion=POS.POIDPlanOpcion and TPIdPerfil=em.emidperfil AND TPIdEstatus=1 ),
-     (SELECT CONVERT(CHAR(20),SUM(TCPrimaNeta),103) from '+(case when @SOIdEstatus=1 then 'ff_TarifaCosto' else 'ff_TarifaCosto_hist'end)+' ppp
-      WHERE ppp.TCidParentesco =EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-          and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion ) ) ELSE '+CHAR(39)+CHAR(39)+' END,
-Costo=
-CASE WHEN  EMIdParentesco= 1 AND POS.POIDGrupoParentesco IS NOT NULL THEN
-  (SELECT CONVERT(CHAR(20),SUM(POCostoRestante),103) from ff_PlanOpcionSeleccion ppp WHERE ppp.PONumeroEmpleado=EM.EMNumeroEmpleado and ppp.POIdPlanOpcion=POS.POIdPlanOpcion
-  and ppp.POIdSolicitud=POS.POidSolicitud AND POidEmpleado = EM.ID )
-  WHEN  POS.POIDGrupoParentesco IS NULL  THEN
-  (SELECT CONVERT(CHAR(20),SUM(POCostoRestante),103) from ff_PlanOpcionSeleccion ppp WHERE ppp.PONumeroEmpleado=EM.EMNumeroEmpleado and ppp.POIdPlanOpcion=POS.POIdPlanOpcion
-  and ppp.POIdSolicitud=POS.POidSolicitud AND POidEmpleado = EM.ID )
-  ELSE '+CHAR(39)+CHAR(39)+' END'
-
--- flujo aislado: sin csidvigencia=@idVigencia en el loop de columnas
-SELECT @Kueri = @Kueri + ', (SELECT case count(*) when 1 then CONVERT(CHAR(20),SUM(POCostoRestante),103) else '+ char(39) + 'NO'+ char(39) + ' end
-from ff_PlanOpcionSeleccion WHERE POIdSolicitud=POS.POidSolicitud AND POidEmpleado = EM.ID and POidplanopcion= ' +  cast(CSidplanopcion as varchar(5))  + ' ) as ' + char(39) +  CSalias + char(39) + char(13)
-FROM dbo.ff_ConfiguracionSabana  WITH (NOLOCK,READUNCOMMITTED)
-where CSidConfiguracion = @IDConfiguracion AND CSIDTiposabana = 1 AND CSPestana = 0 AND CSIDESTATUS = 1
-AND CSIdPlanOpcion in (
-    SELECT ppidplanOpcion FROM ff_Perfil INNER JOIN ff_PlanOpcionPerfil ON PPidPErfil=PEIdPerfil AND PEAdministrador=0
-    WHERE PEIdestatus=1 and PPidestatus=1 AND PEIdEmpresa=@idEmpresa
-)
-order by CSidplan
-
-SELECT @KueriII = ' , EM.ID as IDEmp,INFO=RTRIM(ISNULL(Desarrollo,'''')),EMArea,EMIdCentroCostos,EMArchivoInformacion as Ubicacion
-FROM dbo.ff_PlanOpcionSeleccion POS  WITH (NOLOCK)
-INNER JOIN dbo.ff_PlanOpcion PO WITH (NOLOCK) ON POS.poidplanopcion =  PO.POidplanopcion
-INNER JOIN dbo.ff_Plan PL WITH (NOLOCK) ON PL.plidplan =  PO.POidplan
-INNER JOIN dbo.ff_Empleado EM WITH (NOLOCK) ON EM.ID = POS.poidempleado AND EM.EMNumeroEmpleado not like ''Test%''
-INNER JOIN dbo.ff_Parentesco PA WITH (NOLOCK) ON PA.PAidparentesco = EM.EMidparentesco
-LEFT OUTER JOIN dbo.ff_GrupoParentesco GP WITH (NOLOCK) ON GP.gpidgrupoparentesco = POS.poidgrupoparentesco
-INNER JOIN dbo.ff_ConfiguracionSabana CS WITH (NOLOCK) ON CS.CSidPlanOpcion = POS.POidplanopcion AND CS.CSIdConfiguracion='
-+LTRIM(CAST(@IDConfiguracion as varchar(10))) +'
-INNER JOIN dbo.ff_Solicitud SO WITH (NOLOCK) ON SO.SOidSolicitud = POS.POidSolicitud
-INNER JOIN dbo.ff_Sexo SE WITH (NOLOCK) ON EM.EMidsexo = SE.SEidSexo
-WHERE CS.CSidTipoSabana = 1 AND CS.CSPestana = 1 AND POS.POidempresa = '+ cast(@idEmpresa as varchar(30))
-+ ' AND POS.POidEstatus in (1, 3, 10) '
-+ ' AND SO.SOEstatusSolicitud in (1,3) '
-+ 'AND ISNULL(SO.SOFechaAprovacion,cast(getdate() As Date) ) >= '''+@FechaIni+''' AND ISNULL(SO.SOFechaAprovacion,cast(getdate() As Date)) <= '''+@FechaFin+'''
-AND POS.POidvigencia = '+ cast(@idVigencia as varchar(30))
-+ ' AND (1=' + cast(@Confidencial as varchar(1)) + ' OR EM.EMidSalarioConfidencial=0)'
-+ ' ORDER BY CS.CSidPlan, PO.POOrden, CS.CSidPlanOpcion, EM.EMOFicina,EM.EMNumeroEmpleado, EM.EmidParentesco'
-
-print @Kueri + @KueriII
-execute(@Kueri + @KueriII)
-END
-
-ELSE IF @idEstatus=2
-BEGIN
-
-SET @Kueri = 'SELECT ''GMM'' as grupo, CS.CSAlias AS NombrePestana, CS.CSidTipoSabana as TipoSabana, PO.POidPlan, PA.PADescripcion ,PO.poidplanopcion, POS.POidGrupoParentesco, PL.PLNombre,
-RTRIM(EM.EMNumeroEmpleado) as EMNumeroEmpleado, EM.EMCertificado, EM.EMApellidoPaterno, EM.EMApellidoMaterno, EM.EMNombre1, EM.EMNombre2,
-ISNULL(EM.EMNombre1,'+ char(39) + ' '+ char(39) + ') + SPACE(1) + ISNULL(EM.EMNombre2,'+ char(39) + ' '+ char(39) + ') as Nombres ,EM.EMIdParentesco,
-convert(char(10),EM.EMFechaNacimiento,103) AS EMFechaNacimiento,
-convert(char(10),EM.EMFechaantiguedadgmm, 103) AS EMFechaIngresoEmpresa,
-convert(char(10),ISNULL(EM.EMFechaBaja,GETDATE()), 103) AS EMFechaAlta,
- SO.SONumeroSolicitud, SE.SEDescripcion, ISNULL(GPDescripcion, PA.PADescripcion) AS GPDescripcion, EMedad, EM.EMIdParentesco AS EMIdParentesco1, EMOFicina,
-(Select RTRIM(TEDescripcion) from ff_tablaencabezadoDetalle WHERE TEIDDetalle=EMOFicina
- AND TEEnClave=(Select ENClave from ff_tablaencabezado WHERE ENNombreCampo='+ CHAR(39)+'EMOFICINA'+CHAR(39)+ 'AND ENIdEstatus=1 AND ENIdEmpresa=EM.EMIdEmpresa))
-  as '+CHAR(39)+'Oficina' + CHAR(39)+',RTRIM(EMRFC) as RFC,
- Perfil=(select pedescripcion from ff_perfil where peidperfil=em.emidperfil),
- isnull(emCalleFiscal,'''') as Calle,isnull(EMColoniaFisico,'''') as NumExt,isnull(EMCalleFisico,'''') as NumInt,isnull(emColoniaFiscal,'''') as Colonia,
- isnull(EMMunicipioDelegacionFiscal,'''') as Del_Municipio,
- EstadoFiscal = (Select esDescripcion from ff_Estado where esidEstado = emEstadofiscal),
- isnull(''''+emcodigoPostalFiscal,'''') as CP,
-CONVERT(char(10),EMFechaBaja,103) as FechaBaja,
-PrimeNeta=
-CASE WHEN  EMIdParentesco= 1 AND POS.POIDGrupoParentesco IS NOT NULL  THEN
-  (SELECT CONVERT(CHAR(20),SUM(TCPrimaNeta),103)  from '+(case when @SOIdEstatus=1 then 'ff_TarifaCosto' else 'ff_TarifaCosto_hist'end)+' ppp
-  WHERE ppp.TCidParentesco =EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-          and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion )
- WHEN  POS.POIDGrupoParentesco IS NULL  THEN
-  (SELECT CONVERT(CHAR(20),SUM(TCPrimaNeta),103)  from '+(case when @SOIdEstatus=1 then 'ff_TarifaCosto' else 'ff_TarifaCosto_hist'end)+' ppp WHERE
-  ppp.TCidParentesco =EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-          and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion )
- ELSE '+CHAR(39)+CHAR(39)+' END,
-Costo=
-CASE WHEN  EMIdParentesco= 1 AND POS.POIDGrupoParentesco IS NOT NULL
- THEN (SELECT CONVERT(CHAR(20),SUM(POCostoRestante),103)  from ff_PlanOpcionSeleccion ppp WHERE ppp.PONumeroEmpleado=EM.EMNumeroEmpleado and ppp.POIdPlanOpcion=POS.POIdPlanOpcion
-   and ppp.POIdSolicitud=POS.POidSolicitud AND POidEmpleado = EM.ID )
- WHEN  POS.POIDGrupoParentesco IS NULL
- THEN (SELECT CONVERT(CHAR(20),SUM(POCostoRestante),103)  from ff_PlanOpcionSeleccion ppp WHERE ppp.PONumeroEmpleado=EM.EMNumeroEmpleado and ppp.POIdPlanOpcion=POS.POIdPlanOpcion
- and ppp.POIdSolicitud=POS.POidSolicitud AND POidEmpleado = EM.ID )
- ELSE '+CHAR(39)+CHAR(39)+' END'
-
-SELECT @Kueri = @Kueri + ', (SELECT case count(*) when 1 then CONVERT(CHAR(20),SUM(POCostoRestante),103) else '+ char(39) + 'NO'+ char(39) + ' end
- from ff_PlanOpcionSeleccion WHERE POIdSolicitud=POS.POidSolicitud AND POidEmpleado = EM.ID and POidplanopcion= ' +  cast(CSidplanopcion as varchar(5))  + ' )
-  as ' + char(39) + CSalias + char(39) + char(13) from (
-    select distinct CSalias, CSidplanopcion, CSidplan
-    FROM dbo.ff_ConfiguracionSabana  WITH (NOLOCK,READUNCOMMITTED)
-    where CSidConfiguracion = @IDConfiguracion AND CSIDTiposabana = 1 AND CSPestana = 0 AND CSIDESTATUS = 1
-    AND CSIdPlanOpcion in(SELECT ppidplanOpcion FROM ff_Perfil INNER JOIN ff_PlanOpcionPerfil ON PPidPErfil=PEIdPerfil AND PEAdministrador=0 WHERE PEIdestatus=1 and PPidestatus=1 AND PEIdEmpresa=@idEmpresa)
-) info order by CSidplan
-
-SELECT @KueriII = ' , EM.ID as IDEmp,INFO=RTRIM(ISNULL(Desarrollo,'''')),EMArea,EMIdCentroCostos,EMArchivoInformacion as Ubicacion
-INTO #Registros FROM dbo.ff_PlanOpcionSeleccion POS  WITH (NOLOCK)
-INNER JOIN dbo.ff_PlanOpcion PO WITH (NOLOCK) ON POS.poidplanopcion =  PO.POidplanopcion
-INNER JOIN dbo.ff_Plan PL WITH (NOLOCK) ON PL.plidplan =  PO.POidplan
-INNER JOIN dbo.ff_Empleado EM WITH (NOLOCK) ON EM.ID = POS.poidempleado AND EM.EMNumeroEmpleado not like ''Test%''
-INNER JOIN dbo.ff_Parentesco PA WITH (NOLOCK) ON PA.PAidparentesco = EM.EMidparentesco
-LEFT OUTER JOIN dbo.ff_GrupoParentesco GP WITH (NOLOCK) ON GP.gpidgrupoparentesco = POS.poidgrupoparentesco
-INNER JOIN dbo.ff_ConfiguracionSabana CS WITH (NOLOCK) ON CS.CSidPlanOpcion = POS.POidplanopcion AND CS.CSIdConfiguracion='
-+LTRIM(CAST(@IDConfiguracion as varchar(10))) +'
-INNER JOIN dbo.ff_Solicitud SO WITH (NOLOCK) ON SO.SOidSolicitud = POS.POidSolicitud
-INNER JOIN dbo.ff_Sexo SE WITH (NOLOCK) ON EM.EMidsexo = SE.SEidSexo
-WHERE CS.CSidTipoSabana = 1 AND CS.CSPestana = 1 AND POS.POidempresa = '+ cast(@idEmpresa as varchar(30)) + '
-AND POS.POidEstatus in(4,5) AND SO.SOEstatusSolicitud in(4,5) AND POS.POidvigencia = '+ cast(@idVigencia as varchar(30))
-+ ' AND (SOFechaEstatus >= '+ char(39) + cast(@FechaIni as varchar(10)) + char(39) +' OR EM.EMFechaDel >= '+ char(39) + cast(@FechaIni as varchar(10))+ char(39) +') '
-+ ' AND (SOFechaEstatus <= '+ char(39) + cast(@FechaFin as varchar(10)) + char(39) +' OR EM.EMFechaDel <= '+ char(39) + cast(@FechaFin as varchar(10))+ char(39) +') '
-+ ' AND Convert(varchar(10),POS.poidempleado,103)+''-''+convert(varchar(10),POS.PoidplanOpcion,103) not in (Select Convert(varchar(10),poidempleado,103)+''-''+convert(varchar(10),PoidplanOpcion,103) from ff_Planopcionseleccion WHERE POIdEstatus=1 AND POidVigencia ='+ cast(@idVigencia as varchar(30))
-+ ' AND PONumeroempleado = EM.EMNumeroEmpleado )'
-+ ' ORDER BY CS.CSidPlan, PO.POOrden, CS.CSidPlanOpcion, EM.EMOFicina,EM.EMNumeroEmpleado, EM.EmidParentesco
-SELECT DISTINCT * FROM #Registros '
-
-print @Kueri + @KueriII
-execute(@Kueri + @KueriII)
-
-END
-END
-GO
-
--- =============================================================================
--- SCRIPT 2: ff_SabanaVIDA_v2
--- Cambios vs _BF3:
--- =============================================================================
-CREATE OR ALTER PROCEDURE [dbo].[ff_SabanaVIDA_v2](
-@idEmpresa int,
-@FechaIni varchar(20),
-@FechaFin varchar(20),
-@idEstatus int,
-@idVigencia int,
-@Confidencial INT = 0)
-AS
-BEGIN
-DECLARE @KueriI  Varchar(MAX)
-DECLARE @KueriII  Varchar(MAX)
-DECLARE @KueriIII  Varchar(MAX)
-declare @Registros int, @i int
-
-SET @FechaFin = @FechaFin
-
-DECLARE @SOIdEstatus int
-SELECT @SOIdEstatus= CASE WHEN EXISTS (select 'k' from ff_Vigencia v2 where v2.VIRenovada= v1.VIidVigencia) THEN 10
-        WHEN VIidEstatus not in (1,6) THEN 10  ELSE 1 END
-  FROM  ff_Vigencia v1 INNER JOIN ff_Empresa WITH (NOLOCK) ON VIidConfiguracion=EMidConfiguracion
-  WHERE EMidEmpresa = @idEmpresa AND VIidVigencia = @idVigencia AND VITipoNegocio = 1
-
-SELECT DISTINCT top 0 cs.CSAlias as NombrePestana, CS.CSidTipoSabana as TipoSabana, PA.PADescripcion , PLNombre,
- RTRIM(EM.EMNumeroEmpleado) as EMNumeroEmpleado, EM.EMCertificado, EM.EMApellidoPaterno, EM.EMApellidoMaterno,
- RTRIM(ISNULL(EM.EMNombre1,'')) As EMNombre1, RTRIM(ISNULL(EM.EMNombre2,'')) as EMNombre2,
- ISNULL(EM.EMNombre1,'')+ SPACE(1)+ ISNULL(EM.EMNombre2,'') as Nombres ,EM.EMIdParentesco,
- convert(char(10),EM.EMFechaNacimiento,103) AS EMFechaNacimiento,
- convert(char(10),EM.EMFechaAntiguedadGMM, 103) AS EMFechaIngresoEmpresa ,
- case when @SOIdEstatus=1 then (SELECT CONVERT(CHAR(20),SUM( coalesce(TCPrimaNeta,0)),103) from  ff_TarifaCosto ppp
-          WHERE ppp.TCidParentesco =EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-          and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion)
-       else
-        (SELECT CONVERT(CHAR(20),SUM( coalesce(TCPrimaNeta,0)),103) from  ff_TarifaCosto_hist ppp
-         WHERE ppp.TCidParentesco =EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-         and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion) end as PrimaNeta,
- CONVERT(CHAR(20),(POCostoRestante),103) as Costo,
- SO.SONumeroSolicitud, EM.EMSalarioBase, SE.SEDescripcion, EM.EMEdad,EMOficina,EM.Id as ID, INFO=ISNULL(em.Desarrollo,''),
- (Select RTRIM(TEDescripcion) from ff_tablaencabezadoDetalle WHERE TEIDDetalle=EMOficina
-  AND TEEnClave=(Select ENClave from ff_tablaencabezado WHERE ENNombreCampo='EMOFICINA' AND ENIdEstatus=1 AND ENIdEmpresa=EM.EMIdEmpresa)) as Oficina,
- EMArea,EMIdCentroCostos,EMArchivoInformacion as Ubicacion, RTRIM(emrfc) as RFC,POS.POIDVigencia,SOIdSolicitud as POIdSolicitud, PENombre as Perfil,
- isnull(emCalleFiscal,'') as Calle,isnull(EMColoniaFisico,'') as NumExt,isnull(EMCalleFisico,'') as NumInt,isnull(emColoniaFiscal,'') as Colonia,
- isnull(EMMunicipioDelegacionFiscal,'') as Del_Municipio,
- EstadoFiscal = (Select esDescripcion from ff_Estado where esidEstado = emEstadofiscal),
- isnull(''+emcodigoPostalFiscal,'') as CP
- INTO dbo.#PlanesSabanaVida
- FROM dbo.ff_PlanOpcionSeleccion POS
- INNER JOIN dbo.ff_PlanOpcion PO ON POS.poidplanopcion = PO.POidplanopcion AND POS.POIdEstatus in(1, 3, 10)
- INNER JOIN dbo.ff_Plan PL ON PL.plidplan = PO.POidplan
- INNER JOIN dbo.ff_Empleado EM ON EM.ID = POS.poidempleado
- INNER JOIN dbo.ff_Parentesco PA ON PA.PAidparentesco = EM.EMidparentesco
- INNER JOIN dbo.ff_ConfiguracionSabana CS ON CS.CSidPlanOpcion = POS.POidplanopcion
- INNER JOIN dbo.ff_Solicitud SO ON SO.SOidSolicitud = POS.POidSolicitud
-    and case when @idEstatus=1 and SOIDEstatus in(1, 3, 10) then 1
-             when @idEstatus=2 and SOIDEstatus in(0,1,4,5)  then 1 else 0 end = 1
- INNER JOIN dbo.ff_Sexo SE ON EM.EMidsexo = SE.SEidSexo
- INNER JOIN dbo.ff_Perfil pe on EM.EMIdPerfil=PEIdPerfil
- WHERE CS.CSIdEstatus=1 AND CS.CSidTipoSabana = 2 and CSPestana=0 AND poidempresa = @idEmpresa
- AND ISNULL(SO.SOFechaAprovacion,cast(getdate() As Date)) >= @FechaIni
- AND ISNULL(SO.SOFechaAprovacion,cast(getdate() As Date)) <= @FechaFin
- AND case when @idEstatus=1 and POS.POidEstatus in (1, 3, 10) then 1
-          when @idEstatus=2 and POS.POidEstatus in (4, 5)     then 1 else 0 end = 1
- AND POS.POidvigencia = @idVigencia AND EM.EMNumeroEmpleado not like 'test%'
-
-
-IF @idEstatus = 1
-BEGIN
- INSERT INTO dbo.#PlanesSabanaVida (NombrePestana,TipoSabana,PADescripcion,PLNombre,EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,
-  Nombres,EMIdParentesco,EMFechaNacimiento,EMFechaIngresoEmpresa,PrimaNeta,Costo,
-  SONumeroSolicitud,EMSalarioBase,SEDescripcion,EMEdad,EMOficina,ID,INFO,Oficina,EMArea,EMIdCentroCostos,Ubicacion,RFC,POIDVigencia,POIdSolicitud,Perfil,
-  Calle,NumExt,NumInt,Colonia,Del_Municipio,EstadoFiscal,CP)
- SELECT DISTINCT cs.CSAlias as NombrePestana, CS.CSidTipoSabana as TipoSabana, PA.PADescripcion, PLNombre,
-  RTRIM(EM.EMNumeroEmpleado), EM.EMCertificado, EM.EMApellidoPaterno, EM.EMApellidoMaterno,
-  RTRIM(ISNULL(EM.EMNombre1,'')) As EMNombre1, RTRIM(ISNULL(EM.EMNombre2,'')) as EMNombre2,
-  ISNULL(EM.EMNombre1,'')+ SPACE(1)+ ISNULL(EM.EMNombre2,'') as Nombres, EM.EMIdParentesco,
-  convert(char(10),EM.EMFechaNacimiento,103) AS EMFechaNacimiento,
-  convert(char(10),EM.EMFechaAntiguedadGMM, 103) AS EMFechaIngresoEmpresa,
-  case when @SOIdEstatus=1 then (SELECT CONVERT(CHAR(20),SUM(coalesce(TCPrimaNeta,0)),103) from ff_TarifaCosto ppp
-            WHERE ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-            and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion)
-       else (SELECT CONVERT(CHAR(20),SUM(coalesce(TCPrimaNeta,0)),103) from ff_TarifaCosto_hist ppp
-             WHERE ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-             and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion) end as PrimaNeta,
-  CONVERT(CHAR(20),(POCostoRestante),103) as Costo,
-  SO.SONumeroSolicitud, EM.EMSalarioBase, SE.SEDescripcion, EM.EMEdad, EMOficina, EM.Id as ID, INFO=ISNULL(em.Desarrollo,''),
-  (Select RTRIM(TEDescripcion) from ff_tablaencabezadoDetalle WHERE TEIDDetalle=EMOficina
-   AND TEEnClave=(Select ENClave from ff_tablaencabezado WHERE ENNombreCampo='EMOFICINA' AND ENIdEstatus=1 AND ENIdEmpresa=EM.EMIdEmpresa)) as Oficina,
-  EMArea, EMIdCentroCostos, EMArchivoInformacion as Ubicacion, RTRIM(emrfc) as RFC, POS.POIDVigencia, SOIdSolicitud as POIdSolicitud, PENombre as Perfil,
-  isnull(emCalleFiscal,'') as Calle, isnull(EMColoniaFisico,'') as NumExt, isnull(EMCalleFisico,'') as NumInt, isnull(emColoniaFiscal,'') as Colonia,
-  isnull(EMMunicipioDelegacionFiscal,'') as Del_Municipio,
-  EstadoFiscal=(Select esDescripcion from ff_Estado where esidEstado=emEstadofiscal),
-  isnull(''+emcodigoPostalFiscal,'') as CP
- FROM dbo.ff_PlanOpcionSeleccion POS
- INNER JOIN dbo.ff_PlanOpcion PO ON POS.poidplanopcion=PO.POidplanopcion AND POS.POIdEstatus in (1,3,10)
- INNER JOIN dbo.ff_Plan PL ON PL.plidplan=PO.POidplan
- INNER JOIN dbo.ff_Empleado EM ON EM.ID=POS.poidempleado
- INNER JOIN dbo.ff_Parentesco PA ON PA.PAidparentesco=EM.EMidparentesco
- INNER JOIN dbo.ff_ConfiguracionSabana CS ON CS.CSidPlanOpcion=POS.POidplanopcion
- INNER JOIN dbo.ff_Solicitud SO ON SO.SOidSolicitud=POS.POidSolicitud
-  AND SO.SOIdEmpresa=POS.POidEmpresa and SOIDEstatus in(1,3,10)
- INNER JOIN dbo.ff_Sexo SE ON EM.EMidsexo=SE.SEidSexo
- INNER JOIN dbo.ff_Perfil pe on EM.EMIdPerfil=PEIdPerfil
- WHERE CS.CSIdEstatus=1 AND CS.CSidTipoSabana=2 and CSPestana=0 AND poidempresa=@idEmpresa
- AND ISNULL(SO.SOFechaAprovacion,cast(getdate() As Date)) >= @FechaIni
- AND ISNULL(SO.SOFechaAprovacion,cast(getdate() As Date)) <= @FechaFin
- AND POS.POidEstatus in (1,3,10)
- AND SO.SOEstatusSolicitud in (1,3)
- AND POS.POidvigencia=@idVigencia AND EM.EMNumeroEmpleado not like 'test%'
- AND (@Confidencial = 1 OR EM.EMidSalarioConfidencial = 0)
- AND 1=0 -- Flujo redundante: la segunda insercion consolida Vida como legacy.
-
- INSERT INTO dbo.#PlanesSabanaVida (NombrePestana,TipoSabana,PADescripcion,PLNombre,EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,
-  Nombres,EMIdParentesco,EMFechaNacimiento,EMFechaIngresoEmpresa,PrimaNeta,Costo,
-  SONumeroSolicitud,EMSalarioBase,SEDescripcion,EMEdad,EMOficina,ID,INFO,Oficina,EMArea,EMIdCentroCostos,Ubicacion,RFC,POIDVigencia,POIdSolicitud,Perfil,
-  Calle,NumExt,NumInt,Colonia,Del_Municipio,EstadoFiscal,CP)
- SELECT DISTINCT 'VIDA' as NombrePestana, CS.CSidTipoSabana as TipoSabana, PA.PADescripcion, PLNombre,
-  RTRIM(EM.EMNumeroEmpleado), EM.EMCertificado, EM.EMApellidoPaterno, EM.EMApellidoMaterno,
-  RTRIM(ISNULL(EM.EMNombre1,'')) As EMNombre1, RTRIM(ISNULL(EM.EMNombre2,'')) as EMNombre2,
-  ISNULL(EM.EMNombre1,'')+ SPACE(1)+ ISNULL(EM.EMNombre2,'') as Nombres, EM.EMIdParentesco,
-  convert(char(10),EM.EMFechaNacimiento,103) AS EMFechaNacimiento,
-  convert(char(10),EM.EMFechaAntiguedadGMM, 103) AS EMFechaIngresoEmpresa,
-  case when @SOIdEstatus=1 then (SELECT CONVERT(CHAR(20),SUM(coalesce(TCPrimaNeta,0)),103) from ff_TarifaCosto ppp
-            WHERE ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-            and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion)
-       else (SELECT CONVERT(CHAR(20),SUM(coalesce(TCPrimaNeta,0)),103) from ff_TarifaCosto_hist ppp
-             WHERE ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-             and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion) end as PrimaNeta,
-  CONVERT(CHAR(20),(POCostoRestante),103) as Costo,
-  SO.SONumeroSolicitud, EM.EMSalarioBase, SE.SEDescripcion, EM.EMEdad, EMOficina, EM.Id as ID, INFO=ISNULL(em.Desarrollo,''),
-  (Select RTRIM(TEDescripcion) from ff_tablaencabezadoDetalle WHERE TEIDDetalle=EMOficina
-   AND TEEnClave=(Select ENClave from ff_tablaencabezado WHERE ENNombreCampo='EMOFICINA' AND ENIdEstatus=1 AND ENIdEmpresa=EM.EMIdEmpresa)) as Oficina,
-  EMArea, EMIdCentroCostos, EMArchivoInformacion as Ubicacion, RTRIM(emrfc) as RFC, POS.POIDVigencia, SOIdSolicitud as POIdSolicitud, PENombre as Perfil,
-  isnull(emCalleFiscal,'') as Calle, isnull(EMColoniaFisico,'') as NumExt, isnull(EMCalleFisico,'') as NumInt, isnull(emColoniaFiscal,'') as Colonia,
-  isnull(EMMunicipioDelegacionFiscal,'') as Del_Municipio,
-  EstadoFiscal=(Select esDescripcion from ff_Estado where esidEstado=emEstadofiscal),
-  isnull(''+emcodigoPostalFiscal,'') as CP
- FROM dbo.ff_PlanOpcionSeleccion POS
- INNER JOIN dbo.ff_PlanOpcion PO ON POS.poidplanopcion=PO.POidplanopcion AND POS.POIdEstatus in (1,3,10)
- INNER JOIN dbo.ff_Plan PL ON PL.plidplan=PO.POidplan
- INNER JOIN dbo.ff_Empleado EM ON EM.ID=POS.poidempleado
- INNER JOIN dbo.ff_Parentesco PA ON PA.PAidparentesco=EM.EMidparentesco
- INNER JOIN dbo.ff_ConfiguracionSabana CS ON CS.CSidPlanOpcion=POS.POidplanopcion
- INNER JOIN dbo.ff_Solicitud SO ON SO.SOidSolicitud=POS.POidSolicitud
-  AND SO.SOIdEmpresa=POS.POidEmpresa and SOIDEstatus in(1,3,10)
- INNER JOIN dbo.ff_Sexo SE ON EM.EMidsexo=SE.SEidSexo
- INNER JOIN dbo.ff_Perfil pe on EM.EMIdPerfil=PEIdPerfil
- WHERE CS.CSIdEstatus=1 AND CS.CSidTipoSabana=2 and CSPestana=0 AND poidempresa=@idEmpresa
- AND ISNULL(SO.SOFechaAprovacion,cast(getdate() As Date)) >= @FechaIni
- AND ISNULL(SO.SOFechaAprovacion,cast(getdate() As Date)) <= @FechaFin
- AND POS.POidEstatus in (1,3,10)
- AND POS.POidvigencia=@idVigencia AND EM.EMNumeroEmpleado not like 'test%'
- AND (@Confidencial = 1 OR EM.EMidSalarioConfidencial = 0)
-
-END
-ELSE IF @idEstatus=2
-BEGIN
- INSERT INTO dbo.#PlanesSabanaVida (NombrePestana,TipoSabana,PADescripcion,PLNombre,EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,
-  Nombres,EMIdParentesco,EMFechaNacimiento,EMFechaIngresoEmpresa,PrimaNeta,Costo,
-  SONumeroSolicitud,EMSalarioBase,SEDescripcion,EMEdad,EMOficina,ID,INFO,Oficina,EMArea,EMIdCentroCostos,Ubicacion,RFC,POIDVigencia,POIdSolicitud,Perfil,
-  Calle,NumExt,NumInt,Colonia,Del_Municipio,EstadoFiscal,CP)
- SELECT DISTINCT cs.CSAlias as NombrePestana, CS.CSidTipoSabana as TipoSabana, PA.PADescripcion, PLNombre,
-  RTRIM(EM.EMNumeroEmpleado), EM.EMCertificado, EM.EMApellidoPaterno, EM.EMApellidoMaterno,
-  RTRIM(ISNULL(EM.EMNombre1,'')) As EMNombre1, RTRIM(ISNULL(EM.EMNombre2,'')) as EMNombre2,
-  ISNULL(EM.EMNombre1,'')+ SPACE(1)+ ISNULL(EM.EMNombre2,'') as Nombres, EM.EMIdParentesco,
-  convert(char(10),EM.EMFechaNacimiento,103) AS EMFechaNacimiento,
-  convert(char(10),EM.EMFechaAntiguedadGMM, 103) AS EMFechaIngresoEmpresa,
-  case when @SOIdEstatus=1 then (SELECT CONVERT(CHAR(20),SUM(coalesce(TCPrimaNeta,0)),103) from ff_TarifaCosto ppp
-            WHERE ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-            and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion)
-       else (SELECT CONVERT(CHAR(20),SUM(coalesce(TCPrimaNeta,0)),103) from ff_TarifaCosto_hist ppp
-             WHERE ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-             and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion) end as PrimaNeta,
-  CONVERT(CHAR(20),(POCostoRestante),103) as Costo,
-  SO.SONumeroSolicitud, EM.EMSalarioBase, SE.SEDescripcion, EM.EMEdad, EMOficina, EM.Id as ID, INFO=ISNULL(em.Desarrollo,''),
-  (Select RTRIM(TEDescripcion) from ff_tablaencabezadoDetalle WHERE TEIDDetalle=EMOficina
-   AND TEEnClave=(Select ENClave from ff_tablaencabezado WHERE ENNombreCampo='EMOFICINA' AND ENIdEstatus=1 AND ENIdEmpresa=EM.EMIdEmpresa)) as Oficina,
-  EMArea, EMIdCentroCostos, EMArchivoInformacion as Ubicacion, RTRIM(emrfc) as RFC, POS.POIDVigencia, SOIdSolicitud as POIdSolicitud, PENombre as Perfil,
-  isnull(emCalleFiscal,'') as Calle, isnull(EMColoniaFisico,'') as NumExt, isnull(EMCalleFisico,'') as NumInt, isnull(emColoniaFiscal,'') as Colonia,
-  isnull(EMMunicipioDelegacionFiscal,'') as Del_Municipio,
-  EstadoFiscal=(Select esDescripcion from ff_Estado where esidEstado=emEstadofiscal),
-  isnull(''+emcodigoPostalFiscal,'') as CP
- FROM dbo.ff_PlanOpcionSeleccion POS
- INNER JOIN dbo.ff_PlanOpcion PO ON POS.poidplanopcion=PO.POidplanopcion AND POS.POIdEstatus IN(4,5,0)
- INNER JOIN dbo.ff_Plan PL ON PL.plidplan=PO.POidplan
- INNER JOIN dbo.ff_Empleado EM ON EM.ID=POS.poidempleado
- INNER JOIN dbo.ff_Parentesco PA ON PA.PAidparentesco=EM.EMidparentesco
- INNER JOIN dbo.ff_ConfiguracionSabana CS ON CS.CSidPlanOpcion=POS.POidplanopcion
- INNER JOIN dbo.ff_Solicitud SO ON SO.SOidSolicitud=POS.POidSolicitud and SOIDEstatus in(0,1,4,5)
- INNER JOIN dbo.ff_Sexo SE ON EM.EMidsexo=SE.SEidSexo
- INNER JOIN dbo.ff_Perfil pe on EM.EMIdPerfil=PEIdPerfil
- WHERE CS.CSIdEstatus=1 AND POS.POIdEstatus in (4,5) AND CS.CSidTipoSabana=2 AND poidempresa=@idEmpresa
- AND ISNULL(EM.EMFechaBaja,cast(getdate() As Date)) >= @FechaIni
- AND ISNULL(EM.EMFechaBaja,cast(getdate() As Date)) <= @FechaFin
- AND POS.POidvigencia=@idVigencia AND EM.EMNumeroEmpleado not like 'test%'
- AND 1=0 -- Flujo redundante: la segunda insercion consolida Vida como legacy.
-
- INSERT INTO dbo.#PlanesSabanaVida (NombrePestana,TipoSabana,PADescripcion,PLNombre,EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,
-  Nombres,EMIdParentesco,EMFechaNacimiento,EMFechaIngresoEmpresa,PrimaNeta,Costo,
-  SONumeroSolicitud,EMSalarioBase,SEDescripcion,EMEdad,EMOficina,ID,INFO,Oficina,EMArea,EMIdCentroCostos,Ubicacion,RFC,POIDVigencia,POIdSolicitud,Perfil,
-  Calle,NumExt,NumInt,Colonia,Del_Municipio,EstadoFiscal,CP)
- SELECT DISTINCT 'VIDA' as NombrePestana, CS.CSidTipoSabana as TipoSabana, PA.PADescripcion, PLNombre,
-  RTRIM(EM.EMNumeroEmpleado), EM.EMCertificado, EM.EMApellidoPaterno, EM.EMApellidoMaterno,
-  RTRIM(ISNULL(EM.EMNombre1,'')) As EMNombre1, RTRIM(ISNULL(EM.EMNombre2,'')) as EMNombre2,
-  ISNULL(EM.EMNombre1,'')+ SPACE(1)+ ISNULL(EM.EMNombre2,'') as Nombres, EM.EMIdParentesco,
-  convert(char(10),EM.EMFechaNacimiento,103) AS EMFechaNacimiento,
-  convert(char(10),EM.EMFechaAntiguedadGMM, 103) AS EMFechaIngresoEmpresa,
-  case when @SOIdEstatus=1 then (SELECT CONVERT(CHAR(20),SUM(coalesce(TCPrimaNeta,0)),103) from ff_TarifaCosto ppp
-            WHERE ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-            and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion)
-       else (SELECT CONVERT(CHAR(20),SUM(coalesce(TCPrimaNeta,0)),103) from ff_TarifaCosto_hist ppp
-             WHERE ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-             and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion) end as PrimaNeta,
-  CONVERT(CHAR(20),(POCostoRestante),103) as Costo,
-  SO.SONumeroSolicitud, EM.EMSalarioBase, SE.SEDescripcion, EM.EMEdad, EMOficina, EM.Id as ID, INFO=ISNULL(em.Desarrollo,''),
-  (Select RTRIM(TEDescripcion) from ff_tablaencabezadoDetalle WHERE TEIDDetalle=EMOficina
-   AND TEEnClave=(Select ENClave from ff_tablaencabezado WHERE ENNombreCampo='EMOFICINA' AND ENIdEstatus=1 AND ENIdEmpresa=EM.EMIdEmpresa)) as Oficina,
-  EMArea, EMIdCentroCostos, EMArchivoInformacion as Ubicacion, RTRIM(emrfc) as RFC, POS.POIDVigencia, SOIdSolicitud as POIdSolicitud, PENombre as Perfil,
-  isnull(emCalleFiscal,'') as Calle, isnull(EMColoniaFisico,'') as NumExt, isnull(EMCalleFisico,'') as NumInt, isnull(emColoniaFiscal,'') as Colonia,
-  isnull(EMMunicipioDelegacionFiscal,'') as Del_Municipio,
-  EstadoFiscal=(Select esDescripcion from ff_Estado where esidEstado=emEstadofiscal),
-  isnull(''+emcodigoPostalFiscal,'') as CP
- FROM dbo.ff_PlanOpcionSeleccion POS
- INNER JOIN dbo.ff_PlanOpcion PO ON POS.poidplanopcion=PO.POidplanopcion AND POS.POIdEstatus IN(4,5,0)
- INNER JOIN dbo.ff_Plan PL ON PL.plidplan=PO.POidplan
- INNER JOIN dbo.ff_Empleado EM ON EM.ID=POS.poidempleado
- INNER JOIN dbo.ff_Parentesco PA ON PA.PAidparentesco=EM.EMidparentesco
- INNER JOIN dbo.ff_ConfiguracionSabana CS ON CS.CSidPlanOpcion=POS.POidplanopcion
- INNER JOIN dbo.ff_Solicitud SO ON SO.SOidSolicitud=POS.POidSolicitud and SOIDEstatus in(0,1,4,5)
- INNER JOIN dbo.ff_Sexo SE ON EM.EMidsexo=SE.SEidSexo
- INNER JOIN dbo.ff_Perfil pe on EM.EMIdPerfil=PEIdPerfil
- WHERE CS.CSIdEstatus=1 AND POS.POIdEstatus in (4,5) AND CS.CSidTipoSabana=2 AND poidempresa=@idEmpresa
- AND ISNULL(EM.EMFechaBaja,cast(getdate() As Date)) >= @FechaIni
- AND ISNULL(EM.EMFechaBaja,cast(getdate() As Date)) <= @FechaFin
- AND POS.POidvigencia=@idVigencia AND EM.EMNumeroEmpleado not like 'test%'
-END
-
--- B2 consolida todas las coberturas de Vida en una fila por beneficiario.
--- PLNombre es constante y los costos base no forman parte de este resultset;
--- incluirlos hacia que DISTINCT conservara una fila por cobertura (1271 en
--- lugar de 1115 para Zurich).
-SELECT @KueriI = 'SELECT DISTINCT ''Vida'' as grupo, ''VIDA'' as NombrePestana, P.TipoSabana, P.PADescripcion, ''Vida'' as PLNombre,
-P.EMNumeroEmpleado, P.EMCertificado, P.EMApellidoPaterno, P.EMApellidoMaterno, P.EMNombre1, P.EMNombre2, P.Nombres, P.EMIdParentesco, P.EMFechaNacimiento, Perfil,
-P.EMFechaIngresoEmpresa, P.SONumeroSolicitud, P.EMSalarioBase, P.SEDescripcion, P.EMEdad, P.EMOficina, P.Oficina, P.Ubicacion, P.RFC, Id as Idemp, INFO '
-
--- flujo aislado: sin csidvigencia=@idVigencia en #Configuracion
-SELECT 0 as Consecutivo, 0 as AliasConsecutivo,*
-INTO #Configuracion
-FROM dbo.ff_ConfiguracionSabana WITH (READUNCOMMITTED,NOLOCK)
-where CSIdEstatus=1
-  AND CSidConfiguracion = (Select EMidConfiguracion FROM ff_Empresa where EMidEmpresa = @idEmpresa)
-  and CSIDTiposabana = 2 AND CSPestana = 0
-order by CSidplan
-
-SET @Registros = (SELECT COUNT(consecutivo) from #Configuracion)
-SET @i=1
-While @i<=@Registros
-BEGIN
-    Declare @Registro INT
-    SET @Registro=(SELECT Min(CsIdConfiguracionSabana) FROM #Configuracion WHERE Consecutivo=0)
-    Update #Configuracion SET Consecutivo=@i WHERE CsIdConfiguracionSabana=@Registro
-    SET @i=@i+1
-END
-
-;WITH AliasDuplicado AS (
-    SELECT AliasConsecutivo,
-           ROW_NUMBER() OVER (
-               PARTITION BY CSAlias, DATALENGTH(CSAlias)
-               ORDER BY CSidplan, CsIdConfiguracionSabana) AS NumeroAlias
-    FROM #Configuracion
-)
-UPDATE AliasDuplicado SET AliasConsecutivo = NumeroAlias
-
-SELECT @KueriII=
- CASE WHEN Consecutivo <=30 AND CSidplanopcion IN(3200) AND @idEmpresa NOT IN(288,169,168) THEN
-  isnull(@KueriII,'')+ ',VERDE_12M=ISNULL((SELECT CONVERT(CHAR(20),VSSumaAsegurada,103) FROM FF_VALIDASAVIDA INNER JOIN FF_PlanOpcionseleccion ON VSIdEmpleado=P.Id AND POidplanOpcion=VSIdPlanOpcion AND VSIdVigencia=P.POIdVigencia WHERE VSIdPlanOpcion in(3200) AND POIDplanOpcion in(3200) and POIdSolicitud=P.POidSolicitud and POidplanopcion=' + cast(CSidplanopcion as varchar(5)) + '),(SELECT CONVERT(CHAR(20),SUM(VSSumaAsegurada),103) from ff_ValidaSAvida s WHERE s.VSIdEMpleado=P.Id AND s.VSIdPlanOpcion in(3200) and s.VSIdEstatus=1))+' + ''',Costo_''' + '+RTRIM(cast(Consecutivo as char(3)))+' + '''=(SELECT CONVERT(CHAR(20),SUM(VSPrimaAnual),103) from ff_ValidaSAvida s WHERE s.VSIdEMpleado=P.Id AND s.VSIdPlanOpcion in(3200) and s.VSIdEstatus=1) '''
- WHEN Consecutivo <=30 AND CSidplanopcion IN(3201) AND @idEmpresa IN(288,169,168) THEN
-  isnull(@KueriII,'')+ ',VERDE_12M=ISNULL((SELECT CONVERT(CHAR(20),VSSumaAsegurada,103) FROM FF_VALIDASAVIDA INNER JOIN FF_PlanOpcionseleccion ON VSIdEmpleado=P.Id AND POidplanOpcion=VSIdPlanOpcion AND VSIdVigencia=P.POIdVigencia WHERE VSIdPlanOpcion in(3201) AND POIDplanOpcion in(3201) and POIdSolicitud=P.POidSolicitud and POidplanopcion=' + cast(CSidplanopcion as varchar(5)) + '),(SELECT CONVERT(CHAR(20),SUM(VSSumaAsegurada),103) from ff_ValidaSAvida s WHERE s.VSIdEMpleado=P.Id AND s.VSIdPlanOpcion in(3201) and s.VSIdEstatus=1))+' + ''',Costo_''' + '+RTRIM(cast(Consecutivo as char(3)))+' + '''=(SELECT CONVERT(CHAR(20),SUM(VSPrimaAnual),103) from ff_ValidaSAvida s WHERE s.VSIdEMpleado=P.Id AND s.VSIdPlanOpcion in(3201) and s.VSIdEstatus=1) '''
- WHEN Consecutivo <=30 AND CSidplanopcion NOT IN(3200,3201) AND CSIdConfiguracion=26 THEN
-  isnull(@KueriII,'')+ ',(SELECT CASE WHEN COUNT(*)>0 THEN (SELECT CONVERT(CHAR(20),VSSumaAsegurada,103) FROM FF_VALIDASAVIDA WHERE VSIdEmpleado=P.Id AND VSIdPlanOpcion=' + cast(CSidplanopcion as varchar(5)) + ' AND VSIdVigencia=P.POIdVigencia) else ' + char(39) + 'N' + char(39) + ' end from ff_PlanOpcionSeleccion s where s.POidEmpleado=P.ID and POIdSolicitud=P.POidSolicitud and s.POidplanopcion=' + cast(CSidplanopcion as varchar(5)) + ') as ' + char(39) + CSalias + CASE WHEN AliasConsecutivo=1 THEN '' ELSE RTRIM(CAST(AliasConsecutivo-1 AS VARCHAR(10))) END + char(39) + char(13) + ',Costo_' + RTRIM(cast(Consecutivo as char(3))) + '=CASE WHEN EMIdParentesco in(1,2) THEN (SELECT CONVERT(CHAR(20),SUM(VSPrimaAnual),103) from ff_PlanOpcionSeleccion s INNER JOIN FF_ValidaSavida v ON v.vsidempleado=s.poidempleado and v.vsidvigencia=s.poidvigencia and v.vsidestatus=1 and v.vsidplanopcion=s.poidplanopcion WHERE s.PONumeroEmpleado=P.EMNumeroEmpleado and s.POIdPlanOpcion=' + cast(CSidplanopcion as varchar(5)) + ' and s.POIdSolicitud=P.POidSolicitud AND s.POidEmpleado=P.ID) ELSE ' + CHAR(39)+CHAR(39) + ' END '
- WHEN Consecutivo <=30 AND CSIdConfiguracion<>26 THEN
-  isnull(@KueriII,'')+ ',(SELECT CASE WHEN COUNT(*)>0 THEN (SELECT CONVERT(CHAR(20),VSSumaAsegurada,103) FROM FF_VALIDASAVIDA WHERE VSIdEmpleado=P.Id AND VSIdPlanOpcion=' + cast(CSidplanopcion as varchar(5)) + ' AND VSIdVigencia=P.POIdVigencia) else ' + char(39) + 'N' + char(39) + ' end from ff_PlanOpcionSeleccion s where s.POidEmpleado=P.ID and POIdSolicitud=P.POidSolicitud and s.POidplanopcion=' + cast(CSidplanopcion as varchar(5)) + ') as ' + char(39) + CSalias + CASE WHEN AliasConsecutivo=1 THEN '' ELSE RTRIM(CAST(AliasConsecutivo-1 AS VARCHAR(10))) END + char(39) + char(13) + ',Costo_' + RTRIM(cast(Consecutivo as char(3))) + '=CASE WHEN EMIdParentesco in(1,2) THEN (SELECT CONVERT(CHAR(20),SUM(POCostoRestante),103) from ff_PlanOpcionSeleccion s WHERE s.PONumeroEmpleado=P.EMNumeroEmpleado and s.POIdPlanOpcion=' + cast(CSidplanopcion as varchar(5)) + ' and s.POIdSolicitud=P.POidSolicitud AND s.POidEmpleado=P.ID) ELSE ' + CHAR(39)+CHAR(39) + ' END '
- ELSE @KueriII END
-FROM #Configuracion
-order by CSidplan
-
-SELECT @KueriIII = ' FROM dbo.#PlanesSabanaVida P ORDER BY OFICINA,EMNUMEROEMPLEADO,EMIDPARENTESCO'
-
-execute (@KueriI + @KueriII + @KueriIII)
-
-end
-GO
-
--- =============================================================================
--- SCRIPT 3: ff_SabanaOPC_v2 (Option B)
--- Cambios vs _BF3:
--- =============================================================================
-CREATE OR ALTER PROCEDURE [dbo].[ff_SabanaOPC_v2] (
-@idEmpresa int,
-@FechaIni varchar(20),
-@FechaFin varchar(20),
-@idEstatus int,
-@idVigencia int,
-@Confidencial INT = 0)
-AS
-BEGIN
-SET NOCOUNT ON;
-DECLARE @KueriI  Varchar(MAX)
-DECLARE @KueriII  Varchar(MAX)
-DECLARE @KueriIII  Varchar(MAX)
-declare @Registros int, @i int
-
-SET @FechaFin = @FechaFin
-
-DECLARE @SOIdEstatus int
-SELECT @SOIdEstatus= CASE WHEN EXISTS (select 'k' from ff_Vigencia v2 where v2.VIRenovada= v1.VIidVigencia) THEN 10
-        WHEN VIidEstatus not in (1,6) THEN 10  ELSE 1 END
-  FROM  ff_Vigencia v1 INNER JOIN ff_Empresa WITH (NOLOCK) ON VIidConfiguracion=EMidConfiguracion
-  WHERE EMidEmpresa = @idEmpresa AND VIidVigencia = @idVigencia AND VITipoNegocio = 1
-
-INSERT INTO dbo.bf_RepConf_Debug (etapa,detalle) VALUES ('opc_inicio',
- 'idEmpresa='+CAST(@idEmpresa AS VARCHAR)+' idVigencia='+CAST(@idVigencia AS VARCHAR)
- +' FechaIni='+@FechaIni+' FechaFin='+@FechaFin+' idEstatus='+CAST(@idEstatus AS VARCHAR)
- +' SOIdEstatus='+ISNULL(CAST(@SOIdEstatus AS VARCHAR),'NULL'))
-
--- estructura vacia; CSPestana=1 aqui no importa (top 0 = 0 filas)
-SELECT top 0 cast('' as varchar(100)) as NombrePestana, CS.CSidTipoSabana as TipoSabana, PO.POidPlan, EM.EMidParentesco,
- PA.PADescripcion, PO.poidplanopcion, POS.POidGrupoParentesco, PL.PLNombre, PO.PONombre, EM.EMEdad,
- EM.EMNumeroEmpleado, EM.EMCertificado, EM.EMApellidoPaterno, EM.EMApellidoMaterno, EM.EMNombre1, EM.EMNombre2,
- SO.SONumeroSolicitud, ISNULL(EM.EMNombre1,' ') + SPACE(1) + ISNULL(EM.EMNombre2,' ') as Nombres,
- convert(char(10),EM.emfechaantiguedadgmm, 103) AS EMFechaIngresoEmpresa,
- case when @SOIdEstatus=1 then (SELECT CONVERT(CHAR(20),coalesce(TCPrimaNeta,0),103) from ff_TarifaCosto ppp
-          WHERE ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-          and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion)
-       else (SELECT CONVERT(CHAR(20),SUM(coalesce(TCPrimaNeta,0)),103) from ff_TarifaCosto_hist ppp
-             WHERE ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-             and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion) end as PrimaNeta,
- CONVERT(CHAR(20),(coalesce(POCostoRestante,0)),103) as Costo, EMOFicina,
- (Select top 1 RTRIM(TEDescripcion) from ff_tablaencabezadoDetalle WHERE TEIDDetalle=EMOFicina
-  AND TEEnClave=(Select ENClave from ff_tablaencabezado WHERE ENNombreCampo='EMOFICINA' AND ENIdEstatus=1 AND ENIdEmpresa=EM.EMIdEmpresa)) as Oficina,
- rtrim(emRFC) as RFC, RTRIM(pe.PEDescripcion) AS Perfil,
- isnull(emCalleFiscal,'') as Calle, isnull(EMColoniaFisico,'') as NumExt, isnull(EMCalleFisico,'') as NumInt, isnull(emColoniaFiscal,'') as Colonia,
- isnull(EMMunicipioDelegacionFiscal,'') as Del_Municipio,
- EstadoFiscal=(Select esDescripcion from ff_Estado where esidEstado=emEstadofiscal),
- isnull(''+emcodigoPostalFiscal,'') as CP, rtrim(emarchivoinformacion) as local_number,
- EMArea, EMArchivoInformacion Ubicacion, EMIdCentroCostos, 0 as EmSalariobase,
- (Select top 1 RTRIM(teDatoAdicional2) from ff_tablaencabezadoDetalle WHERE TEIDDetalle=EMOFicina
-  AND TEEnClave=(Select ENClave from ff_tablaencabezado WHERE ENNombreCampo='EMOFICINA' AND ENIdEstatus=1 AND ENIdEmpresa=EM.EMIdEmpresa)) as Categoria,
- convert(char(10),EM.EMFechaNacimiento,103) AS EMFechaNacimiento,
- SE.SEDescripcion, em.id, INFO=RTRIM(ISNULL(Desarrollo,'')), pos.POidSolicitud, pos.POidVigencia,
- cast('' as varchar(50)) as Folio
- INTO dbo.#PlanesSabanaVida
- FROM dbo.ff_PlanOpcionSeleccion POS
- INNER JOIN dbo.ff_PlanOpcion PO ON POS.poidplanopcion=PO.POidplanopcion AND POS.POIdEstatus in(1,3,10)
- INNER JOIN dbo.ff_Plan PL ON PL.plidplan=PO.POidplan
- INNER JOIN dbo.ff_Empleado EM ON EM.ID=POS.poidempleado
- INNER JOIN dbo.ff_Parentesco PA ON PA.PAidparentesco=EM.EMidparentesco
- INNER JOIN dbo.ff_ConfiguracionSabana CS ON CS.CSidPlanOpcion=POS.POidplanopcion
- INNER JOIN dbo.ff_Solicitud SO ON SO.SOidSolicitud=POS.POidSolicitud
-  AND SO.SOIdEmpresa=POS.POidEmpresa and SOIDEstatus in(1,3,10)
- INNER JOIN dbo.ff_Sexo SE ON EM.EMidsexo=SE.SEidSexo
- INNER JOIN dbo.ff_Perfil pe on EM.EMIdPerfil=PEIdPerfil
- WHERE CS.CSIdEstatus=1 AND CS.CSidTipoSabana=3 and CSPestana=1 AND poidempresa=@idEmpresa
- AND ISNULL(SO.SOFechaAprovacion,cast(getdate() As Date)) >= @FechaIni
- AND ISNULL(SO.SOFechaAprovacion,cast(getdate() As Date)) <= @FechaFin
- AND POS.POidEstatus in (1,3,10)
- AND POS.POidvigencia=@idVigencia AND EM.EMNumeroEmpleado not like 'test%'
- ORDER BY Oficina,EMNumeroEmpleado, EM.EmidParentesco
-
-IF @idEstatus = 1
-BEGIN
- -- opcion B: todos los CSAlias de tipo 3 generan pestana (sin filtro CSPestana=1)
- INSERT INTO dbo.#PlanesSabanaVida (NombrePestana,TipoSabana,POidPlan,EMidParentesco,PADescripcion,poidplanopcion,POidGrupoParentesco,
-  PLNombre,PONombre,EMEdad,EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,
-  SONumeroSolicitud,Nombres,EMFechaIngresoEmpresa,PrimaNeta,Costo,EMOFicina,Oficina,RFC,Perfil,Calle,NumExt,NumInt,Colonia,
-  Del_Municipio,EstadoFiscal,CP,local_number,EMArea,Ubicacion,EMIdCentroCostos,EmSalariobase,Categoria,EMFechaNacimiento,SEDescripcion,id,INFO,POidSolicitud,POidVigencia,Folio)
- SELECT DISTINCT cs.CSAlias as NombrePestana, CS.CSidTipoSabana as TipoSabana, PO.POidPlan, EM.EMidParentesco,
-  PA.PADescripcion, PO.poidplanopcion, POS.POidGrupoParentesco, PL.PLNombre, PO.PONombre, EM.EMEdad,
-  EM.EMNumeroEmpleado, EM.EMCertificado, EM.EMApellidoPaterno, EM.EMApellidoMaterno, EM.EMNombre1, EM.EMNombre2,
-  SO.SONumeroSolicitud, ISNULL(EM.EMNombre1,' ') + SPACE(1) + ISNULL(EM.EMNombre2,' ') as Nombres,
-  convert(char(10),EM.emfechaantiguedadgmm, 103) AS EMFechaIngresoEmpresa,
-  case when @SOIdEstatus=1 then (SELECT CONVERT(CHAR(20),COALESCE(SUM(TCPrimaNeta),0),103) from ff_TarifaCosto ppp
-            WHERE ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-            and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion)
-       else (SELECT CONVERT(CHAR(20),COALESCE(SUM(TCPrimaNeta),0),103) from ff_TarifaCosto_hist ppp with(nolock)
-             WHERE ppp.TCidParentesco is not null and ppp.TCEdad is not null and ppp.TCIdSexo is not null
-             and ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-             and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion) end as PrimaNeta,
-  CONVERT(CHAR(20),(POCostoRestante),103) as Costo, EMOFicina,
-  (Select top 1 RTRIM(TEDescripcion) from ff_tablaencabezadoDetalle WHERE TEIDDetalle=EMOFicina
-   AND TEEnClave=(Select ENClave from ff_tablaencabezado WHERE ENNombreCampo='EMOFICINA' AND ENIdEstatus=1 AND ENIdEmpresa=EM.EMIdEmpresa)) as Oficina,
-  rtrim(emRFC) as RFC, RTRIM(pe.PEDescripcion) AS Perfil,
-  isnull(emCalleFiscal,'') as Calle, isnull(EMColoniaFisico,'') as NumExt, isnull(EMCalleFisico,'') as NumInt, isnull(emColoniaFiscal,'') as Colonia,
-  isnull(EMMunicipioDelegacionFiscal,'') as Del_Municipio,
-  EstadoFiscal=(Select esDescripcion from ff_Estado where esidEstado=emEstadofiscal),
-  isnull(''+emcodigoPostalFiscal,'') as CP, rtrim(emarchivoinformacion) as local_number,
-  EMArea, rtrim(emarchivoinformacion) as Ubicacion, EMIdCentroCostos, 0 as EmSalariobase,
-  (Select top 1 RTRIM(teDatoAdicional2) from ff_tablaencabezadoDetalle WHERE TEIDDetalle=EMOFicina
-   AND TEEnClave=(Select ENClave from ff_tablaencabezado WHERE ENNombreCampo='EMOFICINA' AND ENIdEstatus=1 AND ENIdEmpresa=EM.EMIdEmpresa)) as Categoria,
-  convert(char(10),EM.EMFechaNacimiento,103) AS EMFechaNacimiento,
-  SE.SEDescripcion, em.id, INFO=RTRIM(ISNULL(Desarrollo,'')), pos.POidSolicitud, pos.POidVigencia, '' as Folio
- FROM dbo.ff_PlanOpcionSeleccion POS
- INNER JOIN dbo.ff_PlanOpcion PO ON POS.poidplanopcion=PO.POidplanopcion AND POS.POIdEstatus in (1,3,10)
- INNER JOIN dbo.ff_Plan PL ON PL.plidplan=PO.POidplan
- INNER JOIN dbo.ff_Empleado EM ON EM.ID=POS.poidempleado
- INNER JOIN dbo.ff_Parentesco PA ON PA.PAidparentesco=EM.EMidparentesco
- INNER JOIN dbo.ff_ConfiguracionSabana CS ON CS.CSidPlanOpcion=POS.POidplanopcion
- INNER JOIN dbo.ff_Solicitud SO ON SO.SOidSolicitud=POS.POidSolicitud
-  AND SO.SOIdEmpresa=POS.POidEmpresa and SOIDEstatus in(1,3,10)
- INNER JOIN dbo.ff_Sexo SE ON EM.EMidsexo=SE.SEidSexo
- INNER JOIN dbo.ff_Perfil pe on EM.EMIdPerfil=PEIdPerfil
- -- opcion B: sin CSPestana=1 → todos los planes de tipo 3 generan pestaña
- -- fix fecha: ISNULL usa @FechaFin (no getdate) para incluir solicitudes sin fecha aprobacion
- WHERE CS.CSIdEstatus=1 AND CS.CSidTipoSabana=3 AND poidempresa=@idEmpresa
- AND ISNULL(SO.SOFechaAprovacion,CONVERT(date,@FechaFin)) >= CONVERT(date,@FechaIni)
- AND ISNULL(SO.SOFechaAprovacion,CONVERT(date,@FechaFin)) <= CONVERT(date,@FechaFin)
- AND POS.POidEstatus in (1,3,10)
- AND SO.SOEstatusSolicitud in (1,3)
- AND POS.POidvigencia=@idVigencia AND EM.EMNumeroEmpleado not like 'test%'
- AND (@Confidencial = 1 OR EM.EMidSalarioConfidencial = 0)
-
- INSERT INTO dbo.bf_RepConf_Debug (etapa,detalle) VALUES ('opc_insert_estatus1',
-  'filas_insertadas='+CAST(@@ROWCOUNT AS VARCHAR))
-END
-ELSE IF @idEstatus=2
-BEGIN
- INSERT INTO dbo.#PlanesSabanaVida (NombrePestana,TipoSabana,POidPlan,EMidParentesco,PADescripcion,poidplanopcion,POidGrupoParentesco,
-  PLNombre,PONombre,EMEdad,EMNumeroEmpleado,EMCertificado,EMApellidoPaterno,EMApellidoMaterno,EMNombre1,EMNombre2,
-  SONumeroSolicitud,Nombres,EMFechaIngresoEmpresa,PrimaNeta,Costo,EMOFicina,Oficina,RFC,Perfil,Calle,NumExt,NumInt,Colonia,
-  Del_Municipio,EstadoFiscal,CP,local_number,EMArea,Ubicacion,EMIdCentroCostos,EmSalariobase,Categoria,EMFechaNacimiento,SEDescripcion,id,INFO,POidSolicitud,POidVigencia,Folio)
- SELECT DISTINCT cs.CSAlias as NombrePestana, CS.CSidTipoSabana as TipoSabana, PO.POidPlan, EM.EMidParentesco,
-  PA.PADescripcion, PO.poidplanopcion, POS.POidGrupoParentesco, PL.PLNombre, PO.PONombre, EM.EMEdad,
-  EM.EMNumeroEmpleado, EM.EMCertificado, EM.EMApellidoPaterno, EM.EMApellidoMaterno, EM.EMNombre1, EM.EMNombre2,
-  SO.SONumeroSolicitud, ISNULL(EM.EMNombre1,' ') + SPACE(1) + ISNULL(EM.EMNombre2,' ') as Nombres,
-  convert(char(10),EM.emfechaantiguedadgmm, 103) AS EMFechaIngresoEmpresa,
-  case when @SOIdEstatus=1 then (SELECT CONVERT(CHAR(20),COALESCE(SUM(TCPrimaNeta),0),103) from ff_TarifaCosto ppp
-            WHERE ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-            and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion)
-       else (SELECT CONVERT(CHAR(20),COALESCE(SUM(TCPrimaNeta),0),103) from ff_TarifaCosto_hist ppp
-             WHERE ppp.TCidParentesco=EM.EMIdParentesco and ppp.TCEdad=POS.POEdad and TCidEstatus=1
-             and ppp.TCIdSexo=EM.EMIdSexo AND ppp.TCIdPlanOpcion=POS.POIDPlanOpcion) end as PrimaNeta,
-  CONVERT(CHAR(20),(POCostoRestante),103) as Costo, EMOFicina,
-  (Select top 1 RTRIM(TEDescripcion) from ff_tablaencabezadoDetalle WHERE TEIDDetalle=EMOFicina
-   AND TEEnClave=(Select ENClave from ff_tablaencabezado WHERE ENNombreCampo='EMOFICINA' AND ENIdEstatus=1 AND ENIdEmpresa=EM.EMIdEmpresa)) as Oficina,
-  rtrim(emRFC) as RFC, RTRIM(pe.PEDescripcion) AS Perfil,
-  isnull(emCalleFiscal,'') as Calle, isnull(EMColoniaFisico,'') as NumExt, isnull(EMCalleFisico,'') as NumInt, isnull(emColoniaFiscal,'') as Colonia,
-  isnull(EMMunicipioDelegacionFiscal,'') as Del_Municipio,
-  EstadoFiscal=(Select esDescripcion from ff_Estado where esidEstado=emEstadofiscal),
-  isnull(''+emcodigoPostalFiscal,'') as CP, rtrim(emarchivoinformacion) as local_number,
-  EMArea, EMArchivoInformacion Ubicacion, EMIdCentroCostos, 0 as EmSalariobase,
-  (Select top 1 RTRIM(teDatoAdicional2) from ff_tablaencabezadoDetalle WHERE TEIDDetalle=EMOFicina
-   AND TEEnClave=(Select ENClave from ff_tablaencabezado WHERE ENNombreCampo='EMOFICINA' AND ENIdEstatus=1 AND ENIdEmpresa=EM.EMIdEmpresa)) as Categoria,
-  convert(char(10),EM.EMFechaNacimiento,103) AS EMFechaNacimiento,
-  SE.SEDescripcion, em.id, INFO=RTRIM(ISNULL(Desarrollo,'')), pos.POidSolicitud, pos.POidVigencia, '' as Folio
- FROM dbo.ff_PlanOpcionSeleccion POS
- INNER JOIN dbo.ff_PlanOpcion PO ON POS.poidplanopcion=PO.POidplanopcion AND POS.POIdEstatus IN(4,5,0)
- INNER JOIN dbo.ff_Plan PL ON PL.plidplan=PO.POidplan
- INNER JOIN dbo.ff_Empleado EM ON EM.ID=POS.poidempleado
- INNER JOIN dbo.ff_Parentesco PA ON PA.PAidparentesco=EM.EMidparentesco
- INNER JOIN dbo.ff_ConfiguracionSabana CS ON CS.CSidPlanOpcion=POS.POidplanopcion
- INNER JOIN dbo.ff_Solicitud SO ON SO.SOidSolicitud=POS.POidSolicitud and SOIDEstatus in(0,1,4,5)
- INNER JOIN dbo.ff_Sexo SE ON EM.EMidsexo=SE.SEidSexo
- INNER JOIN dbo.ff_Perfil pe on EM.EMIdPerfil=PEIdPerfil
- WHERE CS.CSIdEstatus=1 AND POS.POIdEstatus in (4,5) AND CS.CSidTipoSabana=3 AND poidempresa=@idEmpresa
- AND ISNULL(EM.EMFechaBaja,cast(getdate() As Date)) >= @FechaIni
- AND ISNULL(EM.EMFechaBaja,cast(getdate() As Date)) <= @FechaFin
- AND POS.POidvigencia=@idVigencia AND EM.EMNumeroEmpleado not like 'test%'
-
- INSERT INTO dbo.bf_RepConf_Debug (etapa,detalle) VALUES ('opc_insert_estatus2',
-  'filas_insertadas='+CAST(@@ROWCOUNT AS VARCHAR))
-END
-
-SELECT @KueriI = 'SELECT DISTINCT ''OPC'' as grupo, NombrePestana, P.TipoSabana, P.PADescripcion, P.PONombre, PLNombre,
-P.EMNumeroEmpleado, P.EMCertificado, P.EMApellidoPaterno, P.EMApellidoMaterno, P.EMNombre1, P.EMNombre2, P.Nombres, P.PrimaNeta, P.costo as Costo,
-P.EMIdParentesco, P.EMFechaNacimiento, Perfil, P.EMFechaIngresoEmpresa, P.SONumeroSolicitud, P.EMSalarioBase,
-P.SEDescripcion, P.EMEdad, P.EMOficina, P.Oficina, P.Ubicacion, P.RFC, Id, INFO, Calle, NumExt, NumInt, Colonia, Del_Municipio, EstadoFiscal, CP,
-P.local_number, P.EMArea, P.EMIdCentroCostos, P.Categoria, P.Folio '
-
--- flujo aislado: sin csidvigencia=@idVigencia en #Configuracion
-SELECT 0 as Consecutivo, 0 as AliasConsecutivo,CSConfig.*
-INTO #Configuracion
-FROM dbo.ff_ConfiguracionSabana CSConfig WITH (READUNCOMMITTED,NOLOCK)
-where CSConfig.CSIdEstatus=1
-  AND CSConfig.CSidConfiguracion=ISNULL((Select EMidConfiguracion FROM ff_Empresa where EMidEmpresa=@idEmpresa),0)
-  and CSConfig.CSIDTiposabana=3 AND CSConfig.CSPestana=0
-  -- Si la vigencia actual ya tiene configuracion, no mezclar coberturas
-  -- historicas ni filas NULL que consuman el limite de 30 coberturas.
-  -- Cuando aun no se ha clonado la configuracion (ATT, Zurich y otros),
-  -- conservar el fallback legacy a todas las filas disponibles.
-  AND (
-      CSConfig.CSidVigencia=@idVigencia
-      OR NOT EXISTS (
-          SELECT 1
-          FROM dbo.ff_ConfiguracionSabana CSActual WITH (READUNCOMMITTED,NOLOCK)
-          WHERE CSActual.CSIdEstatus=1
-            AND CSActual.CSidConfiguracion=CSConfig.CSidConfiguracion
-            AND CSActual.CSIDTiposabana=3
-            AND CSActual.CSPestana=0
-            AND CSActual.CSidVigencia=@idVigencia
-      )
-  )
-order by CSidplan
-
-SET @Registros = (SELECT COUNT(consecutivo) from #Configuracion)
-
-DECLARE @TotalPSV INT = (SELECT COUNT(*) FROM #PlanesSabanaVida)
-INSERT INTO dbo.bf_RepConf_Debug (etapa,detalle) VALUES ('opc_planesvida_total',
- 'planesvida='+CAST(@TotalPSV AS VARCHAR)+' configuracion='+CAST(@Registros AS VARCHAR)
- +' FechaIni_conv='+ISNULL(CAST(TRY_CONVERT(date,@FechaIni) AS VARCHAR),'CONV-ERROR')
- +' FechaFin_conv='+ISNULL(CAST(TRY_CONVERT(date,@FechaFin) AS VARCHAR),'CONV-ERROR'))
-
-SET @i=1
-While @i<=@Registros
-BEGIN
-    Declare @Registro2 INT
-    SET @Registro2=(SELECT Min(CsIdConfiguracionSabana) FROM #Configuracion WHERE Consecutivo=0)
-    Update #Configuracion SET Consecutivo=@i WHERE CsIdConfiguracionSabana=@Registro2
-    SET @i=@i+1
-END
-
-;WITH AliasDuplicado AS (
-    SELECT AliasConsecutivo,
-           ROW_NUMBER() OVER (
-               PARTITION BY CSAlias, DATALENGTH(CSAlias)
-               ORDER BY CSidplan, CsIdConfiguracionSabana) AS NumeroAlias
-    FROM #Configuracion
-)
-UPDATE AliasDuplicado SET AliasConsecutivo = NumeroAlias
-
-SELECT @KueriII=
- CASE WHEN Consecutivo <=30 AND CSidplanopcion IN(3200) AND @idEmpresa NOT IN(288,169,168) THEN
-  isnull(@KueriII,'')+ ',VERDE_12M=ISNULL((SELECT CONVERT(CHAR(20),VSSumaAsegurada,103) FROM FF_VALIDASAVIDA INNER JOIN FF_PlanOpcionseleccion ON VSIdEmpleado=P.Id AND POidplanOpcion=VSIdPlanOpcion AND VSIdVigencia=P.POIdVigencia WHERE VSIdPlanOpcion in(3200) AND POIDplanOpcion in(3200) and POIdSolicitud=P.POidSolicitud and POidplanopcion=' + cast(CSidplanopcion as varchar(5)) + '),(SELECT CONVERT(CHAR(20),SUM(VSSumaAsegurada),103) from ff_ValidaSAvida s WHERE s.VSIdEMpleado=P.Id AND s.VSIdPlanOpcion in(3200) and s.VSIdEstatus=1))+' + ''',Costo_''' + '+RTRIM(cast(Consecutivo as char(3)))+' + '''=(SELECT CONVERT(CHAR(20),SUM(VSPrimaAnual),103) from ff_ValidaSAvida s WHERE s.VSIdEMpleado=P.Id AND s.VSIdPlanOpcion in(3200) and s.VSIdEstatus=1) '''
- WHEN Consecutivo <=30 AND CSidplanopcion IN(3201) AND @idEmpresa IN(288,169,168) THEN
-  isnull(@KueriII,'')+ ',VERDE_12M=ISNULL((SELECT CONVERT(CHAR(20),VSSumaAsegurada,103) FROM FF_VALIDASAVIDA INNER JOIN FF_PlanOpcionseleccion ON VSIdEmpleado=P.Id AND POidplanOpcion=VSIdPlanOpcion AND VSIdVigencia=P.POIdVigencia WHERE VSIdPlanOpcion in(3201) AND POIDplanOpcion in(3201) and POIdSolicitud=P.POidSolicitud and POidplanopcion=' + cast(CSidplanopcion as varchar(5)) + '),(SELECT CONVERT(CHAR(20),SUM(VSSumaAsegurada),103) from ff_ValidaSAvida s WHERE s.VSIdEMpleado=P.Id AND s.VSIdPlanOpcion in(3201) and s.VSIdEstatus=1))+' + ''',Costo_''' + '+RTRIM(cast(Consecutivo as char(3)))+' + '''=(SELECT CONVERT(CHAR(20),SUM(VSPrimaAnual),103) from ff_ValidaSAvida s WHERE s.VSIdEMpleado=P.Id AND s.VSIdPlanOpcion in(3201) and s.VSIdEstatus=1) '''
- WHEN Consecutivo <=30 AND CSidplanopcion NOT IN(3200,3201) AND CSIdConfiguracion=26 THEN
-  isnull(@KueriII,'')+ ',(SELECT CASE WHEN COUNT(*)>0 THEN (SELECT CONVERT(CHAR(20),SUM(VSSumaAsegurada),103) FROM FF_VALIDASAVIDA WHERE VSIdEmpleado=P.Id AND VSIdPlanOpcion=' + cast(CSidplanopcion as varchar(5)) + ' AND VSIdVigencia=P.POIdVigencia) else ' + char(39) + 'N' + char(39) + ' end from ff_PlanOpcionSeleccion s where s.POidEmpleado=P.ID and POIdSolicitud=P.POidSolicitud and s.POidplanopcion=' + cast(CSidplanopcion as varchar(5)) + ') as ' + char(39) + CSalias + CASE WHEN AliasConsecutivo=1 THEN '' ELSE RTRIM(CAST(AliasConsecutivo-1 AS VARCHAR(10))) END + char(39) + char(13) + ',Costo_' + RTRIM(cast(Consecutivo as char(3))) + '=CASE WHEN EMIdParentesco in(1,2) THEN (SELECT CONVERT(CHAR(20),SUM(VSPrimaAnual),103) from ff_PlanOpcionSeleccion s INNER JOIN FF_ValidaSavida v ON v.vsidempleado=s.poidempleado and v.vsidvigencia=s.poidvigencia and v.vsidestatus=1 and v.vsidplanopcion=s.poidplanopcion WHERE s.PONumeroEmpleado=P.EMNumeroEmpleado and s.POIdPlanOpcion=' + cast(CSidplanopcion as varchar(5)) + ' and s.POIdSolicitud=P.POidSolicitud AND s.POidEmpleado=P.ID) ELSE ' + CHAR(39)+CHAR(39) + ' END '
- WHEN Consecutivo <=30 AND CSIdConfiguracion<>26 THEN
-  isnull(@KueriII,'')+ ',(SELECT CASE WHEN COUNT(*)>0 THEN (SELECT CONVERT(CHAR(20),SUM(VSSumaAsegurada),103) FROM FF_VALIDASAVIDA WHERE VSIdEmpleado=P.Id AND VSIdPlanOpcion=' + cast(CSidplanopcion as varchar(5)) + ' AND VSIdVigencia=P.POIdVigencia) else ' + char(39) + 'N' + char(39) + ' end from ff_PlanOpcionSeleccion s where s.POidEmpleado=P.ID and POIdSolicitud=P.POidSolicitud and s.POidplanopcion=' + cast(CSidplanopcion as varchar(5)) + ') as ' + char(39) + CSalias + CASE WHEN AliasConsecutivo=1 THEN '' ELSE RTRIM(CAST(AliasConsecutivo-1 AS VARCHAR(10))) END + char(39) + char(13) + ',Costo_' + RTRIM(cast(Consecutivo as char(3))) + '=CASE WHEN EMIdParentesco in(1,2) THEN (SELECT CONVERT(CHAR(20),SUM(POCostoRestante),103) from ff_PlanOpcionSeleccion s WHERE s.PONumeroEmpleado=P.EMNumeroEmpleado and s.POIdPlanOpcion=' + cast(CSidplanopcion as varchar(5)) + ' and s.POIdSolicitud=P.POidSolicitud AND s.POidEmpleado=P.ID) ELSE ' + CHAR(39)+CHAR(39) + ' END '
- ELSE @KueriII END
-FROM #Configuracion
-order by CSidplan
-
-INSERT INTO dbo.bf_RepConf_Debug (etapa,detalle) VALUES ('opc_kuerii_estado',
- 'es_null='+CASE WHEN @KueriII IS NULL THEN '1' ELSE '0' END
- +' longitud='+CAST(ISNULL(LEN(@KueriII),0) AS VARCHAR)
- +' inicio='+LEFT(ISNULL(@KueriII,'(null)'),200))
-
-SELECT @KueriIII = ' FROM dbo.#PlanesSabanaVida P ORDER BY OFICINA,EMNUMEROEMPLEADO,EMIDPARENTESCO'
-
--- sin columnas dinamicas cuando #Configuracion esta vacio (evita execute(NULL) = sin resultset)
-IF @KueriII IS NULL SET @KueriII = ''
-
-INSERT INTO dbo.bf_RepConf_Debug (etapa,detalle) VALUES ('opc_execute_query',
- 'longitud='+CAST(LEN(@KueriI+@KueriII+@KueriIII) AS VARCHAR)
- +' inicio='+LEFT(@KueriI+@KueriII+@KueriIII, 400))
-
-BEGIN TRY
-    execute (@KueriI + @KueriII + @KueriIII)
-    INSERT INTO dbo.bf_RepConf_Debug (etapa,detalle) VALUES ('opc_fin', 'SP ejecutado correctamente')
-END TRY
-BEGIN CATCH
-    INSERT INTO dbo.bf_RepConf_Debug (etapa,detalle) VALUES ('opc_execute_error',
-        'num='+CAST(ERROR_NUMBER() AS VARCHAR)
-        +' linea='+CAST(ERROR_LINE() AS VARCHAR)
-        +' msg='+LEFT(ERROR_MESSAGE(),500))
-    ;THROW;
-END CATCH
-drop table #PlanesSabanaVida;
-
-end
-GO
-
--- =============================================================================
--- SCRIPT 4: ff_SabanaMascotas_BF3
--- Restaura la hoja dedicada y relaciona cada mascota con su cobertura real.
--- InfoPlanMascota.idPlan se ha usado como plan o como plan-opcion segun la
--- version del ambiente; se soportan ambas convenciones sin duplicar filas.
--- =============================================================================
-CREATE OR ALTER PROCEDURE [dbo].[ff_SabanaMascotas_BF3]
-    @idEmpresa  INT,
-    @FechaIni   VARCHAR(20),
-    @FechaFin   VARCHAR(20),
-    @idVigencia INT,
-    @idEstatus  INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    IF @idEstatus <> 1
-        RETURN;
-
-    SELECT DISTINCT
-        'MASCOTAS' AS NombrePestana,
-        'Mascotas' AS grupo,
-        1 AS IdBeflex,
-        ISNULL(ESA.EMNombre, '') AS Empresa,
-        ADO.EMNumeroEmpleado AS Empleado,
-        LTRIM(RTRIM(ISNULL(ADO.EMApellidoPaterno, '') + ' '
-            + ISNULL(ADO.EMApellidoMaterno, '') + ' '
-            + ISNULL(ADO.EMNombre1, '') + ' '
-            + ISNULL(ADO.EMNombre2, ''))) AS [Nombre titular],
-        PL.PLIdPlan AS IdPlan,
-        PL.PLNombre AS [Plan],
-        POS.POIdPlanOpcion AS idCobertura,
-        PO.PONombre AS Cobertura,
-        POS.POIdEmpleado AS IdDependiente,
-        PA.PADescripcion AS Parentesco,
-        MAS.Nombre,
-        MAS.Edad,
-        MAS.Sexo,
-        MAS.Raza,
-        CASE MAS.Pedigree WHEN 0 THEN 'No' WHEN 1 THEN 'Si' END AS Pedigree,
-        MAS.ColorNariz AS [Color Nariz],
-        MAS.ColorMascota AS [Color Mascota],
-        MAS.CaracteristicasMascota AS [Caracteristicas Mascota],
-        MAS.Enfermedades,
-        POS.POIdSolicitud AS Solicitud
-    FROM dbo.ff_Solicitud AS SO WITH (NOLOCK)
-    INNER JOIN dbo.ff_Empleado AS ADO WITH (NOLOCK)
-        ON ADO.Id = SO.SOIdEmpleado
-       AND ADO.EMIdEmpresa = SO.SOIdEmpresa
-    INNER JOIN dbo.ff_Empresa AS ESA WITH (NOLOCK)
-        ON ESA.EMIdEmpresa = SO.SOIdEmpresa
-       AND ESA.EMIdEstatus = 1
-    INNER JOIN dbo.ff_PlanOpcionSeleccion AS POS WITH (NOLOCK)
-        ON POS.POIdSolicitud = SO.SOIdSolicitud
-       AND POS.POIdEmpresa = SO.SOIdEmpresa
-       AND POS.POIdParentesco = 23
-       AND POS.POIdEstatus IN (1,3,10)
-    INNER JOIN dbo.ff_PlanOpcion AS PO WITH (NOLOCK)
-        ON PO.POIdPlanOpcion = POS.POIdPlanOpcion
-    INNER JOIN dbo.ff_Plan AS PL WITH (NOLOCK)
-        ON PL.PLIdPlan = PO.POIdPlan
-    INNER JOIN dbo.ff_Parentesco AS PA WITH (NOLOCK)
-        ON PA.PAIdParentesco = POS.POIdParentesco
-    INNER JOIN dbo.ff_InfoPlanMascota AS MAS WITH (NOLOCK)
-        ON MAS.idSolicitud = SO.SOIdSolicitud
-       AND MAS.idBeneficiario = POS.POIdEmpleado
-       AND (MAS.idPlan = POS.POIdPlanOpcion OR MAS.idPlan = PL.PLIdPlan)
-       AND MAS.status = 1
-    WHERE SO.SOIdEmpresa = @idEmpresa
-      AND SO.SOIdVigencia = @idVigencia
-      AND SO.SOEstatusSolicitud IN (1,3)
-      AND ISNULL(SO.SOFechaAprovacion, CONVERT(date,@FechaFin))
-            >= CONVERT(date,@FechaIni)
-      AND ISNULL(SO.SOFechaAprovacion, CONVERT(date,@FechaFin))
-            <= CONVERT(date,@FechaFin)
-    ORDER BY ADO.EMNumeroEmpleado, POS.POIdSolicitud,
-             POS.POIdEmpleado, MAS.Nombre;
-END
-GO
-
--- =============================================================================
--- SCRIPT 5: ff_Sabana_v2 (wrapper - igual que ff_Sabana_BF3 pero llama _v2)
--- =============================================================================
-CREATE OR ALTER PROCEDURE [dbo].[ff_Sabana_v2]
-    @idEmpresa    INT,
-    @FechaIni     VARCHAR(50),
-    @FechaFin     VARCHAR(50),
-    @idEstatus    INT,
-    @idVigencia   INT,
-    @Confidencial INT = 0
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    -- No ocultar errores: un Excel parcial no debe marcarse como exitoso.
-    EXEC dbo.ff_SabanaGMM_v2
-        @idEmpresa    = @idEmpresa,
-        @FechaIni     = @FechaIni,
-        @FechaFin     = @FechaFin,
-        @idEstatus    = @idEstatus,
-        @idVigencia   = @idVigencia,
-        @Confidencial = @Confidencial;
-
-    EXEC dbo.ff_SabanaVIDA_v2
-        @idEmpresa    = @idEmpresa,
-        @FechaIni     = @FechaIni,
-        @FechaFin     = @FechaFin,
-        @idEstatus    = @idEstatus,
-        @idVigencia   = @idVigencia,
-        @Confidencial = @Confidencial;
-
-    EXEC dbo.ff_SabanaOPC_v2
-        @idEmpresa    = @idEmpresa,
-        @FechaIni     = @FechaIni,
-        @FechaFin     = @FechaFin,
-        @idEstatus    = @idEstatus,
-        @idVigencia   = @idVigencia,
-        @Confidencial = @Confidencial;
-
-    IF @idEstatus = 1
-    BEGIN
-        EXEC dbo.ff_SabanaMascotas_BF3
-            @idEmpresa  = @idEmpresa,
-            @FechaIni   = @FechaIni,
-            @FechaFin   = @FechaFin,
-            @idVigencia = @idVigencia,
-            @idEstatus  = @idEstatus;
-    END
-END
-GO
-
--- =============================================================================
--- SCRIPT 6: asegurar configuracion de la hoja Mascotas
--- Se reemplaza exclusivamente la configuracion global de este grupo. No se
--- modifican configuraciones particulares de ninguna empresa.
--- =============================================================================
-BEGIN TRY
-BEGIN TRANSACTION;
-
-IF EXISTS
+DECLARE @IdEmpresa    int  = 2185,
+        @IdVigencia   int  = 4067,
+        @FechaIni     date = '20251013',
+        @FechaFin     date = '20260930',
+        @IdEstatus    int  = 1,
+        @Confidencial int  = 1;
+
+CREATE TABLE #Resultado
 (
-    SELECT 1
-    FROM dbo.bf_RepConf_Tabla
-    WHERE idEmpresa = 0
-      AND catReportesId = 3
-      AND grupo = N'Mascotas'
+    Orden    int            NOT NULL,
+    Seccion  varchar(50)    NOT NULL,
+    Estado   varchar(10)    NOT NULL,
+    Clave    nvarchar(250)  NOT NULL,
+    Valor    nvarchar(max)  NULL,
+    Detalle  nvarchar(max)  NULL
+);
+
+/* =====================================================================
+   01. SERVIDOR, BASE Y PARAMETROS
+   ===================================================================== */
+INSERT #Resultado(Orden,Seccion,Estado,Clave,Valor,Detalle)
+VALUES
+(100,'01_CONTEXTO','INFO','Servidor',CONVERT(nvarchar(128),SERVERPROPERTY('ServerName')),
+ N'Debe ser el mismo servidor configurado en APIREPORTS.'),
+(101,'01_CONTEXTO','INFO','Maquina',CONVERT(nvarchar(128),SERVERPROPERTY('MachineName')),NULL),
+(102,'01_CONTEXTO','INFO','Instancia',ISNULL(CONVERT(nvarchar(128),SERVERPROPERTY('InstanceName')),N'(predeterminada)'),NULL),
+(103,'01_CONTEXTO','INFO','BaseDatos',DB_NAME(),N'Debe ser la misma base configurada en APIREPORTS.'),
+(104,'01_CONTEXTO','INFO','Login',SUSER_SNAME(),NULL),
+(105,'01_CONTEXTO','INFO','Parametros',
+ CONCAT(N'Empresa=',@IdEmpresa,N'; Vigencia=',@IdVigencia,N'; Inicio=',CONVERT(char(10),@FechaIni,120),
+        N'; Fin=',CONVERT(char(10),@FechaFin,120),N'; Estatus=',@IdEstatus,N'; Confidencial=',@Confidencial),NULL);
+
+INSERT #Resultado(Orden,Seccion,Estado,Clave,Valor,Detalle)
+SELECT 110,'01_CONTEXTO',
+       CASE WHEN EXISTS(SELECT 1 FROM dbo.ff_Empresa WHERE EMIdEmpresa=@IdEmpresa) THEN 'OK' ELSE 'ALERTA' END,
+       'EmpresaExiste',
+       CASE WHEN EXISTS(SELECT 1 FROM dbo.ff_Empresa WHERE EMIdEmpresa=@IdEmpresa) THEN '1' ELSE '0' END,
+       N'Debe ser 1.';
+
+INSERT #Resultado(Orden,Seccion,Estado,Clave,Valor,Detalle)
+SELECT 111,'01_CONTEXTO',
+       CASE WHEN EXISTS(SELECT 1 FROM dbo.ff_Vigencia WHERE VIIdVigencia=@IdVigencia) THEN 'OK' ELSE 'ALERTA' END,
+       'VigenciaExiste',
+       CASE WHEN EXISTS(SELECT 1 FROM dbo.ff_Vigencia WHERE VIIdVigencia=@IdVigencia) THEN '1' ELSE '0' END,
+       N'Debe ser 1.';
+
+/* =====================================================================
+   02. OBJETOS INSTALADOS
+   ===================================================================== */
+DECLARE @ObjetosEsperados TABLE
+(
+    Orden  int           NOT NULL,
+    Objeto nvarchar(128) NOT NULL,
+    Requerido bit        NOT NULL
+);
+
+INSERT @ObjetosEsperados(Orden,Objeto,Requerido)
+VALUES (201,N'ff_Sabana_v2',1),
+       (202,N'ff_SabanaGMM_v2',1),
+       (203,N'ff_SabanaVIDA_v2',1),
+       (204,N'ff_SabanaOPC_v2',1),
+       (205,N'ff_SabanaMascotas_BF3',1),
+       (206,N'ff_orquestadorReportes',1),
+       (207,N'ff_Sabana_BF3',0),
+       (208,N'ff_SabanaGMM_BF3',0),
+       (209,N'ff_SabanaVIDA_BF3',0),
+       (210,N'ff_SabanaOPC_BF3',0);
+
+INSERT #Resultado(Orden,Seccion,Estado,Clave,Valor,Detalle)
+SELECT E.Orden,
+       '02_OBJETOS_SQL',
+       CASE WHEN O.object_id IS NOT NULL THEN 'OK'
+            WHEN E.Requerido=1 THEN 'ALERTA' ELSE 'INFO' END,
+       E.Objeto,
+       CASE WHEN O.object_id IS NULL THEN N'NO EXISTE'
+            ELSE CONCAT(N'EXISTE; modificado=',CONVERT(char(19),O.modify_date,120),
+                        N'; bytes=',DATALENGTH(M.definition)) END,
+       CASE WHEN E.Requerido=1 THEN N'Objeto requerido por la ruta corregida.'
+            ELSE N'Objeto legacy mostrado solamente para comparar.' END
+FROM @ObjetosEsperados AS E
+LEFT JOIN sys.objects AS O
+       ON O.name=E.Objeto
+      AND O.schema_id=SCHEMA_ID(N'dbo')
+LEFT JOIN sys.sql_modules AS M ON M.object_id=O.object_id;
+
+/* =====================================================================
+   03. LOGICA INSTALADA EN ff_SabanaOPC_v2
+   ===================================================================== */
+DECLARE @DefinicionOPC nvarchar(max)=
+(
+    SELECT definition
+    FROM sys.sql_modules
+    WHERE object_id=OBJECT_ID(N'dbo.ff_SabanaOPC_v2')
+);
+
+DECLARE @DefNorm nvarchar(max)=UPPER(
+    REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(@DefinicionOPC,N''),
+        N' ',N''),CHAR(9),N''),CHAR(10),N''),CHAR(13),N''),N'[',N''));
+SET @DefNorm=REPLACE(@DefNorm,N']',N'');
+
+DECLARE @ValidaEmpresa bit=CASE WHEN @DefNorm LIKE N'%SO.SOIDEMPRESA=POS.POIDEMPRESA%' THEN 1 ELSE 0 END,
+        @ValidaEstatus bit=CASE WHEN @DefNorm LIKE N'%SO.SOESTATUSSOLICITUDIN(1,3)%' THEN 1 ELSE 0 END,
+        @ValidaFiltroEmpresa bit=CASE WHEN @DefNorm LIKE N'%CS.CSIDTIPOSABANA=3ANDPOIDEMPRESA=@IDEMPRESA%' THEN 1 ELSE 0 END,
+        @ValidaVigencia bit=CASE WHEN @DefNorm LIKE N'%POS.POIDVIGENCIA=@IDVIGENCIA%' THEN 1 ELSE 0 END;
+
+INSERT #Resultado(Orden,Seccion,Estado,Clave,Valor,Detalle)
+VALUES
+(301,'03_LOGICA_OPC',CASE WHEN @ValidaEmpresa=1 THEN 'OK' ELSE 'ALERTA' END,
+ 'UneSolicitudConEmpresa',CONVERT(varchar(1),@ValidaEmpresa),N'Debe ser 1.'),
+(302,'03_LOGICA_OPC',CASE WHEN @ValidaEstatus=1 THEN 'OK' ELSE 'ALERTA' END,
+ 'FiltraSolicitudActiva',CONVERT(varchar(1),@ValidaEstatus),N'Debe ser 1.'),
+(303,'03_LOGICA_OPC',CASE WHEN @ValidaFiltroEmpresa=1 THEN 'OK' ELSE 'ALERTA' END,
+ 'FiltraEmpresa',CONVERT(varchar(1),@ValidaFiltroEmpresa),N'Debe ser 1.'),
+(304,'03_LOGICA_OPC',CASE WHEN @ValidaVigencia=1 THEN 'OK' ELSE 'ALERTA' END,
+ 'FiltraVigencia',CONVERT(varchar(1),@ValidaVigencia),N'Debe ser 1.');
+
+/* =====================================================================
+   04. RUTA QUE EJECUTA EL REPORTE 3
+   ===================================================================== */
+INSERT #Resultado(Orden,Seccion,Estado,Clave,Valor,Detalle)
+SELECT 400+ROW_NUMBER() OVER(ORDER BY SP.catReportesSPOrden,SP.catReportesSPId),
+       '04_RUTA_REPORTE',
+       CASE WHEN SP.catReportesSPNombre='ff_Sabana_v2' AND ISNULL(SP.ESid,1)=1
+            THEN 'OK'
+            WHEN ISNULL(SP.ESid,1)=1 THEN 'ALERTA'
+            ELSE 'INFO' END,
+       CONCAT(N'catReportesSPId=',SP.catReportesSPId),
+       CONCAT(N'nombre=',SP.catReportesSPNombre,N'; orden=',SP.catReportesSPOrden,N'; ESId=',SP.ESid),
+       CASE WHEN SP.catReportesSPNombre='ff_Sabana_v2' AND ISNULL(SP.ESid,1)=1
+            THEN N'Ruta activa esperada.'
+            WHEN ISNULL(SP.ESid,1)=1 THEN N'Ruta activa incorrecta.'
+            ELSE N'Ruta inactiva.' END
+FROM dbo.bf_CatReportesSP AS SP
+WHERE SP.catReportesId=3;
+
+DECLARE @RutasActivas int=(SELECT COUNT(*) FROM dbo.bf_CatReportesSP WHERE catReportesId=3 AND ISNULL(ESid,1)=1),
+        @RutasCorrectas int=(SELECT COUNT(*) FROM dbo.bf_CatReportesSP WHERE catReportesId=3 AND ISNULL(ESid,1)=1 AND catReportesSPNombre='ff_Sabana_v2');
+
+INSERT #Resultado(Orden,Seccion,Estado,Clave,Valor,Detalle)
+VALUES
+(450,'04_RUTA_REPORTE',CASE WHEN @RutasActivas=1 AND @RutasCorrectas=1 THEN 'OK' ELSE 'ALERTA' END,
+ 'ResumenRuta',CONCAT(N'Activas=',@RutasActivas,N'; correctas=',@RutasCorrectas),
+ N'Debe existir una sola ruta activa y debe llamarse ff_Sabana_v2.');
+
+/* =====================================================================
+   05. PARAMETROS QUE TERMINA LEYENDO EL ORQUESTADOR
+   ===================================================================== */
+INSERT #Resultado(Orden,Seccion,Estado,Clave,Valor,Detalle)
+SELECT 500+ROW_NUMBER() OVER(ORDER BY SP.catReportesSPOrden,SP.catReportesSPId,P.catReportesParamsOrden,P.catReportesParamsId),
+       '05_PARAMETROS','INFO',
+       CONCAT(N'SP=',SP.catReportesSPId,N'; Param=',ISNULL(P.catReportesParamsNombre,N'(sin parametro)')),
+       CONCAT(N'SPActivo=',SP.ESid,N'; OrdenSP=',SP.catReportesSPOrden,
+              N'; OrdenParam=',P.catReportesParamsOrden,N'; ParamActivo=',P.ESid),
+       SP.catReportesSPNombre
+FROM dbo.bf_CatReportesSP AS SP
+LEFT JOIN dbo.bf_CatReportesParams AS P ON P.catReportesSPId=SP.catReportesSPId
+WHERE SP.catReportesId=3;
+
+;WITH RutaActiva AS
+(
+    SELECT TOP(1) catReportesSPOrden
+    FROM dbo.bf_CatReportesSP
+    WHERE catReportesId=3 AND ISNULL(ESid,1)=1
+    ORDER BY catReportesSPOrden,catReportesSPId
+),
+ParametrosEfectivos AS
+(
+    /* Replica la seleccion de parametros de ff_orquestadorReportes. */
+    SELECT UPPER(LTRIM(RTRIM(P.catReportesParamsNombre))) AS Parametro
+    FROM dbo.bf_CatReportesParams AS P
+    INNER JOIN dbo.bf_CatReportesSP AS SP ON SP.catReportesSPId=P.catReportesSPId
+    INNER JOIN RutaActiva AS R ON R.catReportesSPOrden=SP.catReportesSPOrden
+    WHERE SP.catReportesId=3
+),
+Duplicados AS
+(
+    SELECT Parametro,COUNT(*) AS Cantidad
+    FROM ParametrosEfectivos
+    GROUP BY Parametro
+    HAVING COUNT(*)>1
 )
+INSERT #Resultado(Orden,Seccion,Estado,Clave,Valor,Detalle)
+SELECT 590+ROW_NUMBER() OVER(ORDER BY Parametro),
+       '05_PARAMETROS','ALERTA',Parametro,CONVERT(varchar(20),Cantidad),
+       N'El orquestador enviaria este argumento mas de una vez.'
+FROM Duplicados;
+
+IF NOT EXISTS(SELECT 1 FROM #Resultado WHERE Seccion='05_PARAMETROS' AND Estado='ALERTA')
+    INSERT #Resultado VALUES(599,'05_PARAMETROS','OK','ParametrosDuplicados','0',N'Debe ser 0.');
+
+/* =====================================================================
+   06 Y 07. CONTEOS Y FILAS RECHAZADAS EN LOS DATOS FUENTE
+   ===================================================================== */
+SELECT DISTINCT
+       CS.CSAlias AS Hoja,
+       POS.POIdSolicitud,
+       POS.POIdEmpleado,
+       POS.POIdPlanOpcion,
+       POS.POIdGrupoParentesco,
+       POS.POIdEstatus,
+       SO.SONumeroSolicitud,
+       SO.SOIdEmpresa,
+       SO.SOIdEstatus,
+       SO.SOEstatusSolicitud,
+       EM.EMIdSalarioConfidencial,
+       EM.EMNumeroEmpleado,
+       EM.EMNombre1,
+       EM.EMNombre2,
+       EM.EMApellidoPaterno,
+       EM.EMApellidoMaterno
+INTO #DatosOpcionales
+FROM dbo.ff_PlanOpcionSeleccion AS POS
+INNER JOIN dbo.ff_PlanOpcion AS PO
+        ON PO.POIdPlanOpcion=POS.POIdPlanOpcion
+       AND POS.POIdEstatus IN(1,3,10)
+INNER JOIN dbo.ff_Empleado AS EM ON EM.Id=POS.POIdEmpleado
+INNER JOIN dbo.ff_ConfiguracionSabana AS CS ON CS.CSIdPlanOpcion=POS.POIdPlanOpcion
+INNER JOIN dbo.ff_Solicitud AS SO
+        ON SO.SOIdSolicitud=POS.POIdSolicitud
+       AND SO.SOIdEmpresa=POS.POIdEmpresa
+       AND SO.SOIdEstatus IN(1,3,10)
+WHERE CS.CSIdEstatus=1
+  AND CS.CSIdTipoSabana=3
+  AND POS.POIdEmpresa=@IdEmpresa
+  AND POS.POIdVigencia=@IdVigencia
+  AND ISNULL(SO.SOFechaAprovacion,@FechaFin)>=@FechaIni
+  AND ISNULL(SO.SOFechaAprovacion,@FechaFin)<=@FechaFin
+  AND EM.EMNumeroEmpleado NOT LIKE 'test%';
+
+;WITH Conteos AS
+(
+    SELECT Hoja,
+           COUNT(*) AS AnteriorB3,
+           SUM(CASE WHEN SOEstatusSolicitud IN(1,3) THEN 1 ELSE 0 END) AS CorregidoTodos,
+           SUM(CASE WHEN SOEstatusSolicitud IN(1,3)
+                         AND (@Confidencial=1 OR ISNULL(EMIdSalarioConfidencial,0)=0)
+                    THEN 1 ELSE 0 END) AS CorregidoSegunConfidencial,
+           SUM(CASE WHEN SOEstatusSolicitud NOT IN(1,3) OR SOEstatusSolicitud IS NULL
+                    THEN 1 ELSE 0 END) AS Excluidos
+    FROM #DatosOpcionales
+    WHERE UPPER(Hoja) LIKE N'%GASTOS FUNER%'
+       OR UPPER(Hoja) LIKE N'%PLAN DE PENSI%'
+    GROUP BY Hoja
+)
+INSERT #Resultado(Orden,Seccion,Estado,Clave,Valor,Detalle)
+SELECT 600+ROW_NUMBER() OVER(ORDER BY Hoja),
+       '06_CONTEOS_FUENTE',
+       CASE WHEN (UPPER(Hoja) LIKE N'%GASTOS FUNER%' AND CorregidoTodos=215)
+                  OR (UPPER(Hoja) LIKE N'%PLAN DE PENSI%' AND CorregidoTodos=255)
+            THEN 'OK' ELSE 'ALERTA' END,
+       Hoja,
+       CONCAT(N'AnteriorB3=',AnteriorB3,N'; CorregidoTodos=',CorregidoTodos,
+              N'; CorregidoSegunConfidencial=',CorregidoSegunConfidencial,N'; Excluidos=',Excluidos),
+       N'Con la extraccion recibida se esperan 215 en Gastos Funerarios y 255 en Plan de Pension.'
+FROM Conteos;
+
+INSERT #Resultado(Orden,Seccion,Estado,Clave,Valor,Detalle)
+SELECT 700+ROW_NUMBER() OVER(ORDER BY Hoja,POIdSolicitud,POIdEmpleado),
+       '07_FILAS_RECHAZADAS','INFO',
+       CONCAT(Hoja,N'; Solicitud=',POIdSolicitud,N'; Empleado=',POIdEmpleado),
+       CONCAT(N'NumeroSolicitud=',SONumeroSolicitud,N'; SOEstatusSolicitud=',SOEstatusSolicitud,
+              N'; PlanOpcion=',POIdPlanOpcion,N'; NumeroEmpleado=',EMNumeroEmpleado),
+       LTRIM(RTRIM(CONCAT(ISNULL(EMNombre1,N''),N' ',ISNULL(EMNombre2,N''),N' ',
+                          ISNULL(EMApellidoPaterno,N''),N' ',ISNULL(EMApellidoMaterno,N''))))
+FROM #DatosOpcionales
+WHERE (UPPER(Hoja) LIKE N'%GASTOS FUNER%' OR UPPER(Hoja) LIKE N'%PLAN DE PENSI%')
+  AND (SOEstatusSolicitud NOT IN(1,3) OR SOEstatusSolicitud IS NULL);
+
+DECLARE @FilasRechazadas int=
+(
+    SELECT COUNT(*)
+    FROM #DatosOpcionales
+    WHERE (UPPER(Hoja) LIKE N'%GASTOS FUNER%' OR UPPER(Hoja) LIKE N'%PLAN DE PENSI%')
+      AND (SOEstatusSolicitud NOT IN(1,3) OR SOEstatusSolicitud IS NULL)
+);
+
+INSERT #Resultado VALUES
+(750,'07_FILAS_RECHAZADAS',CASE WHEN @FilasRechazadas=3 THEN 'OK' ELSE 'ALERTA' END,
+ 'TotalFilasQueNoDebenSalir',CONVERT(varchar(20),@FilasRechazadas),
+ N'Con la extraccion recibida se esperan tres: dos de Gastos Funerarios y una de Pension.');
+
+/* =====================================================================
+   08. ULTIMA EJECUCION OBSERVABLE EN LA CACHE DE SQL SERVER
+   ===================================================================== */
+IF HAS_PERMS_BY_NAME(NULL,NULL,'VIEW SERVER STATE')=1
 BEGIN
-    UPDATE dbo.bf_RepConf_Tabla
-    SET columnaGrupo = N'NombrePestana',
-        agruparPorColumna = 0,
-        indexTable = 3,
-        alineacion = N'Derecha',
-        colorFondo = N'#0D6EFD',
-        colorLetra = N'White',
-        activo = 1,
-        repConfTablaUsuarioMod = 0,
-        repConfTablaFechaMod = GETDATE()
-    WHERE idEmpresa = 0
-      AND catReportesId = 3
-      AND grupo = N'Mascotas';
+    INSERT #Resultado(Orden,Seccion,Estado,Clave,Valor,Detalle)
+    SELECT 800+ROW_NUMBER() OVER(ORDER BY P.name),
+           '08_ULTIMA_EJECUCION','INFO',P.name,
+           ISNULL(CONVERT(char(23),PS.last_execution_time,121),N'(sin dato en cache)'),
+           CASE WHEN PS.execution_count IS NULL THEN N'La cache puede haberse limpiado.'
+                ELSE CONCAT(N'EjecucionesEnCache=',PS.execution_count,
+                            N'; UltimaDuracionMicrosegundos=',PS.last_elapsed_time) END
+    FROM sys.procedures AS P
+    LEFT JOIN sys.dm_exec_procedure_stats AS PS
+           ON PS.object_id=P.object_id AND PS.database_id=DB_ID()
+    WHERE P.schema_id=SCHEMA_ID(N'dbo')
+      AND P.name IN(N'ff_orquestadorReportes',N'ff_Sabana_v2',N'ff_SabanaGMM_v2',
+                    N'ff_SabanaVIDA_v2',N'ff_SabanaOPC_v2',N'ff_Sabana_BF3',
+                    N'ff_SabanaGMM_BF3',N'ff_SabanaVIDA_BF3',N'ff_SabanaOPC_BF3');
 END
 ELSE
+    INSERT #Resultado VALUES
+    (899,'08_ULTIMA_EJECUCION','INFO','Permiso','SIN VIEW SERVER STATE',
+     N'La falta de este permiso no invalida las demas secciones.');
+
+/* =====================================================================
+   09. INICIOS RECIENTES DE ff_SabanaOPC_v2 PARA LA EMPRESA
+   Si no hay una fila posterior al reporte nuevo, el sitio uso otro SP/base.
+   ===================================================================== */
+IF OBJECT_ID(N'dbo.bf_RepConf_Debug',N'U') IS NOT NULL
 BEGIN
-    INSERT dbo.bf_RepConf_Tabla
-    (
-        idEmpresa, catReportesId, grupo, columnaGrupo,
-        agruparPorColumna, indexTable, tituloTabla,
-        espacioIzquierda, espacioDerecha, alineacion,
-        colorFondo, colorLetra, activo,
-        repConfTablaUsuarioAdd, repConfTablaFechaAdd
-    )
-    VALUES
-    (
-        0, 3, N'Mascotas', N'NombrePestana',
-        0, 3, NULL,
-        NULL, NULL, N'Derecha',
-        N'#0D6EFD', N'White', 1,
-        0, GETDATE()
-    );
-END;
-
-DELETE dbo.bf_RepConf_Columna
-WHERE idEmpresa = 0
-  AND catReportesId = 3
-  AND grupo = N'Mascotas';
-
-INSERT dbo.bf_RepConf_Columna
-(
-    idEmpresa, catReportesId, grupo, orden,
-    campoOrigen, encabezado, visible, ancho,
-    formato, alinear, tipoDato,
-    repConfColumnaUsuarioAdd, repConfColumnaFechaAdd
-)
-VALUES
-    (0,3,N'Mascotas', 2,N'Empresa',N'Empresa',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas', 3,N'Empleado',N'Número Empleado',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas', 4,N'Nombre titular',N'Nombre titular',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas', 5,N'IdPlan',N'IdPlan',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas', 6,N'Plan',N'Plan',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas', 7,N'idCobertura',N'idCobertura',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas', 8,N'Cobertura',N'Cobertura',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas', 9,N'IdDependiente',N'IdDependiente',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas',10,N'Parentesco',N'Parentesco',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas',11,N'Nombre',N'Nombre',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas',12,N'Sexo',N'Sexo',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas',13,N'Raza',N'Raza',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas',14,N'Edad',N'Edad',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas',15,N'Pedigree',N'Pedigree',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas',16,N'Color Nariz',N'Color Nariz',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas',17,N'Color Mascota',N'Color Mascota',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas',18,N'Caracteristicas Mascota',N'Caracteristicas Mascota',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas',19,N'Enfermedades',N'Enfermedades',1,NULL,NULL,NULL,NULL,0,GETDATE()),
-    (0,3,N'Mascotas',20,N'Solicitud',N'Solicitud',1,NULL,NULL,NULL,NULL,0,GETDATE());
-
-COMMIT TRANSACTION;
-END TRY
-BEGIN CATCH
-    IF XACT_STATE() <> 0
-        ROLLBACK TRANSACTION;
-    THROW;
-END CATCH;
-GO
-
--- =============================================================================
--- SCRIPT 7: apuntar reporteId=3 a ff_Sabana_v2
---
--- No se usa un catReportesSPId fijo: es identity y cambia entre ambientes.
--- El orquestador debe encontrar una sola ruta activa para el reporte Sabana.
--- =============================================================================
-DECLARE @SabanaReporteId int = 3,
-        @SabanaSPId      int,
-        @OrdenConf       int;
-
-SELECT TOP (1)
-       @SabanaSPId = SP.catReportesSPId
-FROM dbo.bf_CatReportesSP AS SP
-WHERE SP.catReportesId = @SabanaReporteId
-ORDER BY CASE
-             WHEN ISNULL(SP.ESid, 1) = 1
-              AND SP.catReportesSPNombre = 'ff_Sabana_v2' THEN 0
-             WHEN ISNULL(SP.ESid, 1) = 1 THEN 1
-             WHEN SP.catReportesSPNombre = 'ff_Sabana_v2' THEN 2
-             ELSE 3
-         END,
-         SP.catReportesSPOrden,
-         SP.catReportesSPId;
-
-IF @SabanaSPId IS NULL
-    THROW 55210, 'El reporte 3 (Sabana) no tiene configuracion en dbo.bf_CatReportesSP.', 1;
-
-BEGIN TRY
-    BEGIN TRANSACTION;
-
-    UPDATE dbo.bf_CatReportesSP
-    SET catReportesSPNombre = 'ff_Sabana_v2',
-        ESid = 1
-    WHERE catReportesSPId = @SabanaSPId;
-
-    /* Evita que el sitio ejecute tambien una ruta legacy del mismo reporte. */
-    UPDATE dbo.bf_CatReportesSP
-    SET ESid = 0
-    WHERE catReportesId = @SabanaReporteId
-      AND catReportesSPId <> @SabanaSPId
-      AND ISNULL(ESid, 1) = 1;
-
-    /*
-       Una reinstalacion previa podia duplicar parametros y hacer que el
-       orquestador enviara dos veces el mismo argumento al procedimiento.
-    */
-    ;WITH ParametrosDuplicados AS
-    (
-        SELECT P.catReportesParamsId,
-               ROW_NUMBER() OVER
-               (
-                   PARTITION BY UPPER(LTRIM(RTRIM(P.catReportesParamsNombre)))
-                   ORDER BY CASE WHEN ISNULL(P.ESid, 1) = 1 THEN 0 ELSE 1 END,
-                            P.catReportesParamsId
-               ) AS NumeroFila
-        FROM dbo.bf_CatReportesParams AS P
-        WHERE P.catReportesSPId = @SabanaSPId
-    )
-    DELETE P
-    FROM dbo.bf_CatReportesParams AS P
-    INNER JOIN ParametrosDuplicados AS D
-            ON D.catReportesParamsId = P.catReportesParamsId
-    WHERE D.NumeroFila > 1;
-
-    /* El parametro es opcional en SQL, pero el sitio lo envia cuando aplica. */
-    IF NOT EXISTS
-    (
-        SELECT 1
-        FROM dbo.bf_CatReportesParams AS P
-        WHERE P.catReportesSPId = @SabanaSPId
-          AND UPPER(LTRIM(RTRIM(P.catReportesParamsNombre))) = '@CONFIDENCIAL'
-    )
-    BEGIN
-        SELECT @OrdenConf = CASE
-                                WHEN NOT EXISTS
-                                     (
-                                         SELECT 1
-                                         FROM dbo.bf_CatReportesParams
-                                         WHERE catReportesSPId = @SabanaSPId
-                                           AND catReportesParamsOrden = 6
-                                     ) THEN 6
-                                ELSE ISNULL(MAX(catReportesParamsOrden), 5) + 1
-                            END
-        FROM dbo.bf_CatReportesParams
-        WHERE catReportesSPId = @SabanaSPId;
-
-        INSERT dbo.bf_CatReportesParams
+    EXEC sys.sp_executesql N'
+        INSERT #Resultado(Orden,Seccion,Estado,Clave,Valor,Detalle)
+        SELECT 900+ROW_NUMBER() OVER(ORDER BY id DESC),
+               ''09_TRAZA_SITIO'',''INFO'',CONCAT(''opc_inicio id='',id),
+               CONVERT(char(23),fecha,121),detalle
+        FROM
         (
-            catReportesSPId,
-            catReportesTipoDatoId,
-            catReportesParamsLongitud,
-            catReportesParamsOrden,
-            catReportesParamsNombre,
-            catReportesParamsDesc,
-            ESid,
-            catReportesParamsUsuarioAdd,
-            catReportesParamsFechaAdd
-        )
-        VALUES
-        (
-            @SabanaSPId,
-            1,
-            '1',
-            @OrdenConf,
-            '@confidencial',
-            'Filtro confidencialidad salarial (0=solo no-confidenciales, 1=todos)',
-            1,
-            0,
-            GETDATE()
-        );
-    END;
+            SELECT TOP(20) id,fecha,detalle
+            FROM dbo.bf_RepConf_Debug WITH(NOLOCK)
+            WHERE etapa=''opc_inicio''
+              AND detalle LIKE ''idEmpresa=''+CONVERT(varchar(20),@Empresa)+'' %''
+            ORDER BY id DESC
+        ) AS T;',
+        N'@Empresa int',@Empresa=@IdEmpresa;
 
-    IF
-    (
-        SELECT COUNT(*)
-        FROM dbo.bf_CatReportesSP
-        WHERE catReportesId = @SabanaReporteId
-          AND ISNULL(ESid, 1) = 1
-    ) <> 1
-        THROW 55211, 'El reporte 3 debe tener una sola configuracion de SP activa.', 1;
-
-    IF NOT EXISTS
-    (
-        SELECT 1
-        FROM dbo.bf_CatReportesSP
-        WHERE catReportesSPId = @SabanaSPId
-          AND catReportesSPNombre = 'ff_Sabana_v2'
-          AND ISNULL(ESid, 1) = 1
-    )
-        THROW 55212, 'No fue posible activar dbo.ff_Sabana_v2 para el reporte 3.', 1;
-
-    COMMIT TRANSACTION;
-END TRY
-BEGIN CATCH
-    IF XACT_STATE() <> 0
-        ROLLBACK TRANSACTION;
-    THROW;
-END CATCH;
-
-SELECT SP.catReportesSPId,
-       SP.catReportesId,
-       SP.catReportesSPNombre,
-       SP.catReportesSPOrden,
-       SP.ESid
-FROM dbo.bf_CatReportesSP AS SP
-WHERE SP.catReportesId = @SabanaReporteId
-ORDER BY SP.catReportesSPOrden, SP.catReportesSPId;
-GO
-
--- Encabezados globales tal como los expone el Excel legacy. Las empresas con
--- configuracion especifica (por ejemplo ATT: Cobertura) conservan su valor.
-UPDATE dbo.bf_RepConf_Columna
-SET encabezado = CASE campoOrigen
-    WHEN 'PONombre' THEN 'PONombre'
-    WHEN 'NumExt' THEN 'NumExt'
-    WHEN 'NumInt' THEN 'NumInt'
-    WHEN 'Id' THEN 'id'
-    ELSE encabezado
+    IF NOT EXISTS(SELECT 1 FROM #Resultado WHERE Seccion='09_TRAZA_SITIO')
+        INSERT #Resultado VALUES
+        (999,'09_TRAZA_SITIO','ALERTA','SinEjecucionOPCv2','0',
+         N'Si ya se genero el reporte, el sitio no llamo ff_SabanaOPC_v2 o usa otra base.');
 END
-WHERE catReportesId = 3
-  AND idEmpresa = 0
-  AND UPPER(LTRIM(RTRIM(grupo))) IN ('OPC', 'OPCIONALES')
-  AND campoOrigen IN ('PONombre', 'NumExt', 'NumInt', 'Id');
+ELSE
+    INSERT #Resultado VALUES
+    (999,'09_TRAZA_SITIO','ALERTA','TablaDebug','NO EXISTE',
+     N'No se puede confirmar desde esta base si el sitio ejecuto ff_SabanaOPC_v2.');
 
--- Ajustes exactos observados contra los Excel legacy de Corteva.
-UPDATE dbo.bf_RepConf_Columna
-SET encabezado = CASE campoOrigen
-    WHEN 'PONombre' THEN 'PONombre'
-    WHEN 'NumExt' THEN 'NumExt'
-    WHEN 'NumInt' THEN 'NumInt'
-    ELSE encabezado
-END
-WHERE catReportesId = 3
-  AND idEmpresa = 856
-  AND UPPER(LTRIM(RTRIM(grupo))) IN ('OPC', 'OPCIONALES')
-  AND campoOrigen IN ('PONombre', 'NumExt', 'NumInt');
+/* =====================================================================
+   10. UNICO RESULTSET: EXPORTAR ESTA TABLA COMPLETA A UN SOLO CSV
+   ===================================================================== */
+INSERT #Resultado VALUES
+(1000,'10_LECTURA','INFO','Instruccion',N'Exportar este unico resultset completo.',
+ N'Una ALERTA identifica la seccion que explica por que el sitio sigue diferente.');
 
-UPDATE dbo.bf_RepConf_Columna
-SET encabezado = 'EMOficina'
-WHERE catReportesId = 3
-  AND idEmpresa = 856
-  AND UPPER(LTRIM(RTRIM(grupo))) = 'VIDA'
-  AND UPPER(LTRIM(RTRIM(campoOrigen))) = 'EMOFICINA';
-
--- El XML legacy usa estos nombres de pestana; la configuracion migrada
--- contenia la variante completa y producia un nombre distinto en B3.
-UPDATE dbo.ff_ConfiguracionSabana
-SET CSAlias = 'GRAVES ENFERMEDADE'
-WHERE CSidConfiguracion = 25
-  AND CSAlias = 'GRAVES ENFERMEDADES';
-
-UPDATE dbo.ff_ConfiguracionSabana
-SET CSAlias = 'HOSPITAL INDIVIDUA'
-WHERE CSidConfiguracion = 35
-  AND CSAlias = 'HOSPITAL INDIVIDUAL';
+SELECT Seccion,
+       Estado,
+       Clave,
+       Valor,
+       Detalle
+FROM #Resultado
+ORDER BY Orden,Seccion,Clave;
 GO
