@@ -1,248 +1,34 @@
-/*
-   DIAGNOSTICO COBRANZA "SIN DATOS" - SALIDA UNICA PARA CSV
-
-   1. Cambiar solamente @IdEmpresa, @IdVigencia y, si hace falta, @Dias.
-   2. Ejecutar inmediatamente despues de reproducir el problema.
-   3. El script es de solo lectura (solo crea #Diagnostico en tempdb).
-   4. Exportar el UNICO resultset final como CSV y compartirlo completo.
-*/
-USE [FlexiForbesv2];
+USE FlexiForbesv2;
 GO
 
-SET ANSI_NULLS ON;
-SET ANSI_PADDING ON;
-SET ANSI_WARNINGS ON;
-SET ARITHABORT ON;
-SET CONCAT_NULL_YIELDS_NULL ON;
-SET QUOTED_IDENTIFIER ON;
-SET NUMERIC_ROUNDABORT OFF;
-SET NOCOUNT ON;
+DECLARE @IdEmpresa  int          = 2185;
+DECLARE @ClaveAcceso varchar(100) = 'TU_USUARIO';
+DECLARE @Correo      varchar(200) = 'tu.correo@dominio.com';
 
-DECLARE @IdEmpresa int=917,
-        @IdVigencia int=4251,
-        @IdReporteCobranza int=11,
-        @Dias int=3,
-        @Desde datetime;
+-- Revisar primero el correo actual.
+SELECT
+    A.ADIdAdministrador,
+    A.ADClaveAcceso,
+    RTRIM(A.ADCorreoElectronico) AS CorreoActual,
+    AE.AEIdEmpresa,
+    AE.ADRecibeMail
+FROM dbo.ff_Administrador A
+INNER JOIN dbo.ff_AdministradorEmpresa AE
+    ON AE.ADIdAdministrador = A.ADIdAdministrador
+WHERE A.ADClaveAcceso = @ClaveAcceso
+  AND AE.AEIdEmpresa = @IdEmpresa;
 
-SET @Desde=DATEADD(day,-@Dias,GETDATE());
+-- Cambia el destinatario principal de tu usuario.
+UPDATE A
+SET A.ADCorreoElectronico = @Correo
+FROM dbo.ff_Administrador A
+WHERE A.ADClaveAcceso = @ClaveAcceso;
 
-CREATE TABLE #Diagnostico
-(
-    Orden bigint IDENTITY(1,1) NOT NULL,
-    Seccion varchar(40) COLLATE DATABASE_DEFAULT NOT NULL,
-    Fecha datetime2(3) NULL,
-    IdReferencia nvarchar(100) COLLATE DATABASE_DEFAULT NULL,
-    Estado nvarchar(100) COLLATE DATABASE_DEFAULT NULL,
-    Clave nvarchar(300) COLLATE DATABASE_DEFAULT NULL,
-    Valor nvarchar(max) COLLATE DATABASE_DEFAULT NULL,
-    Detalle nvarchar(max) COLLATE DATABASE_DEFAULT NULL
-);
-
-INSERT #Diagnostico(Seccion,Fecha,IdReferencia,Estado,Clave,Valor,Detalle)
-VALUES
-('CONTEXTO',SYSDATETIME(),NULL,NULL,N'Servidor',CONVERT(nvarchar(256),@@SERVERNAME),NULL),
-('CONTEXTO',SYSDATETIME(),NULL,NULL,N'BaseDatos',DB_NAME(),NULL),
-('CONTEXTO',SYSDATETIME(),NULL,NULL,N'Login',ORIGINAL_LOGIN(),NULL),
-('CONTEXTO',SYSDATETIME(),CONVERT(nvarchar(20),@IdEmpresa),NULL,N'Empresa',CONVERT(nvarchar(20),@IdEmpresa),NULL),
-('CONTEXTO',SYSDATETIME(),CONVERT(nvarchar(20),@IdVigencia),NULL,N'Vigencia',CONVERT(nvarchar(20),@IdVigencia),NULL),
-('CONTEXTO',SYSDATETIME(),CONVERT(nvarchar(20),@IdReporteCobranza),NULL,N'ReporteId esperado por Java',CONVERT(nvarchar(20),@IdReporteCobranza),NULL),
-('CONTEXTO',SYSDATETIME(),NULL,NULL,N'Desde',CONVERT(nvarchar(30),@Desde,126),N'Ventana consultada');
-
-IF OBJECT_ID(N'dbo.bf_CatalogoReporteGen',N'U') IS NOT NULL
-BEGIN
-    EXEC sys.sp_executesql N'
-      INSERT #Diagnostico(Seccion,IdReferencia,Estado,Clave,Valor,Detalle)
-      SELECT ''CATALOGO_REPORTE'',CONVERT(nvarchar(100),CatRptId),NULL,
-             CatRptNombre,CONVERT(nvarchar(max),CatRptId),
-             CASE WHEN CatRptId=@Reporte THEN N''Coincide con el ID fijo usado por Java.''
-                  ELSE N''Otro registro cuyo nombre contiene Cobranza.'' END
-      FROM dbo.bf_CatalogoReporteGen WITH(NOLOCK)
-      WHERE CatRptId=@Reporte OR CatRptNombre LIKE ''%Cobranza%'';',
-      N'@Reporte int',@Reporte=@IdReporteCobranza;
-END
-ELSE
-    INSERT #Diagnostico(Seccion,Estado,Clave,Detalle)
-    VALUES('CATALOGO_REPORTE','ERROR',N'dbo.bf_CatalogoReporteGen',N'No existe o no es visible.');
-
-IF OBJECT_ID(N'dbo.bf_CatalogoEstatusReporteGen',N'U') IS NOT NULL
-BEGIN
-    EXEC sys.sp_executesql N'
-      INSERT #Diagnostico(Seccion,IdReferencia,Estado,Clave,Valor)
-      SELECT ''CATALOGO_ESTATUS'',CONVERT(nvarchar(100),CatERptId),CatERptNombre,
-             N''Estatus de seguimiento'',CONVERT(nvarchar(max),CatERptId)
-      FROM dbo.bf_CatalogoEstatusReporteGen WITH(NOLOCK);';
-END;
-
-/* Registro real que utiliza la pantalla de seguimiento. */
-IF OBJECT_ID(N'dbo.bf_ControlReporteGen',N'U') IS NOT NULL
-BEGIN
-    EXEC sys.sp_executesql N'
-      INSERT #Diagnostico(Seccion,Fecha,IdReferencia,Estado,Clave,Valor,Detalle)
-      SELECT TOP (30) ''SEGUIMIENTO'',CONVERT(datetime2(3),C.CRptFechaSolicitud),
-             CONVERT(nvarchar(100),C.CRptId),
-             COALESCE(E.CatERptNombre,CONVERT(nvarchar(20),C.CRptIdEstatus)),
-             N''Solicitud Cobranza'',NULLIF(CONVERT(nvarchar(max),C.CRptRuta),N''''),
-             CONCAT(N''Observaciones='',ISNULL(CONVERT(nvarchar(max),C.CRptObservaciones),N''<NULL>''),
-                    N'' | Params='',ISNULL(CONVERT(nvarchar(max),C.CRptParams),N''<NULL>''),
-                    N'' | FechaGeneracion='',ISNULL(CONVERT(nvarchar(30),C.CRptFechaGeneracion,126),N''<NULL>''),
-                    N'' | Usuario='',C.CRptIdUsuarioSolicitud,
-                    N'' | IdReporte='',C.CRptIdReporte)
-      FROM dbo.bf_ControlReporteGen C WITH(NOLOCK)
-      LEFT JOIN dbo.bf_CatalogoEstatusReporteGen E WITH(NOLOCK)
-        ON E.CatERptId=C.CRptIdEstatus
-      WHERE C.CRptIdEmpresa=@Empresa AND C.CRptIdReporte=@Reporte
-        AND C.CRptFechaSolicitud>=@Desde
-      ORDER BY C.CRptId DESC;',
-      N'@Empresa int,@Reporte int,@Desde datetime',
-      @Empresa=@IdEmpresa,@Reporte=@IdReporteCobranza,@Desde=@Desde;
-
-    IF NOT EXISTS(SELECT 1 FROM #Diagnostico WHERE Seccion='SEGUIMIENTO')
-        INSERT #Diagnostico(Seccion,Estado,Clave,Detalle)
-        VALUES('SEGUIMIENTO','AVISO',N'Sin solicitudes',
-               N'El SP manual no crea seguimiento; la solicitud debe entrar por /beflex/cobranza/solicitar.');
-END
-ELSE
-    INSERT #Diagnostico(Seccion,Estado,Clave,Detalle)
-    VALUES('SEGUIMIENTO','ERROR',N'dbo.bf_ControlReporteGen',N'No existe o no es visible.');
-
-/* Trazas escritas por los procedimientos SQL. */
-IF OBJECT_ID(N'dbo.bf_RepConf_Debug',N'U') IS NOT NULL
-BEGIN
-    EXEC sys.sp_executesql N'
-      INSERT #Diagnostico(Seccion,Fecha,IdReferencia,Estado,Clave,Valor,Detalle)
-      SELECT TOP (150) ''DEBUG_SQL'',CONVERT(datetime2(3),fecha),CONVERT(nvarchar(100),id),
-             NULL,etapa,NULL,detalle
-      FROM dbo.bf_RepConf_Debug WITH(NOLOCK)
-      WHERE fecha>=@Desde AND etapa LIKE ''cobranza%''
-        AND (detalle LIKE ''%empresa=''+CONVERT(varchar(20),@Empresa)+''%''
-             OR detalle LIKE ''%idEmpresa=''+CONVERT(varchar(20),@Empresa)+''%'')
-      ORDER BY id DESC;',
-      N'@Empresa int,@Desde datetime',@Empresa=@IdEmpresa,@Desde=@Desde;
-END;
-
-IF OBJECT_ID(N'dbo.bf_CobranzaCache_ConsultaV2',N'U') IS NOT NULL
-BEGIN
-    EXEC sys.sp_executesql N'
-      INSERT #Diagnostico(Seccion,Fecha,IdReferencia,Estado,Clave,Valor,Detalle)
-      SELECT TOP (30) ''CACHE_ESTADO'',CONVERT(datetime2(3),FechaCargaInicio),
-             CONVERT(nvarchar(100),CacheId),Estado,
-             CONCAT(FecIni,N'' a '',FecFin),
-             CONCAT(N''Concentrada='',FilasConcentrada,N''; Desglosada='',FilasDesglosada),
-             CONCAT(N''IdSolTipo='',IdSolTipo,N''; IdVencida='',IdVencida,
-                    N''; EsUniverso='',EsUniverso,N''; Perfiles='',PerfilClave,
-                    N''; Fin='',ISNULL(CONVERT(nvarchar(30),FechaCargaFin,126),N''<NULL>''),
-                    N''; Mensaje='',ISNULL(Mensaje,N''<NULL>''))
-      FROM dbo.bf_CobranzaCache_ConsultaV2 WITH(NOLOCK)
-      WHERE IdEmpresa=@Empresa AND IdVigencia=@Vigencia
-      ORDER BY CacheId DESC;',
-      N'@Empresa int,@Vigencia int',@Empresa=@IdEmpresa,@Vigencia=@IdVigencia;
-END
-ELSE
-    INSERT #Diagnostico(Seccion,Estado,Clave,Detalle)
-    VALUES('CACHE_ESTADO','ERROR',N'dbo.bf_CobranzaCache_ConsultaV2',N'No existe o no es visible.');
-
-IF OBJECT_ID(N'dbo.bf_CobranzaCache_Log',N'U') IS NOT NULL
-BEGIN
-    EXEC sys.sp_executesql N'
-      INSERT #Diagnostico(Seccion,Fecha,IdReferencia,Estado,Clave,Valor,Detalle)
-      SELECT TOP (150) ''CACHE_LOG'',Fecha,CONVERT(nvarchar(100),LogId),Estado,
-             Etapa,CONVERT(nvarchar(100),CacheId),Detalle
-      FROM dbo.bf_CobranzaCache_Log WITH(NOLOCK)
-      WHERE IdEmpresa=@Empresa AND (IdVigencia=@Vigencia OR IdVigencia IS NULL)
-        AND Fecha>=@Desde
-      ORDER BY LogId DESC;',
-      N'@Empresa int,@Vigencia int,@Desde datetime',
-      @Empresa=@IdEmpresa,@Vigencia=@IdVigencia,@Desde=@Desde;
-END;
-
-IF OBJECT_ID(N'dbo.ff_Parametro',N'U') IS NOT NULL
-BEGIN
-    EXEC sys.sp_executesql N'
-      INSERT #Diagnostico(Seccion,Fecha,IdReferencia,Estado,Clave,Valor,Detalle)
-      SELECT ''CONFIGURACION'',CONVERT(datetime2(3),COALESCE(paFechaUmod,paFechaAdd)),
-             CONVERT(nvarchar(100),paId),CONVERT(nvarchar(20),paidEstatus),
-             paClase,paValor,
-             CONCAT(N''Empresa='',paIdEmpresa,N''; '',ISNULL(paDescripcion,N''''))
-      FROM dbo.ff_Parametro WITH(NOLOCK)
-      WHERE (paIdEmpresa=@Empresa AND UPPER(LTRIM(RTRIM(ISNULL(paClase,''''))))=''COBRANZA_CACHE'')
-         OR (paIdEmpresa=0 AND UPPER(LTRIM(RTRIM(ISNULL(paClase,''''))))=''COBRANZA_CACHE_HORA'');',
-      N'@Empresa int',@Empresa=@IdEmpresa;
-END;
-
-/* Huellas y marcadores para detectar SQL diferente entre ambientes. */
-DECLARE @Objetos table
-(
-    Objeto sysname NOT NULL,
-    Marcador1 nvarchar(500) NULL,
-    Marcador2 nvarchar(500) NULL
-);
-
-INSERT @Objetos VALUES
-(N'ObtenCobranzaConcentrada',NULL,NULL),
-(N'ObtenCobranzaConcentrada_otro_V2_BF3',N'EXEC dbo.ObtenCobranzaConcentrada',NULL),
-(N'ObtenCobranzaConcentrada_otro_V2_BF3_Cache',N'EXEC dbo.ff_ObtenPlanConcentrado_Adaptado',NULL),
-(N'ReporteCobranzaConcentrada_BF3_Cache',N'EXEC dbo.bf_CobranzaCache_CargarUnaV2',NULL),
-(N'bf_CobranzaCache_CargarUnaV2',N'La ruta homologada necesita una fotografia exacta',N'B2 no consume #FiltroIncrementalEmps'),
-(N'ff_ObtenDivisionCtos_Adaptado_B2_CacheCapture',N'CREATE TABLE #isEmpresaTC',N'CREATE TABLE #CobranzaBanwire');
-
-INSERT #Diagnostico(Seccion,Fecha,IdReferencia,Estado,Clave,Valor,Detalle)
-SELECT 'VERSION_SQL',CONVERT(datetime2(3),O.modify_date),NULL,
-       CASE WHEN O.object_id IS NULL THEN N'NO_EXISTE'
-            WHEN M.definition IS NULL THEN N'NO_VISIBLE'
-            WHEN (X.Marcador1 IS NULL OR CHARINDEX(X.Marcador1,M.definition)>0)
-             AND (X.Marcador2 IS NULL OR CHARINDEX(X.Marcador2,M.definition)>0)
-              THEN N'OK' ELSE N'DIFERENTE' END,
-       N'dbo.'+X.Objeto,
-       CONVERT(varchar(64),HASHBYTES('SHA2_256',CONVERT(varbinary(max),M.definition)),2),
-       CONCAT(N'Marcador1=',ISNULL(X.Marcador1,N'<NO APLICA>'),
-              N'; Marcador2=',ISNULL(X.Marcador2,N'<NO APLICA>'))
-FROM @Objetos X
-LEFT JOIN sys.objects O ON O.object_id=OBJECT_ID(N'dbo.'+X.Objeto)
-LEFT JOIN sys.sql_modules M ON M.object_id=O.object_id;
-
-/* Estado de empresa, vigencia y perfiles que utilizará la precarga. */
-IF OBJECT_ID(N'dbo.ff_Empresa',N'U') IS NOT NULL
-   AND OBJECT_ID(N'dbo.ff_Vigencia',N'U') IS NOT NULL
-BEGIN
-    EXEC sys.sp_executesql N'
-      INSERT #Diagnostico(Seccion,IdReferencia,Estado,Clave,Valor,Detalle)
-      SELECT ''EMPRESA_VIGENCIA'',CONVERT(nvarchar(100),E.EMidEmpresa),
-             CONVERT(nvarchar(20),E.EMidEstatus),N''Vigencia'',
-             CONVERT(nvarchar(20),V.VIidVigencia),
-             CONCAT(N''Configuracion empresa='',E.EMidConfiguracion,
-                    N''; configuracion vigencia='',V.VIidConfiguracion,
-                    N''; inicio='',CONVERT(nvarchar(30),V.VIVigenciaIni,126),
-                    N''; fin='',CONVERT(nvarchar(30),V.VIVigenciaFin,126),
-                    N''; enrollment='',CONVERT(nvarchar(30),V.VIEnrollmentIni,126),
-                    N''; estatus vigencia='',V.VIidEstatus)
-      FROM dbo.ff_Empresa E WITH(NOLOCK)
-      LEFT JOIN dbo.ff_Vigencia V WITH(NOLOCK)
-        ON V.VIidConfiguracion=E.EMidConfiguracion AND V.VIidVigencia=@Vigencia
-      WHERE E.EMidEmpresa=@Empresa;',
-      N'@Empresa int,@Vigencia int',@Empresa=@IdEmpresa,@Vigencia=@IdVigencia;
-END;
-
-IF OBJECT_ID(N'dbo.ff_Perfil',N'U') IS NOT NULL
-BEGIN
-    EXEC sys.sp_executesql N'
-      INSERT #Diagnostico(Seccion,IdReferencia,Estado,Clave,Valor,Detalle)
-      SELECT ''PERFIL'',CONVERT(nvarchar(100),PEIdPerfil),CONVERT(nvarchar(20),PEIdEstatus),
-             N''Perfil empresa'',CONVERT(nvarchar(20),PEAdministrador),
-             N''Valor=PEAdministrador; la precarga usa activos con PEAdministrador=0.''
-      FROM dbo.ff_Perfil WITH(NOLOCK)
-      WHERE PEIdEmpresa=@Empresa;',N'@Empresa int',@Empresa=@IdEmpresa;
-END;
-
-/* Debe ser el unico resultset del archivo. */
-SELECT Seccion,Fecha,IdReferencia,Estado,Clave,Valor,Detalle
-FROM #Diagnostico
-ORDER BY
-    CASE Seccion
-      WHEN 'CONTEXTO' THEN 1 WHEN 'CATALOGO_REPORTE' THEN 2
-      WHEN 'CATALOGO_ESTATUS' THEN 3 WHEN 'SEGUIMIENTO' THEN 4
-      WHEN 'DEBUG_SQL' THEN 5 WHEN 'CACHE_ESTADO' THEN 6
-      WHEN 'CACHE_LOG' THEN 7 WHEN 'CONFIGURACION' THEN 8
-      WHEN 'VERSION_SQL' THEN 9 WHEN 'EMPRESA_VIGENCIA' THEN 10
-      WHEN 'PERFIL' THEN 11 ELSE 99 END,
-    Orden;
-GO
+-- Opcional: también recibir copia cuando otro administrador genere el reporte.
+UPDATE AE
+SET AE.ADRecibeMail = 1
+FROM dbo.ff_AdministradorEmpresa AE
+INNER JOIN dbo.ff_Administrador A
+    ON A.ADIdAdministrador = AE.ADIdAdministrador
+WHERE A.ADClaveAcceso = @ClaveAcceso
+  AND AE.AEIdEmpresa = @IdEmpresa;
