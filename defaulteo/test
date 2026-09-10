@@ -1,1 +1,769 @@
+<div #controlesBusqueda id="controlesBusqueda" class="guided-special-defaulteo">
+    <div class="card w-100 workflow-card search-card">
+        <div class="card-body px-3">
+            <header class="workflow-card__header search-header">
+                <div class="section-heading">
+                    <span class="step-badge">1</span>
+                    <div>
+                        <h2>Busca a los empleados</h2>
+                        <p>Selecciona una o varias empresas y utiliza los criterios necesarios para localizar la población.</p>
+                    </div>
+                </div>
+            </header>
+            <div class="row">
+                <div class="col-8 justify-content-start align-items-end">
+                    <button type="button" class="help-button" data-bs-toggle="modal" data-bs-target="#modalAyuda"
+                        (click)="buscaAyuda()" title="Abrir ayuda">
+                        <span class="px-1" data-bs-toggle="tooltip" title="Ayuda">
+                            <img src="/assets/iconos/Icono_VER AYUDA.PNG" alt="" />
+                        </span>
+                        Ayuda
+                    </button>
+                </div>
+                <div class="col-4">
+                    <label class="text-general-color label-text" for="selectVigencia">Vigencia (más actual): </label>
+                    <!-- CREA06 (obs 21-jul): combo de vigencia deshabilitado; siempre se opera sobre la vigencia mas actual (vigente). -->
+                    <select class="form-select input-text-font" [disabled]="true" id="selectVigencia" #selectVigencia
+                        style=" margin-right:  8px" required (ngModelChange)="obtenerMultivigencia(selectVigencia.value)"
+                        [(ngModel)]="idVigenciaSeleccionada">
+                        <option *ngFor="let vigencia of comboVigencias" [value]="vigencia.VIidVigencia">{{vigencia.ViNombre}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <hr>
+            <!-- Busqueda avanzada -->
+            <div class="row search-layout"> <!-- Fila busqueda normal -->
+                <div class="col-5"> <!-- Empresa -->
+                    <div class="col-12 mb-3 ml-1 mr-1 w-100">
+                        <label class="text-general-color label-text">Empresa: </label>
+                        <div *ngIf="errorRep.empresas">
+                            <label class="label-text" style="color:red">Falta seleccionar uno o más empresas.</label>
+                        </div>
+                        <div class="w-100 h-100">
+                            <div style="max-height: 250px;" class="card scroll" id="arbolEmpresas">
+                                <div *ngIf="arbol.length == 0" class="mat-app-background spinner-wrapper">
+                                    <mat-progress-spinner mode="indeterminate" color="accent" diameter="50" strokeWidth="5">
+                                    </mat-progress-spinner>
+                                </div>
+                                <div *ngIf="arbol.length > 0" class="mat-app-background basic-container tree-padding">
+                                    <tree-checklist-component [datainput]="arbol" (result)=" seleccionEmpresa($event)">Cargando
+                                    </tree-checklist-component>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-2"> <!-- Atributo campo 1-->
+                    <label class="text-general-color label-text">Búsqueda por:</label>
+                    <select class="form-select input-text-font" [(ngModel)]="parametrosBusqueda.idAtributo1">
+                        <option *ngFor="let option of atributoEmpleado" [value]="option.key">
+                            {{ option.value }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-2"> <!-- Operador comparacion 1-->
+                    <label class="text-general-color label-text">Operador:</label>
+                    <select class="form-select input-text-font" [(ngModel)]="parametrosBusqueda.idTipoOperador1">
+                        <option *ngFor="let option of tipoOperador" [value]="option.key">
+                            {{ option.value }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-2"> <!-- Paremtro busqueda 1-->
+                    <label class="text-general-color label-text">Valor:</label>
+                    <input #inputBuscar1 type="text" maxlength="35" 
+                    class="form-control input-text-font" 
+                    [class.is-invalid]="errorRep.parametroBusqueda1" 
+                    placeholder="Introduce tu búsqueda" 
+                    aria-label="Valor del primer criterio de búsqueda"
+                    aria-describedby="buttonBuscar" 
+                    name="inputBuscar1" id="inputBuscar1"
+                    [(ngModel)]="parametrosBusqueda.parametroBusqueda1"
+                    (keyup)="validarParametros(1)"
+                    (change)="validarInput(inputBuscar1.value);"> 
+                </div>
+                <div class="col-1 search-button-column"> <!-- Buton busqueda-->
+                    <button (click)="busquedaAvanzada();" class="btn btn-primary search-button" type="button" id="buttonBuscar" [disabled]="loadEditar">
+                        <img src="/assets/iconos/Icono_BUSCAR.PNG" width="20" height="20" />
+                        <span>{{ loadEditar ? 'Buscando...' : 'Buscar' }}</span>
+                    </button>
+                </div>
+            </div>
+            <div class="row advanced-search-row"> <!-- Fila busqueda avanzada -->
+                <div class="col-2 advanced-toggle-column"> <!-- Check busqueda avanzada -->
+                    <label class="text-general-color label-text" for="esBusquedaAvanzada">Búsqueda avanzada:&nbsp;&nbsp;</label>
+                    <input  type="checkbox" id="esBusquedaAvanzada" name="avanzada" [(ngModel)]="esBusquedaAvanzada">
+                </div>
+                <div class="col-2 advanced-reset-column" [hidden]="!esBusquedaAvanzada"> <!-- Buton resetear formulario-->
+                    <label class="text-general-color label-text">Limpiar formulario:</label>
+                    <button (click)="reiniciarFormularioBusqueda();" class="btn icon-buttons" type="button" id="buttonLimpiarBusqueda" style="margin-top: 1.2em;" title="Reiniciar formulario" aria-label="Limpiar criterios de búsqueda">
+                        <img src="/assets/iconos/Icono_ELIMINAR.PNG" width="24" height="24" />  
+                    </button>
+                </div>
+                <div class="col-1" [hidden]="!esBusquedaAvanzada"> <!-- Operador-->
+                    <label class="text-general-color label-text">Operador:</label>
+                    <select class="form-select input-text-font" [(ngModel)]="parametrosBusqueda.idTipoOperadorAvanzado">
+                        <option *ngFor="let option of tipoOperadorLogico" [value]="option.key">
+                            {{ option.value }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-2" [hidden]="!esBusquedaAvanzada"> <!-- Atributo campo 2-->
+                    <label class="text-general-color label-text">Búsqueda por:</label>
+                    <select class="form-select input-text-font" [(ngModel)]="parametrosBusqueda.idAtributo2">
+                        <option *ngFor="let option of atributoEmpleado" [value]="option.key">
+                            {{ option.value }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-2" [hidden]="!esBusquedaAvanzada"> <!-- Operador comparacion 2-->
+                    <label class="text-general-color label-text">Operador:</label>
+                    <select class="form-select input-text-font" [(ngModel)]="parametrosBusqueda.idTipoOperador2">
+                        <option *ngFor="let option of tipoOperador" [value]="option.key">
+                            {{ option.value }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-2" [hidden]="!esBusquedaAvanzada"> <!-- Paremtro busqueda 2-->
+                    <label class="text-general-color label-text">Valor:</label>
+                    <input #inputBuscar2 type="text" maxlength="35" 
+                    class="form-control input-text-font" 
+                    [class.is-invalid]="errorRep.parametroBusqueda2" 
+                    placeholder="Introduce tu búsqueda" 
+                    aria-label="Valor del segundo criterio de búsqueda"
+                    aria-describedby="buttonBuscar" 
+                    name="inputBuscar2" id="inputBuscar2"
+                    [(ngModel)]="parametrosBusqueda.parametroBusqueda2"
+                    (keyup)="validarParametros(2)"
+                    (change)="validarInput(inputBuscar2.value);"> 
+                </div>
+            </div>
+
+            <!-- Seccion defaulteo (CREA06 casos especiales: ocultada en F1; se reemplaza por opciones especiales en fases siguientes) -->
+            <div *ngIf="false" [ngStyle]="{'display': seccionDefaulteo}">
+                <div class="row pb-2 align-items-end">
+                    <div class="col-4">
+                        <label class="text-general-color label-text" for="opcionesCampo">Tipo asignación de planes</label>
+                        <select class="form-select input-text-font" (change)="asignarTipoDefaulteo(tiposPlanes.value)" id="tiposPlanes"
+                            #tiposPlanes required>
+                            <ng-container *ngFor="let obj of planesDefaulteo">
+                                <option value="{{obj.TDIdTipoDefaulteo}}">
+                                    {{obj.Nombre}}
+                                </option>
+                            </ng-container>
+                        </select>
+                    </div>
+                    <div class="col-2">
+                        <button class="btn btn-primary label-text w-100" (click)="iniciarDefaulteo(modalCarga,modalReporte)">
+                            Generar Solicitudes
+                        </button></div>
+                    <div class="col-2">
+                        <button (click)="restaurarSeccionDefaulteo();componentBlock=false;" class="btn btn-danger label-text">
+                            Cancelar
+                        </button>
+                    </div>
+                    <div class="col-2"></div>
+                    <div class="col-2"></div>
+                </div>
+            </div>
+            <!-- Termina seccion defaulteo -->
+            <br>
+            <!-- CREA06 (mejoras ago-2026 + obs 12-ago): el aviso de "sin resultados" va JUNTO a la busqueda
+                 (antes vivia al final del DOM y se perdia) y con el MISMO estilo que la pantalla de
+                 "Crear y actualizar solicitudes" (texto centrado h5 text-general-color, sin caja). -->
+            <div *ngIf="!existenDatosTabla && msjNoHayDatos" class="text-center align-items-center">
+                <p style="width: 100%;" class="h5 text-general-color">No existen datos que se ajusten a tu búsqueda.</p>
+            </div>
+            <!-- ################# Results table ################# -->
+            <ng-container *ngIf="existenDatosTabla">
+                <div class="row workflow-card results-card">
+                    <header class="workflow-card__header results-header">
+                        <div class="section-heading">
+                            <span class="step-badge">2</span>
+                            <div>
+                                <h2>Selecciona y prepara empleados</h2>
+                                <p>{{ collectionSize }} resultado(s) encontrados · {{ empleadosSeleccionados.length }} seleccionado(s)</p>
+                            </div>
+                        </div>
+                        <span class="result-count">{{ collectionSize }} resultado(s)</span>
+                    </header>
+                    <div class="table-responsive results-table-wrap">
+                        <table class="table text-center results-table">
+                            <thead>
+                                <tr>
+                                    <th class="p-1 sticky-top table-headers">Acción
+                                        <br>
+                                        <input  type="checkbox" (click)="seleccionarTodos($event)"  >
+                                    </th>
+                                    <ng-container *ngFor="let dato of datosTabla[0]">
+                                        <ng-container *ngIf="  dato.key == 'nombreEmpresa' ||   dato.key == 'numEmpleado' ||  dato.key == 'perfil' || dato.key == 'ApellidoPaterno' || dato.key == 'ApellidoMaterno' || dato.key == 'Nombre1' || dato.key == 'Nombre2' || dato.key == 'fechaNacimiento'  || dato.key == 'edad' || dato.key == 'parentesco'  || dato.key == 'NumeroSolicitud'   ">
+                                            <th class="p-1 sticky-top table-headers">{{ dato.key }}</th>
+                                        </ng-container>
+                                    </ng-container>
+                                    <!-- CREA06 casos especiales: columnas nuevas (F2). Mejoras ago-2026: se retira la
+                                         columna "Tipo defaulteo" por renglon; el tipo se toma del combo "Tipo asignacion
+                                         de planes" (Opciones defaulteo) o de la columna TipoDefaulteo del layout. -->
+                                    <th class="p-1 sticky-top table-headers">Estatus solicitud vigente actual</th>
+                                    <th class="p-1 sticky-top table-headers">Numero de sol vigencia anterior</th>
+                                    <th class="p-1 sticky-top table-headers">Estatus solicitud vig anterior</th>
+                                </tr>
+                            </thead>
+                            <tbody id="BodyRespuestas">
+                                <tr class="table-data" *ngFor="let fila of datosTabla | slice: (page-1) * pageSize : (page-1) * pageSize + pageSize">
+                                    <ng-container *ngFor="let dato of fila">
+                                        <ng-container *ngIf=" dato.key == 'seleccion'">
+                                            <td>
+                                                <span class="px-1" data-bs-toggle="tooltip" title="seleccionar">
+                                                    <input (click)="generarListaEmpleados(fila)" type="checkbox" [(ngModel)]="dato.value" >
+                                                </span>
+                                            </td>
+                                        </ng-container>
+                                        <ng-container
+                                            *ngIf="  dato.key == 'nombreEmpresa' || dato.key == 'numEmpleado' ||  dato.key == 'perfil' || dato.key == 'ApellidoPaterno' || dato.key == 'ApellidoMaterno' || dato.key == 'Nombre1' || dato.key == 'Nombre2' || dato.key == 'fechaNacimiento'  || dato.key == 'edad' || dato.key == 'parentesco'  || dato.key == 'NumeroSolicitud'     ">
+                                            <td class="text-center text-uppercase table-data">{{ dato.value }}</td>
+                                        </ng-container>
+                                    </ng-container>
+                                    <!-- CREA06 casos especiales: 4 columnas nuevas (F2 stub, se autopueblan cuando el backend devuelva las keys) -->
+                                    <td class="text-center text-uppercase table-data">{{ colVal(fila, 'estatusSolicitudVigActual') || '-' }}</td>
+                                    <td class="text-center text-uppercase table-data">{{ colVal(fila, 'numeroSolicitudVigAnterior') || '-' }}</td>
+                                    <td class="text-center text-uppercase table-data">{{ colVal(fila, 'estatusSolicitudVigAnterior') || '-' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- PAGINADO -->
+                <div class="row">
+                    <div class="row w-100 px-4 pt-1 justify-content-center">
+                        <ngb-pagination [pageSize]="pageSize" [collectionSize]="collectionSize" [(page)]="page"
+                            [boundaryLinks]="true" [maxSize]="15">
+                        </ngb-pagination>
+                    </div>
+                    <div class="row w-100 pb-1 justify-content-center">
+                        <div class="col-2"></div>
+                        <div class="col-4 justify-content-center text-general-color label-text">
+                            <input type="number" class="number text-center input-text-font" name="numerPageSize" [value]="pageSize"
+                                [(ngModel)]="pageSize" [min]="1" [max]="collectionSize">
+                            Resultados por página
+                        </div>
+                        <div class="col-4 justify-content-center text-general-color label-text">
+                            Elementos mostrados {{ ((this.page - 1) * this.pageSize) + 1 }} -
+                            {{ (((this.page - 1) * this.pageSize + this.pageSize)) > collectionSize ? collectionSize : ((this.page -
+                            1)
+                            * this.pageSize + this.pageSize) }}
+                            de {{ collectionSize }}
+                        </div>
+                        <div class="col-2"></div>
+                    </div>
+                </div>
+            </ng-container>
+            <!-- CREA06 (incidencia 8): los paneles de carga/ejecucion de layout quedan FUERA del *ngIf de
+                 resultados, para poder cargar y ejecutar un layout ya llenado sin repetir la busqueda (paso 1). -->
+<<<<<<< defaulteoCargaMaisva
+                <!-- CREA06 casos especiales (F3): opciones especiales bajo el grid -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card workflow-card preparation-card">
+                            <div class="card-header workflow-subheader">
+                                <div>
+                                    <b>Prepara la forma de ejecución</b>
+                                    <small>Trabaja con la selección actual o carga un layout previamente preparado.</small>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row align-items-end">
+                                    <!-- CREA06 (incidencia 8): "Descargar layout" exporta la seleccion del grid -> solo con resultados de busqueda. -->
+                                    <div class="col-auto mb-2" *ngIf="existenDatosTabla">
+                                        <button class="btn btn-success label-text" (click)="exportarLayout()">
+                                            Descargar layout
+                                        </button>
+                                        <!-- CREA06 (incidencia 7): separar la leyenda del boton (se veian muy juntos) -->
+                                        <small class="d-block text-muted mt-2">Exporta la selección (o todo el grid) como layout.</small>
+                                    </div>
+                                    <!-- CREA06 (incidencia 11, obs 3-ago): combo global de tipo con el patron del defaulteo
+                                         normal. Es el tipo POR DEFECTO de todo el lote, para AMBOS flujos (seleccion del grid
+                                         o layout cargado); el tipo por renglon del grid o del Excel tiene prioridad. -->
+                                    <div class="col-3 mb-2">
+                                        <label class="text-general-color label-text" for="tipoDefaulteoGlobalCE">Tipo asignación de planes</label>
+                                        <select class="form-select input-text-font" id="tipoDefaulteoGlobalCE"
+                                            [(ngModel)]="tipoDefaulteoGlobal" [ngModelOptions]="{standalone: true}">
+                                            <option value="0">Seleccionar el tipo de Default</option>
+                                            <ng-container *ngFor="let obj of planesDefaulteo">
+                                                <option *ngIf="obj.TDIdTipoDefaulteo" value="{{obj.TDIdTipoDefaulteo}}">{{obj.Nombre}}</option>
+                                            </ng-container>
+                                        </select>
+                                    </div>
+                                    <div class="col-auto mb-2" *ngIf="existenDatosTabla">
+                                        <button class="btn btn-primary label-text" (click)="ejecutarDefaulteosSeleccion()"
+                                            [disabled]="ejecutandoLote">
+                                            Generar solicitudes
+                                        </button>
+                                        <small class="d-block text-muted mt-2">Procesa los seleccionados del grid, sin layout.</small>
+                                    </div>
+                                    <div class="col-auto mb-2">
+                                        <label class="text-general-color label-text d-block">Cargar layout:</label>
+                                        <!-- CREA06 (incidencia 1): boton homologado al de "Borrado de poblacion" (btn-primary + clip + input oculto + nombre) -->
+                                        <button class="btn btn-primary label-text" type="button" (click)="fileLayoutInput.click()">
+                                            <a class="fa fa-paperclip" style="color: white;">&nbsp;&nbsp;</a>Seleccionar archivo
+                                        </button>
+                                        <input #fileLayoutInput type="file" accept=".xlsx" class="form-control input-text-font" style="display: none;" (change)="cargarLayout($event)" onclick="this.value = null">
+                                        <!-- CREA06 (obs 30-jul): leyenda con color explicito (se veia blanca/transparente) y el estado
+                                             cargado como texto plano del mismo tamano que el boton, no como badge grande -->
+                                        <span class="input-text-font ms-2" style="color: #495057;" *ngIf="layoutFilas === 0">Ningún archivo seleccionado</span>
+                                        <span class="input-text-font ms-2" style="color: #495057;" *ngIf="layoutFilas > 0">{{ layoutNombreArchivo }} — {{ layoutFilas }} registro(s) cargados</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- CREA06 casos especiales (F4): condiciones especiales (planes + coberturas) -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card workflow-card conditions-card">
+                            <!-- CREA06 (incidencia 9, obs 30-jul): colapsable con el MISMO patron/estilos que los demas
+                                 colapsables (adminsolicitudes: h5.text-general-color + chevron dentro del card-body + hr) -->
+                            <div class="card-body">
+                                <div class="row pb-2">
+                                    <div class="col-12">
+                                        <h5 class="text-general-color section-heading-inline">
+                                            <span class="step-badge">3</span>
+                                            <span style="cursor: pointer;" (click)="mostrarCondicionesEspeciales = !mostrarCondicionesEspeciales">
+                                                <i class="fa" [ngClass]="mostrarCondicionesEspeciales ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                                                Condiciones especiales (opcional)
+=======
+                <!-- CREA06 (mejoras ago-2026): colapsable GENERAL "Configuracion del defaulteo" (mismo patron
+                     que los colapsables de adminsolicitudes). Agrupa: "Opciones defaulteo" (antes "Opciones
+                     especiales") con la generacion individual y la carga masiva SEPARADAS, y las
+                     "Condiciones especiales". Todo arranca contraido para no cargar la pantalla. -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row pb-2">
+                                    <div class="col-12">
+                                        <h5 class="text-general-color">
+                                            <span style="cursor: pointer;" (click)="mostrarConfiguracionDefaulteo = !mostrarConfiguracionDefaulteo">
+                                                <i class="fa" [ngClass]="mostrarConfiguracionDefaulteo ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                                                Configuración del defaulteo
+>>>>>>> QA
+                                            </span>
+                                        </h5>
+                                    </div>
+                                </div>
+<<<<<<< defaulteoCargaMaisva
+                                <div *ngIf="mostrarCondicionesEspeciales" class="conditions-body">
+                                <hr>
+                                <small class="d-block text-muted mb-2">Respetar reglas de elegibilidad</small>
+                                <!-- CREA06 (incidencia 12): controles de plan/cobertura estandarizados con los del
+                                     reporte de documentos personalizados (PrimeNG con busqueda integrada) -->
+                                <div class="row condiciones-controles">
+                                    <div class="col-3">
+                                        <label class="text-general-color label-text">Plan: </label>
+                                        <!-- CREA06 (obs 21-jul): aviso mientras se filtran los planes por vigencia -->
+                                        <small class="d-block text-muted" *ngIf="cargandoPlanesCond"><i class="fa fa-spinner fa-spin"></i> Filtrando planes de la vigencia...</small>
+                                        <!-- appendTo body: el panel vive fuera del combo para poder recortar con overflow
+                                             el texto largo de la seleccion sin esconder el panel (obs 3-ago) -->
+                                        <p-dropdown [emptyFilterMessage]="'No hay resultados'" placeholder="Seleccione el plan"
+                                            [options]="itemsPlanesCond" [(ngModel)]="planSelCond" [ngModelOptions]="{standalone: true}"
+                                            [filter]="true" [showClear]="true" [disabled]="cargandoPlanesCond" appendTo="body"
+                                            style="margin-left: -0.3em;" [style]="{'width': '100%'}" (onChange)="onPlanCondChange()"></p-dropdown>
+=======
+                                <div *ngIf="mostrarConfiguracionDefaulteo">
+                                    <hr>
+                                    <!-- ===== Opciones defaulteo (antes "Opciones especiales") ===== -->
+                                    <h6 class="text-general-color">
+                                        <span style="cursor: pointer;" (click)="mostrarOpcionesDefaulteo = !mostrarOpcionesDefaulteo">
+                                            <i class="fa" [ngClass]="mostrarOpcionesDefaulteo ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                                            Opciones defaulteo
+                                        </span>
+                                    </h6>
+                                    <!-- CREA06 (obs 12-ago): cada flujo en su propio recuadro, controles alineados en un
+                                         renglon (label arriba, control abajo) y las leyendas al pie del recuadro. -->
+                                    <div *ngIf="mostrarOpcionesDefaulteo" class="ps-3">
+                                        <!-- Bloque 1: generacion individual desde la seleccion del grid -->
+                                        <div class="border rounded p-3 mb-3">
+                                            <div class="label-text text-general-color mb-2"><b>Generación individual (selección del grid)</b></div>
+                                            <div class="row align-items-end">
+                                                <!-- CREA06 (incidencia 11, obs 3-ago): tipo POR DEFECTO de todo el lote, para AMBOS
+                                                     flujos (seleccion del grid o layout); el tipo por empleado del Excel tiene prioridad. -->
+                                                <div class="col-3">
+                                                    <label class="text-general-color label-text" for="tipoDefaulteoGlobalCE">Tipo asignación de planes</label>
+                                                    <select class="form-select input-text-font" id="tipoDefaulteoGlobalCE"
+                                                        [(ngModel)]="tipoDefaulteoGlobal" [ngModelOptions]="{standalone: true}">
+                                                        <option value="0">Seleccionar el tipo de Default</option>
+                                                        <ng-container *ngFor="let obj of planesDefaulteo">
+                                                            <option *ngIf="obj.TDIdTipoDefaulteo" value="{{obj.TDIdTipoDefaulteo}}">{{obj.Nombre}}</option>
+                                                        </ng-container>
+                                                    </select>
+                                                </div>
+                                                <div class="col-auto" *ngIf="existenDatosTabla">
+                                                    <button class="btn btn-primary label-text" (click)="ejecutarDefaulteosSeleccion()"
+                                                        [disabled]="ejecutandoLote">
+                                                        Generar solicitudes
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <small class="d-block text-muted mt-2" *ngIf="existenDatosTabla">Procesa los empleados seleccionados del grid, sin layout, con el tipo de asignación elegido.</small>
+                                            <small class="d-block text-muted mt-2" *ngIf="!existenDatosTabla">Realiza una búsqueda y selecciona empleados para habilitar la generación individual.</small>
+                                        </div>
+                                        <!-- Bloque 2: proceso de carga masiva por layout -->
+                                        <div class="border rounded p-3">
+                                            <div class="label-text text-general-color mb-2"><b>Carga masiva por layout</b></div>
+                                            <div class="row align-items-end">
+                                                <!-- CREA06 (incidencia 8): "Descargar layout" exporta la seleccion del grid -> solo con resultados de busqueda. -->
+                                                <div class="col-auto" *ngIf="existenDatosTabla">
+                                                    <label class="text-general-color label-text d-block">Descargar layout:</label>
+                                                    <button class="btn btn-success label-text" (click)="exportarLayout()">
+                                                        Descargar layout
+                                                    </button>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <label class="text-general-color label-text d-block">Cargar layout:</label>
+                                                    <!-- CREA06 (incidencia 1): boton homologado al de "Borrado de poblacion" (btn-primary + clip + input oculto + nombre) -->
+                                                    <button class="btn btn-primary label-text" type="button" (click)="fileLayoutInput.click()">
+                                                        <a class="fa fa-paperclip" style="color: white;">&nbsp;&nbsp;</a>Seleccionar archivo
+                                                    </button>
+                                                    <input #fileLayoutInput type="file" accept=".xlsx" class="form-control input-text-font" style="display: none;" (change)="cargarLayout($event)" onclick="this.value = null">
+                                                    <!-- CREA06 (obs 30-jul): leyenda con color explicito y el estado cargado como texto plano -->
+                                                    <span class="input-text-font ms-2" style="color: #495057;" *ngIf="layoutFilas === 0">Ningún archivo seleccionado</span>
+                                                    <span class="input-text-font ms-2" style="color: #495057;" *ngIf="layoutFilas > 0">{{ layoutNombreArchivo }} — {{ layoutFilas }} registro(s) cargados</span>
+                                                </div>
+                                            </div>
+                                            <small class="d-block text-muted mt-2" *ngIf="existenDatosTabla">Descarga el layout con la selección del grid, llénalo y cárgalo aquí para el proceso masivo.</small>
+                                            <small class="d-block text-muted mt-2" *ngIf="!existenDatosTabla">Carga un layout generado previamente desde esta pantalla para el proceso masivo.</small>
+                                        </div>
+>>>>>>> QA
+                                    </div>
+                                    <hr>
+                                    <!-- ===== Condiciones especiales (colapsable, sin cambios de contenido) ===== -->
+                                    <h6 class="text-general-color">
+                                        <span style="cursor: pointer;" (click)="mostrarCondicionesEspeciales = !mostrarCondicionesEspeciales">
+                                            <i class="fa" [ngClass]="mostrarCondicionesEspeciales ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                                            Condiciones especiales (opcional)
+                                        </span>
+                                    </h6>
+                                    <div *ngIf="mostrarCondicionesEspeciales" class="ps-3">
+                                    <small class="d-block text-muted mb-2">Respetar reglas de elegibilidad</small>
+                                    <!-- CREA06 (incidencia 12): controles de plan/cobertura estandarizados con los del
+                                         reporte de documentos personalizados (PrimeNG con busqueda integrada) -->
+                                    <div class="row condiciones-controles">
+                                        <div class="col-3">
+                                            <label class="text-general-color label-text">Plan: </label>
+                                            <!-- CREA06 (obs 21-jul): aviso mientras se filtran los planes por vigencia -->
+                                            <small class="d-block text-muted" *ngIf="cargandoPlanesCond"><i class="fa fa-spinner fa-spin"></i> Filtrando planes de la vigencia...</small>
+                                            <!-- appendTo body: el panel vive fuera del combo para poder recortar con overflow
+                                                 el texto largo de la seleccion sin esconder el panel (obs 3-ago) -->
+                                            <p-dropdown [emptyFilterMessage]="'No hay resultados'" placeholder="Seleccione el plan"
+                                                [options]="itemsPlanesCond" [(ngModel)]="planSelCond" [ngModelOptions]="{standalone: true}"
+                                                [filter]="true" [showClear]="true" [disabled]="cargandoPlanesCond" appendTo="body"
+                                                style="margin-left: -0.3em;" [style]="{'width': '100%'}" (onChange)="onPlanCondChange()"></p-dropdown>
+                                        </div>
+                                        <div class="col-3">
+                                            <label class="text-general-color label-text">Cobertura: </label>
+                                            <p-multiSelect [emptyFilterMessage]="'No hay resultados'"
+                                                [defaultLabel]="!planSelCond ? 'Selecciona un plan' : (itemsCoberturasCond.length === 0 ? '(sin coberturas)' : 'Seleccione la(s) cobertura(s)')"
+                                                [options]="itemsCoberturasCond" [(ngModel)]="coberturasSelCond" [ngModelOptions]="{standalone: true}"
+                                                [disabled]="!planSelCond || itemsCoberturasCond.length === 0"
+                                                style="margin-left: -0.3em;" [style]="{'width': '100%'}" selectedItemsLabel="{0} opciones seleccionadas"></p-multiSelect>
+                                        </div>
+                                        <div class="col-2">
+                                            <!-- CREA06 (incidencia 6): cobertura OBLIGATORIA para agregar el plan -->
+                                            <button class="btn btn-primary label-text" (click)="agregarCondicion()"
+                                                    [disabled]="!planSelCond || coberturasSelCond.length === 0">Agregar plan</button>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3" *ngIf="condicionesEspeciales.length > 0">
+                                        <div class="col-8">
+                                            <!-- CREA06 (obs 12-ago): encabezados homologados con el grid de busqueda -->
+                                            <table class="table table-sm">
+                                                <thead><tr><th class="p-1 table-headers">Plan</th><th class="p-1 table-headers">Cobertura</th><th class="p-1 table-headers"></th></tr></thead>
+                                                <tbody>
+                                                    <!-- CREA06 (obs 12-ago v2): celdas con la clase table-data del grid para homologar tipografia -->
+                                                    <tr *ngFor="let r of condicionesEspeciales; let i = index">
+                                                        <td class="table-data">{{ r.nombrePlan }}</td>
+                                                        <td class="table-data">{{ r.nombreCobertura || '-' }}</td>
+                                                        <td class="table-data"><button class="btn btn-sm btn-danger label-text" (click)="quitarCondicion(i)">Quitar plan</button></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CREA06 casos especiales (F5): ejecutar layout + log de resultados -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card workflow-card execution-card">
+                            <div class="card-header workflow-subheader execution-header">
+                                <span class="step-badge">4</span>
+                                <div>
+                                    <b>Ejecuta y revisa el resultado</b>
+                                    <small>El proceso continúa en segundo plano y muestra su avance hasta concluir.</small>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <button class="btn btn-success label-text" (click)="ejecutarDefaulteos()"
+                                        [disabled]="ejecutandoLote || layoutFilas === 0 || loteEjecutado">
+                                    <i class="fa fa-spinner fa-spin" *ngIf="ejecutandoLote"></i>
+                                    {{ ejecutandoLote ? ' Procesando...' : 'Ejecutar defaulteos' }}
+                                </button>
+                                <small class="d-block text-muted" *ngIf="layoutFilas === 0 && !ejecutandoLote && !loteEjecutado">Carga primero un layout para habilitar la ejecución.</small>
+                                <small class="d-block text-muted" *ngIf="loteEjecutado && !ejecutandoLote">Lote ejecutado. Carga otro layout para volver a ejecutar.</small>
+
+<<<<<<< defaulteoCargaMaisva
+                                <!-- Indicador de proceso en curso: visible mientras corre el lote -->
+                                <div *ngIf="ejecutandoLote" class="d-flex align-items-center mt-3 p-3 execution-progress">
+                                    <i class="fa fa-spinner fa-spin fa-2x execution-progress__icon"></i>
+                                    <div class="ms-3 execution-progress__content">
+                                        <div class="execution-progress__title" style="font-weight:600;">
+=======
+                                <!-- Indicador de proceso en curso: visible mientras corre el lote.
+                                     CREA06 (obs 12-ago): solo para el flujo MASIVO (por layout) o lotes
+                                     reconectados; el individual usa el popup bloqueante. -->
+                                <div *ngIf="ejecutandoLote && !loteEsIndividual" class="d-flex align-items-center mt-3 p-3"
+                                     style="background:#e7f1ff; border:1px solid #b6d4fe; border-radius:6px;">
+                                    <i class="fa fa-spinner fa-spin fa-2x" style="color:#0d6efd;"></i>
+                                    <div class="ms-3" style="flex:1;">
+                                        <div style="font-weight:600; color:#084298;">
+>>>>>>> QA
+                                            Procesando defaulteos…
+                                            <span *ngIf="progresoLote && progresoLote.total > 0">({{ progresoLote.procesados }}/{{ progresoLote.total }})</span>
+                                        </div>
+                                        <div class="small text-muted">Generando solicitudes y documentos. Esto puede tardar.</div>
+                                        <div *ngIf="progresoLote && progresoLote.total > 0" class="progress mt-2" style="height:8px;">
+                                            <div class="progress-bar" role="progressbar"
+                                                 [style.width.%]="(progresoLote.procesados / progresoLote.total) * 100"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- CREA06 (obs 17-ago): la seccion donde se muestran los resultados del proceso
+                                     debe llamarse "Resultados de defaulteo" -->
+                                <div class="mt-3" *ngIf="resumenEjecucion && !ejecutandoLote">
+                                    <hr>
+                                    <h5 class="text-general-color mb-0">Resultados de defaulteo</h5>
+                                </div>
+
+                                <!-- CREA06 (mejoras ago-2026): los 3 contadores son informativos -> etiquetas planas
+                                     sin color de boton/badge; solo "Descargar log" se queda como boton. -->
+                                <div class="mt-2" *ngIf="resumenEjecucion && !ejecutandoLote">
+                                    <span class="label-text me-3">Total: <b>{{ resumenEjecucion.total }}</b></span>
+                                    <span class="label-text me-3">Exitosos: <b>{{ resumenEjecucion.exitosos }}</b></span>
+                                    <span class="label-text me-3">Errores: <b>{{ resumenEjecucion.errores }}</b></span>
+                                    <button class="btn btn-sm btn-primary label-text ms-2" (click)="descargarLogEjecucion()">Descargar log</button>
+                                </div>
+
+                                <div class="mt-2" *ngIf="logEjecucion.length > 0 && !ejecutandoLote" style="max-height: 250px; overflow:auto;">
+                                    <!-- CREA06 (incidencia 2): thead sticky (clase log-ejecucion) para no perder los encabezados al hacer scroll -->
+                                    <!-- CREA06 (obs 12-ago): encabezados homologados con el grid de busqueda (clase table-headers) -->
+                                    <table class="table table-sm log-ejecucion">
+                                        <thead><tr>
+                                            <th class="p-1 table-headers">Num. Empleado</th><th class="p-1 table-headers">Tipo defaulteo</th><th class="p-1 table-headers">Resultado</th>
+                                            <th class="p-1 table-headers">Aplicados (plan — cobertura)</th><th class="p-1 table-headers">No aplicados (motivo)</th>
+                                        </tr></thead>
+                                        <tbody>
+                                            <tr *ngFor="let l of logEjecucion">
+                                                <td>{{ l.numeroEmpleado }}</td>
+                                                <!-- CREA06 (incidencia 7): mostrar descripcion del tipo de defaulteo, no solo el ID -->
+                                                <td>{{ descTipoDefaulteo(l.tipoDefaulteo) }}</td>
+                                                <td>{{ l.resultado }}</td>
+                                                <td>
+                                                    <span *ngIf="!l.aplicados.length" class="text-muted">—</span>
+                                                    <ul class="mb-0 ps-3" *ngIf="l.aplicados.length">
+                                                        <li *ngFor="let a of l.aplicados">{{ a }}</li>
+                                                    </ul>
+                                                </td>
+                                                <td>
+                                                    <!-- CREA06: cambio de perfil entre vigencias — aviso INFORMATIVO (azul), distinto del de antigüedad (ámbar) -->
+                                                    <div *ngIf="l.cambioPerfil" class="p-2 mb-2"
+                                                         style="background:#cfe2ff; border-left:5px solid #0d6efd; border-radius:4px;">
+                                                        <div style="color:#084298; font-weight:700;">
+                                                            <i class="fa fa-exchange"></i> Cambio de perfil entre vigencias
+                                                        </div>
+                                                        <div class="small" style="color:#0a58ca;">
+                                                            El empleado tenía un <strong>perfil distinto en la vigencia anterior</strong>;
+                                                            la nueva solicitud se genera con el <strong>perfil actual</strong>.
+                                                        </div>
+                                                    </div>
+                                                    <!-- RF026-029: regla especial del plan de retiro (6 meses) destacada -->
+                                                    <div *ngIf="l.reglaRetiro?.aplicada" class="p-2 mb-2"
+                                                         style="background:#fff3cd; border-left:5px solid #e67e00; border-radius:4px;">
+                                                        <div style="color:#9a4b00; font-weight:700;">
+                                                            <i class="fa fa-exclamation-triangle"></i> Plan de retiro NO aplicado (regla de antigüedad)
+                                                        </div>
+                                                        <div class="small" style="color:#7a4a00;">
+                                                            Antigüedad del empleado: <strong>{{ l.reglaRetiro.mesesAntiguedad }} mes(es)</strong>,
+                                                            menor al mínimo de <strong>{{ l.reglaRetiro.mesesMinimos }} meses</strong> requerido para el plan de retiro.
+                                                            <span *ngIf="l.reglaRetiro.coberturas.length">
+                                                                Cobertura(s) de retiro <strong>no asignada(s)</strong>: <strong>{{ l.reglaRetiro.coberturas.join(', ') }}</strong>.
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div *ngIf="l.observaciones" class="small text-muted mb-1">{{ l.observaciones }}</div>
+                                                    <span *ngIf="!l.noAplicados.length && !l.observaciones && !l.reglaRetiro?.aplicada && !l.cambioPerfil" class="text-muted">—</span>
+                                                    <ul class="mb-0 ps-3" *ngIf="l.noAplicados.length">
+                                                        <li *ngFor="let na of l.noAplicados">
+                                                            <strong>{{ na.item }}</strong><span *ngIf="na.motivo"> — {{ na.motivo }}</span>
+                                                        </li>
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+<<<<<<< defaulteoCargaMaisva
+            <div *ngIf="!existenDatosTabla && msjNoHayDatos" class="empty-state">
+                <div class="text-center align-items-center">
+                    <span class="empty-state__icon">i</span>
+                    <p class="h5">No existen datos que se ajusten a tu búsqueda.</p>
+                    <small>Revisa las empresas y los criterios capturados, o limpia el formulario para consultar nuevamente.</small>
+=======
+
+                <!-- CREA06 (mejoras ago-2026): historial de los ultimos defaulteos del administrador (individuales
+                     o masivos). El lote corre en el backend aunque se cierre sesion; al reingresar, desde aqui se
+                     consulta como termino y se descarga el detalle persistido en la bitacora (bf_LogDefaulteo). -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row pb-2">
+                                    <div class="col-12">
+                                        <h5 class="text-general-color">
+                                            <span style="cursor: pointer;" (click)="toggleHistorialDefaulteos()">
+                                                <i class="fa" [ngClass]="mostrarHistorialDefaulteos ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                                                Historial de defaulteos
+                                            </span>
+                                        </h5>
+                                    </div>
+                                </div>
+                                <div *ngIf="mostrarHistorialDefaulteos">
+                                    <hr>
+                                    <small class="d-block text-muted mb-2">Últimos {{ HISTORIAL_MAX }} defaulteos ejecutados por tu usuario (individuales o masivos).</small>
+                                    <small class="d-block text-muted" *ngIf="cargandoHistorial"><i class="fa fa-spinner fa-spin"></i> Consultando historial...</small>
+                                    <small class="d-block text-muted" *ngIf="!cargandoHistorial && historialDefaulteos.length === 0">Sin defaulteos registrados todavía.</small>
+                                    <!-- CREA06 (obs 12-ago): encabezados homologados con el grid de busqueda (clase table-headers)
+                                         y celdas CENTRADAS como el grid para que las columnas no se vean desfasadas -->
+                                    <table class="table table-sm text-center" *ngIf="!cargandoHistorial && historialDefaulteos.length > 0">
+                                        <thead><tr>
+                                            <th class="p-1 table-headers">Folio</th><th class="p-1 table-headers">Inicio</th><th class="p-1 table-headers">Fin</th><th class="p-1 table-headers">Estado</th>
+                                            <th class="p-1 table-headers">Total</th><th class="p-1 table-headers">Exitosos</th><th class="p-1 table-headers">Errores</th><th class="p-1 table-headers"></th>
+                                        </tr></thead>
+                                        <tbody>
+                                            <!-- CREA06 (obs 12-ago v2): celdas con table-data (tipografia del grid); en lotes EN
+                                                 PROCESO se ofrece "Ver avance" para reconectar la barra de progreso al reingresar. -->
+                                            <tr *ngFor="let h of historialDefaulteos">
+                                                <td class="table-data">{{ h.idLog }}</td>
+                                                <td class="table-data">{{ h.fechaInicio | date:'dd/MM/yyyy HH:mm' }}</td>
+                                                <td class="table-data">{{ h.fechaFin ? (h.fechaFin | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+                                                <td class="table-data">{{ descEstadoHistorial(h.estado) }}</td>
+                                                <td class="table-data">{{ h.totalEmpleados }}</td>
+                                                <td class="table-data">{{ h.totalExitosos }}</td>
+                                                <td class="table-data">{{ h.totalErrores }}</td>
+                                                <td class="table-data">
+                                                    <button class="btn btn-sm btn-primary label-text me-1" *ngIf="h.estado === 'EN_PROCESO'"
+                                                            (click)="verAvanceLote(h)" [disabled]="ejecutandoLote">
+                                                        Ver avance
+                                                    </button>
+                                                    <button class="btn btn-sm btn-primary label-text"
+                                                            (click)="descargarHistorialDefaulteo(h)"
+                                                            [disabled]="h.descargando || h.estado === 'EN_PROCESO'">
+                                                        <i class="fa fa-spinner fa-spin" *ngIf="h.descargando"></i>
+                                                        Descargar detalle
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <button class="btn btn-sm btn-primary label-text" (click)="cargarHistorialDefaulteos()"
+                                            [disabled]="cargandoHistorial">Actualizar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+>>>>>>> QA
+                </div>
+            <!-- Loader container -->
+            <ng-container *ngIf="loadEditar">
+                <div class="loading-banner" role="status" aria-live="polite">
+                    <div class="lds-dual-ring"></div>
+                    <span>Consultando empleados...</span>
+                </div>
+            </ng-container>
+            <!-- ################# Results table ################# -->
+        </div>
+    </div>
+</div>
+
+<ng-template #modalCarga let-c="close" let-d="dismiss">
+    <div class="process-modal centered">
+        <ng-container *ngIf="ejecutando">
+            <p class="lds-dual-ring"></p>
+            <h3>Generando solicitudes</h3>
+            <p>Cuando termine el proceso se mostrará el reporte de resultados.</p>
+        </ng-container>
+        <div class="modal-footer">
+            <button class="btn btn-outline-secondary label-text" (click)="c('Save click')">
+                Ocultar ventana
+            </button>
+        </div>
+    </div>
+</ng-template>
+
+
+<ng-template #modalReporte let-c="close" let-d="dismiss">
+    <div class="result-modal centered">
+        <span class="result-modal__icon">✓</span>
+        <h3>Ha concluido la asignación de planes</h3>
+        <p>Revisa tu correo electrónico y el log de ejecución para consultar los detalles.</p>
+        <button class="btn btn-primary label-text" (click)="c('Save click');this.reporte=[];busquedaAvanzada();restaurarSeccionDefaulteo();">
+            Aceptar y actualizar
+        </button>
+    </div>
+</ng-template>
+
+<!-- The Modal -->
+<div class="modal fade" id="modalAyuda">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h3 class="modal-title text-general-color">Ayuda</h3>
+            </div>
+            <!-- Modal body -->
+            <div class="modal-body">
+                <div class="modal-body">
+                    <!-- <p>{{ textAyuda }}</p> -->
+                    <div *ngIf="!textAyuda">
+                        <div class="centered">
+                            <div class="lds-dual-ring"></div>
+                        </div>
+                    </div>
+                    <div *ngIf="textAyuda">
+                        <p class="help-label" [innerHTML]="textAyuda"></p>
+                    </div>
+                </div>
+            </div>
+            <!-- End Modal body -->
+            <div class="modal-footer mt-0">
+                <ng-container>
+                    <!-- Cancelar -->
+                    <button type="button" data-bs-dismiss="modal" class="btn btn-danger label-text">Cerrar</button>
+                    <!-- End Cancelar -->
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Modal -->
 
