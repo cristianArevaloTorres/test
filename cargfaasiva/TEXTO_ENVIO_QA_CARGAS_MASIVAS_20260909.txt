@@ -1,0 +1,22 @@
+Asunto: Pruebas QA - Cargas masivas de poblaciones B2 y B3
+
+Buen día,
+
+Les confirmo que el flujo de carga masiva de poblaciones ya se encuentra disponible en el ambiente de QA para su validación.
+
+Adjunto para las pruebas:
+
+- Manual de usuario de carga masiva BF3.
+- Matriz de pruebas para los flujos B2/TXT y B3/Excel.
+
+La matriz contempla la validación de acceso y permisos, selección de empresa y operación, configuración del motor de carga, descarga del formato vigente, carga de archivos válidos, validaciones de datos y estructura, modos "Detener al encontrar un error" y "Procesar todos los registros", cancelación de solicitudes B3, captura manual B2, trazabilidad, descarga de log/reporte y consulta en Histórico.
+
+Para evitar resultados incorrectos, es importante descargar el formato desde la misma empresa y operación que se probarán. En B3 no deben modificarse la hoja, los encabezados, el orden ni el número de columnas. En B2 no deben modificarse los encabezados, el orden ni el separador |. Las fechas deben capturarse en formato dd/mm/aaaa y los registros de prueba deben usar identificadores únicos.
+
+Como primera ejecución se recomienda utilizar la opción "Detener al encontrar un error". En cada caso favor de registrar en la matriz el resultado obtenido, estatus, cantidad de errores y fecha de prueba, además de conservar como evidencia el identificador de ejecución, la traza, el log y el reporte descargable.
+
+Si alguna prueba falla, por favor compartir empresa, operación, tipo de flujo B2/B3, fecha y hora, identificador de ejecución, fila afectada, mensaje exacto y archivos de evidencia. Si el estado de una ejecución no es claro, favor de consultarla primero en Histórico antes de reintentar para evitar una carga duplicada.
+
+Quedo atento a sus resultados y observaciones.
+
+Saludos.
