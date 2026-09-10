@@ -1,1 +1,4 @@
 
+Hola, [Nombre]. Identifiqué que la lentitud y el consumo de memoria pueden originarse por la ejecución concurrente de reportes de Cobranza dentro del mismo JVM/Catalina, especialmente porque algunos procesos duran varias horas.
+Implementé una cola exclusiva para Cobranza: los reportes quedan en estado “En espera” y se procesa únicamente uno a la vez. También se deshabilitó el worker automático, se limitó la cola y se liberan correctamente los recursos temporales del Excel.
+Con esto evitamos que varias ejecuciones saturen simultáneamente la memoria, el pool de conexiones y la base de datos. Queda desplegar en QA y realizar una prueba con el reporte de mayor volumen para confirmar el consumo máximo de memoria antes de producción.
