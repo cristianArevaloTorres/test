@@ -260,120 +260,29 @@
             </ng-container>
             <!-- CREA06 (incidencia 8): los paneles de carga/ejecucion de layout quedan FUERA del *ngIf de
                  resultados, para poder cargar y ejecutar un layout ya llenado sin repetir la busqueda (paso 1). -->
-<<<<<<< defaulteoCargaMaisva
-                <!-- CREA06 casos especiales (F3): opciones especiales bajo el grid -->
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <div class="card workflow-card preparation-card">
-                            <div class="card-header workflow-subheader">
-                                <div>
-                                    <b>Prepara la forma de ejecución</b>
-                                    <small>Trabaja con la selección actual o carga un layout previamente preparado.</small>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="row align-items-end">
-                                    <!-- CREA06 (incidencia 8): "Descargar layout" exporta la seleccion del grid -> solo con resultados de busqueda. -->
-                                    <div class="col-auto mb-2" *ngIf="existenDatosTabla">
-                                        <button class="btn btn-success label-text" (click)="exportarLayout()">
-                                            Descargar layout
-                                        </button>
-                                        <!-- CREA06 (incidencia 7): separar la leyenda del boton (se veian muy juntos) -->
-                                        <small class="d-block text-muted mt-2">Exporta la selección (o todo el grid) como layout.</small>
-                                    </div>
-                                    <!-- CREA06 (incidencia 11, obs 3-ago): combo global de tipo con el patron del defaulteo
-                                         normal. Es el tipo POR DEFECTO de todo el lote, para AMBOS flujos (seleccion del grid
-                                         o layout cargado); el tipo por renglon del grid o del Excel tiene prioridad. -->
-                                    <div class="col-3 mb-2">
-                                        <label class="text-general-color label-text" for="tipoDefaulteoGlobalCE">Tipo asignación de planes</label>
-                                        <select class="form-select input-text-font" id="tipoDefaulteoGlobalCE"
-                                            [(ngModel)]="tipoDefaulteoGlobal" [ngModelOptions]="{standalone: true}">
-                                            <option value="0">Seleccionar el tipo de Default</option>
-                                            <ng-container *ngFor="let obj of planesDefaulteo">
-                                                <option *ngIf="obj.TDIdTipoDefaulteo" value="{{obj.TDIdTipoDefaulteo}}">{{obj.Nombre}}</option>
-                                            </ng-container>
-                                        </select>
-                                    </div>
-                                    <div class="col-auto mb-2" *ngIf="existenDatosTabla">
-                                        <button class="btn btn-primary label-text" (click)="ejecutarDefaulteosSeleccion()"
-                                            [disabled]="ejecutandoLote">
-                                            Generar solicitudes
-                                        </button>
-                                        <small class="d-block text-muted mt-2">Procesa los seleccionados del grid, sin layout.</small>
-                                    </div>
-                                    <div class="col-auto mb-2">
-                                        <label class="text-general-color label-text d-block">Cargar layout:</label>
-                                        <!-- CREA06 (incidencia 1): boton homologado al de "Borrado de poblacion" (btn-primary + clip + input oculto + nombre) -->
-                                        <button class="btn btn-primary label-text" type="button" (click)="fileLayoutInput.click()">
-                                            <a class="fa fa-paperclip" style="color: white;">&nbsp;&nbsp;</a>Seleccionar archivo
-                                        </button>
-                                        <input #fileLayoutInput type="file" accept=".xlsx" class="form-control input-text-font" style="display: none;" (change)="cargarLayout($event)" onclick="this.value = null">
-                                        <!-- CREA06 (obs 30-jul): leyenda con color explicito (se veia blanca/transparente) y el estado
-                                             cargado como texto plano del mismo tamano que el boton, no como badge grande -->
-                                        <span class="input-text-font ms-2" style="color: #495057;" *ngIf="layoutFilas === 0">Ningún archivo seleccionado</span>
-                                        <span class="input-text-font ms-2" style="color: #495057;" *ngIf="layoutFilas > 0">{{ layoutNombreArchivo }} — {{ layoutFilas }} registro(s) cargados</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- CREA06 casos especiales (F4): condiciones especiales (planes + coberturas) -->
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <div class="card workflow-card conditions-card">
-                            <!-- CREA06 (incidencia 9, obs 30-jul): colapsable con el MISMO patron/estilos que los demas
-                                 colapsables (adminsolicitudes: h5.text-general-color + chevron dentro del card-body + hr) -->
-                            <div class="card-body">
-                                <div class="row pb-2">
-                                    <div class="col-12">
-                                        <h5 class="text-general-color section-heading-inline">
-                                            <span class="step-badge">3</span>
-                                            <span style="cursor: pointer;" (click)="mostrarCondicionesEspeciales = !mostrarCondicionesEspeciales">
-                                                <i class="fa" [ngClass]="mostrarCondicionesEspeciales ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-                                                Condiciones especiales (opcional)
-=======
                 <!-- CREA06 (mejoras ago-2026): colapsable GENERAL "Configuracion del defaulteo" (mismo patron
                      que los colapsables de adminsolicitudes). Agrupa: "Opciones defaulteo" (antes "Opciones
                      especiales") con la generacion individual y la carga masiva SEPARADAS, y las
                      "Condiciones especiales". Todo arranca contraido para no cargar la pantalla. -->
                 <div class="row mt-3">
                     <div class="col-12">
-                        <div class="card">
+                        <div class="card workflow-card preparation-card conditions-card">
                             <div class="card-body">
                                 <div class="row pb-2">
                                     <div class="col-12">
-                                        <h5 class="text-general-color">
+                                        <h5 class="text-general-color section-heading-inline">
+                                            <span class="step-badge">3</span>
                                             <span style="cursor: pointer;" (click)="mostrarConfiguracionDefaulteo = !mostrarConfiguracionDefaulteo">
                                                 <i class="fa" [ngClass]="mostrarConfiguracionDefaulteo ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
                                                 Configuración del defaulteo
->>>>>>> QA
                                             </span>
                                         </h5>
                                     </div>
                                 </div>
-<<<<<<< defaulteoCargaMaisva
-                                <div *ngIf="mostrarCondicionesEspeciales" class="conditions-body">
-                                <hr>
-                                <small class="d-block text-muted mb-2">Respetar reglas de elegibilidad</small>
-                                <!-- CREA06 (incidencia 12): controles de plan/cobertura estandarizados con los del
-                                     reporte de documentos personalizados (PrimeNG con busqueda integrada) -->
-                                <div class="row condiciones-controles">
-                                    <div class="col-3">
-                                        <label class="text-general-color label-text">Plan: </label>
-                                        <!-- CREA06 (obs 21-jul): aviso mientras se filtran los planes por vigencia -->
-                                        <small class="d-block text-muted" *ngIf="cargandoPlanesCond"><i class="fa fa-spinner fa-spin"></i> Filtrando planes de la vigencia...</small>
-                                        <!-- appendTo body: el panel vive fuera del combo para poder recortar con overflow
-                                             el texto largo de la seleccion sin esconder el panel (obs 3-ago) -->
-                                        <p-dropdown [emptyFilterMessage]="'No hay resultados'" placeholder="Seleccione el plan"
-                                            [options]="itemsPlanesCond" [(ngModel)]="planSelCond" [ngModelOptions]="{standalone: true}"
-                                            [filter]="true" [showClear]="true" [disabled]="cargandoPlanesCond" appendTo="body"
-                                            style="margin-left: -0.3em;" [style]="{'width': '100%'}" (onChange)="onPlanCondChange()"></p-dropdown>
-=======
-                                <div *ngIf="mostrarConfiguracionDefaulteo">
+                                <div *ngIf="mostrarConfiguracionDefaulteo" class="conditions-body">
                                     <hr>
                                     <!-- ===== Opciones defaulteo (antes "Opciones especiales") ===== -->
-                                    <h6 class="text-general-color">
+                                    <h6 class="text-general-color workflow-subsection-title">
                                         <span style="cursor: pointer;" (click)="mostrarOpcionesDefaulteo = !mostrarOpcionesDefaulteo">
                                             <i class="fa" [ngClass]="mostrarOpcionesDefaulteo ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
                                             Opciones defaulteo
@@ -381,9 +290,9 @@
                                     </h6>
                                     <!-- CREA06 (obs 12-ago): cada flujo en su propio recuadro, controles alineados en un
                                          renglon (label arriba, control abajo) y las leyendas al pie del recuadro. -->
-                                    <div *ngIf="mostrarOpcionesDefaulteo" class="ps-3">
+                                    <div *ngIf="mostrarOpcionesDefaulteo" class="ps-3 configuration-options">
                                         <!-- Bloque 1: generacion individual desde la seleccion del grid -->
-                                        <div class="border rounded p-3 mb-3">
+                                        <div class="border rounded p-3 mb-3 configuration-option">
                                             <div class="label-text text-general-color mb-2"><b>Generación individual (selección del grid)</b></div>
                                             <div class="row align-items-end">
                                                 <!-- CREA06 (incidencia 11, obs 3-ago): tipo POR DEFECTO de todo el lote, para AMBOS
@@ -409,7 +318,7 @@
                                             <small class="d-block text-muted mt-2" *ngIf="!existenDatosTabla">Realiza una búsqueda y selecciona empleados para habilitar la generación individual.</small>
                                         </div>
                                         <!-- Bloque 2: proceso de carga masiva por layout -->
-                                        <div class="border rounded p-3">
+                                        <div class="border rounded p-3 configuration-option">
                                             <div class="label-text text-general-color mb-2"><b>Carga masiva por layout</b></div>
                                             <div class="row align-items-end">
                                                 <!-- CREA06 (incidencia 8): "Descargar layout" exporta la seleccion del grid -> solo con resultados de busqueda. -->
@@ -434,17 +343,16 @@
                                             <small class="d-block text-muted mt-2" *ngIf="existenDatosTabla">Descarga el layout con la selección del grid, llénalo y cárgalo aquí para el proceso masivo.</small>
                                             <small class="d-block text-muted mt-2" *ngIf="!existenDatosTabla">Carga un layout generado previamente desde esta pantalla para el proceso masivo.</small>
                                         </div>
->>>>>>> QA
                                     </div>
                                     <hr>
                                     <!-- ===== Condiciones especiales (colapsable, sin cambios de contenido) ===== -->
-                                    <h6 class="text-general-color">
+                                    <h6 class="text-general-color workflow-subsection-title">
                                         <span style="cursor: pointer;" (click)="mostrarCondicionesEspeciales = !mostrarCondicionesEspeciales">
                                             <i class="fa" [ngClass]="mostrarCondicionesEspeciales ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
                                             Condiciones especiales (opcional)
                                         </span>
                                     </h6>
-                                    <div *ngIf="mostrarCondicionesEspeciales" class="ps-3">
+                                    <div *ngIf="mostrarCondicionesEspeciales" class="ps-3 condition-options">
                                     <small class="d-block text-muted mb-2">Respetar reglas de elegibilidad</small>
                                     <!-- CREA06 (incidencia 12): controles de plan/cobertura estandarizados con los del
                                          reporte de documentos personalizados (PrimeNG con busqueda integrada) -->
@@ -517,22 +425,13 @@
                                 <small class="d-block text-muted" *ngIf="layoutFilas === 0 && !ejecutandoLote && !loteEjecutado">Carga primero un layout para habilitar la ejecución.</small>
                                 <small class="d-block text-muted" *ngIf="loteEjecutado && !ejecutandoLote">Lote ejecutado. Carga otro layout para volver a ejecutar.</small>
 
-<<<<<<< defaulteoCargaMaisva
-                                <!-- Indicador de proceso en curso: visible mientras corre el lote -->
-                                <div *ngIf="ejecutandoLote" class="d-flex align-items-center mt-3 p-3 execution-progress">
-                                    <i class="fa fa-spinner fa-spin fa-2x execution-progress__icon"></i>
-                                    <div class="ms-3 execution-progress__content">
-                                        <div class="execution-progress__title" style="font-weight:600;">
-=======
                                 <!-- Indicador de proceso en curso: visible mientras corre el lote.
                                      CREA06 (obs 12-ago): solo para el flujo MASIVO (por layout) o lotes
                                      reconectados; el individual usa el popup bloqueante. -->
-                                <div *ngIf="ejecutandoLote && !loteEsIndividual" class="d-flex align-items-center mt-3 p-3"
-                                     style="background:#e7f1ff; border:1px solid #b6d4fe; border-radius:6px;">
-                                    <i class="fa fa-spinner fa-spin fa-2x" style="color:#0d6efd;"></i>
-                                    <div class="ms-3" style="flex:1;">
-                                        <div style="font-weight:600; color:#084298;">
->>>>>>> QA
+                                <div *ngIf="ejecutandoLote && !loteEsIndividual" class="d-flex align-items-center mt-3 p-3 execution-progress">
+                                    <i class="fa fa-spinner fa-spin fa-2x execution-progress__icon"></i>
+                                    <div class="ms-3 execution-progress__content">
+                                        <div class="execution-progress__title" style="font-weight:600;">
                                             Procesando defaulteos…
                                             <span *ngIf="progresoLote && progresoLote.total > 0">({{ progresoLote.procesados }}/{{ progresoLote.total }})</span>
                                         </div>
@@ -622,24 +521,17 @@
                         </div>
                     </div>
                 </div>
-<<<<<<< defaulteoCargaMaisva
-            <div *ngIf="!existenDatosTabla && msjNoHayDatos" class="empty-state">
-                <div class="text-center align-items-center">
-                    <span class="empty-state__icon">i</span>
-                    <p class="h5">No existen datos que se ajusten a tu búsqueda.</p>
-                    <small>Revisa las empresas y los criterios capturados, o limpia el formulario para consultar nuevamente.</small>
-=======
 
                 <!-- CREA06 (mejoras ago-2026): historial de los ultimos defaulteos del administrador (individuales
                      o masivos). El lote corre en el backend aunque se cierre sesion; al reingresar, desde aqui se
                      consulta como termino y se descarga el detalle persistido en la bitacora (bf_LogDefaulteo). -->
                 <div class="row mt-3">
                     <div class="col-12">
-                        <div class="card">
+                        <div class="card workflow-card history-card">
                             <div class="card-body">
                                 <div class="row pb-2">
                                     <div class="col-12">
-                                        <h5 class="text-general-color">
+                                        <h5 class="text-general-color section-heading-inline">
                                             <span style="cursor: pointer;" (click)="toggleHistorialDefaulteos()">
                                                 <i class="fa" [ngClass]="mostrarHistorialDefaulteos ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
                                                 Historial de defaulteos
@@ -691,8 +583,14 @@
                             </div>
                         </div>
                     </div>
->>>>>>> QA
                 </div>
+            <div *ngIf="!existenDatosTabla && msjNoHayDatos" class="empty-state">
+                <div class="text-center align-items-center">
+                    <span class="empty-state__icon">i</span>
+                    <p class="h5">No existen datos que se ajusten a tu búsqueda.</p>
+                    <small>Revisa las empresas y los criterios capturados, o limpia el formulario para consultar nuevamente.</small>
+                </div>
+            </div>
             <!-- Loader container -->
             <ng-container *ngIf="loadEditar">
                 <div class="loading-banner" role="status" aria-live="polite">
@@ -766,4 +664,3 @@
     </div>
 </div>
 <!-- End Modal -->
-
