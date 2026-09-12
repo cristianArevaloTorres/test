@@ -1,1 +1,17 @@
+EN ELÑ ARCHIVPO 01
+PRIMERO ESTO PERO LOCOMENTE 
+ --  THROW 51000, 'La empresa/corporativo modelo no contiene la configuración mínima esperada. No aplicar.', 1;
+Y DESPUE SLO EJECUTE 
+
+Mensaje 3930, nivel 16, estado 1, procedimiento sp_CopiarMenusV2_MVP, línea 17 [línea de inicio de lote 8]
+The current transaction cannot be committed and cannot support operations that write to the log file. Roll back the transaction.
+
+Hora de finalización: 2026-09-11T19:53:03.7586420-06:00
+
+EL ARCHIVO 02
+Bloque	BEId	BEAccion	BEExitoso	BEElementoAfectado	BECantidadElementos	BEMensajeError	BEDetalle	BEFechaCreacion
+06_BITACORA	123	BF_PROCESOMVP_V3	0	multiples	0	The current transaction cannot be committed and cannot support operations that write to the log file. Roll back the transaction.	Error en bf_ProcesoMVP v3	2026-09-11 19:43:05.570
+06_BITACORA	122	COPIAR_MENUS_V2_MVP	0	ff_MenuRol2	0	The current transaction cannot be committed and cannot support operations that write to the log file. Roll back the transaction.	Error copiando menus V2	2026-09-11 19:43:05.557
+06_BITACORA	108	BF_PROCESOMVP_V3	0	multiples	0	The current transaction cannot be committed and cannot support operations that write to the log file. Roll back the transaction.	Error en bf_ProcesoMVP v3	2026-09-11 19:42:34.867
+06_BITACORA	107	COPIAR_MENUS_V2_MVP	0	ff_MenuRol2	0	The current transaction cannot be committed and cannot support operations that write to the log file. Roll back the transaction.	Error copiando menus V2	2026-09-11 19:42:34.867
 
