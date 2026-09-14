@@ -1,1 +1,29 @@
+archvo 02 
 
+
+Mens. 468, Nivel 16, Estado 9, Línea 16
+Cannot resolve the collation conflict between "SQL_Latin1_General_CP1_CI_AS" and "Modern_Spanish_CI_AI" in the equal to operation.
+Mens. 468, Nivel 16, Estado 9, Línea 24
+Cannot resolve the collation conflict between "Modern_Spanish_CI_AI" and "SQL_Latin1_General_CP1_CI_AS" in the equal to operation.
+Mens. 468, Nivel 16, Estado 9, Línea 42
+Cannot resolve the collation conflict between "Modern_Spanish_CI_AI" and "SQL_Latin1_General_CP1_CI_AS" in the equal to operation.
+Mens. 468, Nivel 16, Estado 9, Línea 68
+Cannot resolve the collation conflict between "SQL_Latin1_General_CP1_CI_AS" and "Modern_Spanish_CI_AI" in the equal to operation.
+Mens. 468, Nivel 16, Estado 9, Línea 76
+Cannot resolve the collation conflict between "Modern_Spanish_CI_AI" and "SQL_Latin1_General_CP1_CI_AS" in the equal to operation.
+Mens. 468, Nivel 16, Estado 9, Línea 93
+Cannot resolve the collation conflict between "Modern_Spanish_CI_AI" and "SQL_Latin1_General_CP1_CI_AS" in the equal to operation.
+
+Hora de finalización: 2026-09-14T10:37:55.6432197-06:00
+
+
+y el archivo 04 
+
+Mens. 468, Nivel 16, Estado 9, Línea 17
+Cannot resolve the collation conflict between "SQL_Latin1_General_CP1_CI_AS" and "Modern_Spanish_CI_AI" in the equal to operation.
+
+Hora de finalización: 2026-09-14T10:38:03.5636409-06:00
+
+
+
+ 
