@@ -1,0 +1,21 @@
+﻿Contexto,INFO,LOCKMX-DBDEV16 / FlexiForbesv2,Confirmar que sea la base utilizada por API Reports.
+Objeto ObtenCobranzaConcentrada,OK,EXISTE,NULL
+Objeto ObtenCobranzaConcentrada_otro_V2_BF3,OK,EXISTE,NULL
+Objeto ReporteCobranzaConcentrada_BF3_Cache,OK,EXISTE,NULL
+Objeto ff_orquestadorReportes,OK,EXISTE,NULL
+Objeto ListInt,ALERTA,NO EXISTE,NULL
+Objeto bf_CatalogoEstatusReporteGen,OK,EXISTE,NULL
+Objeto bf_ControlReporteGen,OK,EXISTE,NULL
+Objeto bf_CatReportesSP,OK,EXISTE,NULL
+Objeto bf_CatReportesParams,OK,EXISTE,NULL
+Objeto bf_CobranzaCache_ConsultaV2,INFO,EXISTE,Objeto histórico de cache; la ruta final no depende de él.
+Objeto ff_Parametro,OK,EXISTE,NULL
+Ruta B3 homologada con B2,OK,Delegación directa en B2,B3 conserva su nombre público pero utiliza la lógica funcional de B2.
+Wrapper final sin cache,OK,SIN CACHE,La generación solicitada no debe iniciar una precarga de cache.
+Estatus En espera,OK,1,API Reports utiliza el identificador 7 para solicitudes en cola.
+Ruta del reporte 11,OK,Activas=1; correctas=1,Debe existir una sola ruta activa con el wrapper público de Cobranza.
+Parámetros del reporte 11,OK,Faltantes=0; duplicados=0; adicionales=0,Se esperan exactamente los siete argumentos del wrapper final.
+Configuración del worker/cache,OK,Parámetros activos=0,No debe quedar activa ninguna configuración COBRANZA_CACHE o COBRANZA_CACHE_HORA.
+Concurrencia observada de Cobranza,OK,En espera=0; en proceso=0,Con la cola operativa debe observarse como máximo una Cobranza en proceso por vez.
+Worker de cache en API Reports,INFO,Debe estar deshabilitado,Confirmar en el WAR desplegado: cobranza.cache.worker.enabled=false. Esta propiedad no puede comprobarse desde SQL Server.
+Resultado general,ALERTA,Alertas=1,La instalación se considera válida solamente cuando Alertas=0.

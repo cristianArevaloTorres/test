@@ -1,0 +1,19 @@
+﻿Contexto,INFO,LOCKMX-DBDEV16 / FlexiForbesv2,Confirmar que sea la base utilizada por API Reports.
+Objeto ff_Sabana_BF3,OK,EXISTE,NULL
+Objeto ff_SabanaGMM_BF3,OK,EXISTE,NULL
+Objeto ff_SabanaVIDA_BF3,OK,EXISTE,NULL
+Objeto ff_SabanaOPC_BF3,OK,EXISTE,NULL
+Objeto ff_SabanaMascotas_BF3,OK,EXISTE,NULL
+Objeto bf_RepConf_Debug,OK,EXISTE,NULL
+Objeto bf_RepConf_Tabla,OK,EXISTE,NULL
+Objeto bf_RepConf_Columna,OK,EXISTE,NULL
+Objeto bf_CatReportesSP,OK,EXISTE,NULL
+Objeto bf_CatReportesParams,OK,EXISTE,NULL
+Ruta interna BF3,OK,GMM + VIDA + OPCIONALES + MASCOTAS,El wrapper debe utilizar exclusivamente procedimientos BF3.
+Filtro Opcionales BF3,OK,Empresa + estatus activo + vigencia,"Evita incluir solicitudes ajenas, canceladas o de otra vigencia."
+Ruta del reporte 3,OK,Activas=1; BF3=1,Debe existir una sola ruta activa y llamarse ff_Sabana_BF3.
+Parámetros de Sábana,OK,Faltantes=0; duplicados=0; adicionales=0,Se esperan exactamente los seis argumentos del wrapper BF3.
+Matriz de ocultamiento,ALERTA,Faltantes=34; visibles indebidas=0; duplicados=0,"Direcciones y, en Vida, prima/costo deben quedar ocultos para las empresas objetivo."
+Columnas que deben permanecer visibles,OK,Faltantes=0; ocultas indebidas=0; duplicados=0,"ATT, SSGT y Opcionales de Corteva/BH no deben heredar el ocultamiento."
+Configuración Mascotas,OK,Tablas=1; columnas=19,Se espera una tabla activa y 19 columnas.
+Resultado general,ALERTA,Alertas=1,La instalación se considera válida solamente cuando Alertas=0.
