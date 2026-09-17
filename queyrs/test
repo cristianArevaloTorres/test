@@ -1,3 +1,37 @@
+SELECT
+    E.Id,
+    E.EMIdEmpresa,
+    EMP.EMNombre,
+    E.EMNumeroEmpleado,
+    E.EMIdEstatus,
+    E.EMIdPerfil,
+    P.PEAdministrador,
+    E.EMApellidoPaterno,
+    E.EMApellidoMaterno,
+    E.EMNombre1
+FROM dbo.ff_Empleado E WITH (NOLOCK)
+INNER JOIN dbo.ff_Empresa EMP WITH (NOLOCK)
+    ON EMP.EMIdEmpresa = E.EMIdEmpresa
+LEFT JOIN dbo.ff_Perfil P WITH (NOLOCK)
+    ON P.PEIdPerfil = E.EMIdPerfil
+WHERE E.EMNumeroEmpleado IN
+(
+    'QA26CW0001',
+    'QA26CW0002',
+    'QA26CW0003',
+    'QA26CW0004',
+    'QA26CW0005',
+    'QA26CW0006',
+    'QA26CW0007'
+)
+ORDER BY E.EMNumeroEmpleado, E.EMIdEmpresa;
+
+
+
+
+
+
+
 /*
   CADENA FORD - FASE 3 DE CIERRE
 
