@@ -1,288 +1,189 @@
 /*
-  INGENIERIA INVERSA CADENA FORD / SOAP CargaMasiva - FASE 2
+  CADENA FORD - FASE 3 DE CIERRE
 
   SOLO LECTURA:
-    - No ejecuta los procedimientos encontrados.
-    - No consulta datos personales de empleados.
-    - Obtiene definiciones, dependencias y metadatos de configuracion.
-
-  HALLAZGOS QUE ORIGINAN ESTA FASE:
-    - La empresa interna Ford es EMIdEmpresa = 517.
-    - Ford tiene una plantilla especial de alta: PLIdPlantilla = 3748.
-    - Esa plantilla usa dbo.ff_XCMTitularesAltaCMFORD.
-    - Sus campos coinciden, casi posicion por posicion, con la cadena 02|... Ford.
-    - El SP Ford depende directamente de los SP base de alta y baja, pero aun
-      falta ver el cuerpo para saber exactamente con que reglas decide la accion.
-
-  COMPARTIR RESULTADOS:
-    - Enviar todos los bloques generados por este script.
-    - No es necesario enviar ninguna cadena real ni datos de empleados.
+    - No modifica datos.
+    - No ejecuta operaciones de empleados.
+    - Confirma los datos de configuracion que faltan para implementar/probar.
 */
 
 SET NOCOUNT ON;
 SET LOCK_TIMEOUT 15000;
 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
-/* 00. Contexto de ejecucion. */
 SELECT
     '00_CONTEXTO' AS bloque,
     CONVERT(NVARCHAR(128), SERVERPROPERTY('ServerName')) AS servidor,
     DB_NAME() AS baseDatos,
     CONVERT(NVARCHAR(128), SERVERPROPERTY('ProductVersion')) AS versionSql;
 
-/* 01. Cuerpo de los SP que pueden explicar la ruta completa. */
+/* 01. Mapeo exacto entre la empresa externa Ford y la empresa interna BeFlex. */
+IF OBJECT_ID('dbo.ff_Empresa', 'U') IS NOT NULL
+   AND COL_LENGTH('dbo.ff_Empresa', 'EMIdEmpresaFlexiForbes') IS NOT NULL
+BEGIN
+    SELECT
+        '01_MAPEO_EMPRESAS_FORD' AS bloque,
+        E.EMIdEmpresa,
+        E.EMNombre,
+        E.EMIdEmpresaFlexiForbes AS claveExternaFord,
+        E.EMIdCorporativo,
+        E.EMIdConfiguracion,
+        E.EMPrefijo,
+        E.EMIdEstatus
+    FROM dbo.ff_Empresa E
+    WHERE E.EMIdEmpresa IN (517, 518, 661)
+       OR CONVERT(VARCHAR(100), E.EMIdEmpresaFlexiForbes) IN ('109', '137')
+    ORDER BY E.EMIdEmpresa;
+
+    SELECT
+        '02_VALIDACION_UNICIDAD_EMPRESA_EXTERNA' AS bloque,
+        CONVERT(VARCHAR(100), E.EMIdEmpresaFlexiForbes) AS claveExternaFord,
+        COUNT(*) AS empresasActivas,
+        MIN(E.EMIdEmpresa) AS primeraEmpresaInterna,
+        MAX(E.EMIdEmpresa) AS ultimaEmpresaInterna,
+        CASE WHEN COUNT(*) = 1 THEN 'OK' ELSE 'MAPEO_AMBIGUO' END AS validacion
+    FROM dbo.ff_Empresa E
+    WHERE E.EMIdEstatus = 1
+      AND CONVERT(VARCHAR(100), E.EMIdEmpresaFlexiForbes) IN ('109', '137')
+    GROUP BY CONVERT(VARCHAR(100), E.EMIdEmpresaFlexiForbes)
+    ORDER BY claveExternaFord;
+END
+ELSE
+    SELECT '01_MAPEO_EMPRESAS_FORD' AS bloque,
+           'No existe ff_Empresa.EMIdEmpresaFlexiForbes' AS advertencia;
+
+/* 03. Perfiles que el SP Ford asigna directamente. */
+IF OBJECT_ID('dbo.ff_Perfil', 'U') IS NOT NULL
+BEGIN
+    SELECT
+        '03_PERFILES_FORD' AS bloque,
+        P.PEIdEmpresa,
+        P.PEIdPerfil,
+        P.PEAdministrador,
+        P.PEIdRolDefault,
+        P.PEIdEstatus
+    FROM dbo.ff_Perfil P
+    WHERE P.PEIdPerfil IN (1792, 2242, 1790, 2241, 5344, 5346)
+    ORDER BY P.PEIdEmpresa, P.PEIdPerfil;
+END
+ELSE
+    SELECT '03_PERFILES_FORD' AS bloque, 'No existe dbo.ff_Perfil' AS advertencia;
+
+/* 04. Roles que pueden ser seleccionados por ff_XCMTitularesAlta_Base. */
+IF OBJECT_ID('dbo.ff_Rol', 'U') IS NOT NULL
+BEGIN
+    SELECT
+        '04_ROLES_DEFAULT_FORD' AS bloque,
+        R.ROIdEmpresa,
+        R.ROIdRol,
+        R.RODefault,
+        R.ROIdEstatus
+    FROM dbo.ff_Rol R
+    WHERE R.ROIdEmpresa IN (517, 518, 661)
+      AND R.ROIdEstatus = 1
+      AND R.RODefault = 1
+    ORDER BY R.ROIdEmpresa, R.ROIdRol;
+END
+ELSE
+    SELECT '04_ROLES_DEFAULT_FORD' AS bloque, 'No existe dbo.ff_Rol' AS advertencia;
+
+/* 05. Usuario tecnico usado dentro del SP. No se consulta ninguna credencial. */
+IF OBJECT_ID('dbo.ff_administrador', 'U') IS NOT NULL
+BEGIN
+    SELECT
+        '05_USUARIO_TECNICO_FORD' AS bloque,
+        A.ADIdAdministrador,
+        A.ADClaveAcceso,
+        A.ADIdEstatus
+    FROM dbo.ff_administrador A
+    WHERE A.ADClaveAcceso = 'FORDCARGA';
+END
+ELSE
+    SELECT '05_USUARIO_TECNICO_FORD' AS bloque, 'No existe dbo.ff_administrador' AS advertencia;
+
+/* 06. Flujo B2/B3 configurado actualmente para Ford. */
+IF OBJECT_ID('dbo.bf_ConfiguracionFlujoCargaMasiva', 'U') IS NOT NULL
+BEGIN
+    EXEC sys.sp_executesql N'
+        SELECT
+            ''06_FLUJO_CARGA_MASIVA_FORD'' AS bloque,
+            CFIdEmpresa,
+            CFFlujoPantalla,
+            CFFlujoAutomatico,
+            CFIdEstatus
+        FROM dbo.bf_ConfiguracionFlujoCargaMasiva
+        WHERE CFIdEmpresa IN (517, 518, 661)
+        ORDER BY CFIdEmpresa;';
+END
+ELSE
+    SELECT '06_FLUJO_CARGA_MASIVA_FORD' AS bloque,
+           'La tabla bf_ConfiguracionFlujoCargaMasiva no esta desplegada en esta base' AS advertencia;
+
+/* 07. Contrato exacto que utiliza el motor Java para leer operacion y plantilla. */
 SELECT
-    '01_DEFINICIONES_OBJETIVO' AS bloque,
-    V.orden,
+    '07_DEFINICIONES_MOTOR_B2' AS bloque,
     V.nombreObjeto,
     CASE WHEN OBJECT_ID(V.nombreObjeto) IS NULL THEN 0 ELSE 1 END AS existe,
-    O.type_desc,
     OBJECT_DEFINITION(OBJECT_ID(V.nombreObjeto)) AS definicion
 FROM
 (
     VALUES
-      (1,  'dbo.ff_XCMTitularesAltaCMFORD'),
-      (2,  'dbo.ff_XCMTitularesAlta_Base'),
-      (3,  'dbo.ff_XCMAseguradosBaja_Base'),
-      (4,  'dbo.ff_UpdateSolicitud'),
-      (5,  'dbo.ff_ActualizaNumEmpleadoTitular'),
-      (6,  'dbo.bf_ReactivacionEmpleadosTitular'),
-      (7,  'dbo.ff_transferenciaMasivaEmpleado'),
-      (8,  'dbo.ff_CargaMasivaCompensacionEmpleado'),
-      (9,  'dbo.bf_CargaMasivaRegistro'),
-      (10, 'dbo.bf_AltaBitacoraEmpleados')
-) V(orden, nombreObjeto)
-LEFT JOIN sys.objects O
-    ON O.object_id = OBJECT_ID(V.nombreObjeto)
-ORDER BY V.orden;
+      ('dbo.ff_CCMOperacionPropiedades'),
+      ('dbo.ff_CPlantillaCampos'),
+      ('dbo.ff_CMCSexo')
+) V(nombreObjeto)
+ORDER BY V.nombreObjeto;
 
-/* 02. Quien llama al SP especial Ford y a los componentes de carga generica. */
-SELECT
-    '02_LLAMADORES_SQL' AS bloque,
-    S.name AS esquema,
-    O.name AS objeto,
-    O.type_desc,
-    CASE WHEN M.definition LIKE '%ff_XCMTitularesAltaCMFORD%' THEN 1 ELSE 0 END AS llamaAltaFord,
-    CASE WHEN M.definition LIKE '%bf_CargaMasivaRegistro%' THEN 1 ELSE 0 END AS llamaCargaMasivaRegistro,
-    CASE WHEN M.definition LIKE '%ff_cargaMasivaGen%' THEN 1 ELSE 0 END AS llamaCargaMasivaGen,
-    CASE WHEN M.definition LIKE '%ff_transferenciaMasivaEmpleado%' THEN 1 ELSE 0 END AS llamaTransferencia
-FROM sys.sql_modules M
-INNER JOIN sys.objects O ON O.object_id = M.object_id
-INNER JOIN sys.schemas S ON S.schema_id = O.schema_id
-WHERE M.definition LIKE '%ff_XCMTitularesAltaCMFORD%'
-   OR M.definition LIKE '%bf_CargaMasivaRegistro%'
-   OR M.definition LIKE '%ff_cargaMasivaGen%'
-   OR M.definition LIKE '%ff_transferenciaMasivaEmpleado%'
-ORDER BY S.name, O.name;
-
-/* 03. Dependencias directas de los SP objetivo. */
-SELECT DISTINCT
-    '03_DEPENDENCIAS_OBJETIVO' AS bloque,
-    V.orden,
-    V.nombreObjeto,
-    D.referenced_schema_name,
-    D.referenced_entity_name,
-    D.referenced_class_desc,
-    D.is_ambiguous
-FROM
-(
-    VALUES
-      (1, 'dbo.ff_XCMTitularesAltaCMFORD'),
-      (2, 'dbo.ff_XCMTitularesAlta_Base'),
-      (3, 'dbo.ff_XCMAseguradosBaja_Base'),
-      (4, 'dbo.ff_UpdateSolicitud'),
-      (5, 'dbo.ff_ActualizaNumEmpleadoTitular'),
-      (6, 'dbo.bf_ReactivacionEmpleadosTitular'),
-      (7, 'dbo.ff_transferenciaMasivaEmpleado'),
-      (8, 'dbo.bf_CargaMasivaRegistro')
-) V(orden, nombreObjeto)
-INNER JOIN sys.sql_expression_dependencies D
-    ON D.referencing_id = OBJECT_ID(V.nombreObjeto)
-ORDER BY V.orden, D.referenced_schema_name, D.referenced_entity_name;
-
-/* 04. Configuracion completa de la plantilla Ford, incluidos IDs de campo. */
-IF OBJECT_ID('dbo.ff_ConfiguracionPlantilla', 'U') IS NOT NULL
+/* 08. Parametros del SP Ford que no provienen directamente de la plantilla. */
+IF OBJECT_ID('dbo.ff_XCMTitularesAltaCMFORD', 'P') IS NOT NULL
+   AND OBJECT_ID('dbo.ff_ConfiguracionPlantilla', 'U') IS NOT NULL
    AND OBJECT_ID('dbo.ff_Campo', 'U') IS NOT NULL
 BEGIN
     SELECT
-        '04_PLANTILLA_FORD_3748' AS bloque,
-        CP.PLIdPlantilla,
-        CP.CPIdConfiguracionPlantilla,
-        CP.CPOrden,
-        CP.CAIdCampo,
-        LTRIM(RTRIM(C.CANombreCampo)) AS campo,
-        LTRIM(RTRIM(CP.CPEtiqueta)) AS etiqueta,
-        C.CATipoDato,
-        C.CALongitud,
-        CP.CPRequerido,
-        CP.CPRangoValores,
-        CP.CPIdEstatus
-    FROM dbo.ff_ConfiguracionPlantilla CP
-    INNER JOIN dbo.ff_Campo C
-        ON C.CAIdCampo = CP.CAIdCampo
-    WHERE CP.PLIdPlantilla = 3748
-    ORDER BY CP.CPOrden, CP.CPIdConfiguracionPlantilla;
+        '08_COBERTURA_PARAMETROS_SP_FORD' AS bloque,
+        P.parameter_id,
+        P.name AS parametroSP,
+        TYPE_NAME(P.user_type_id) AS tipoDato,
+        CASE
+            WHEN C.CAIdCampo IS NOT NULL THEN 'PLANTILLA_3748'
+            WHEN P.name = '@EMIdEmpresa' THEN 'CONTEXTO_Y_RECALCULADO_POR_SP'
+            WHEN P.name IN ('@EMIdEstatus', '@EMPerfil') THEN 'COMPATIBILIDAD_REQUERIDA'
+            ELSE 'REVISAR'
+        END AS origenEsperado
+    FROM sys.parameters P
+    LEFT JOIN
+    (
+        SELECT DISTINCT C.CAIdCampo, LTRIM(RTRIM(C.CANombreCampo)) AS CANombreCampo
+        FROM dbo.ff_ConfiguracionPlantilla CP
+        INNER JOIN dbo.ff_Campo C ON C.CAIdCampo = CP.CAIdCampo
+        WHERE CP.PLIdPlantilla = 3748
+          AND CP.CPIdEstatus = 1
+    ) C
+      ON C.CANombreCampo = SUBSTRING(P.name, 2, 256)
+    WHERE P.object_id = OBJECT_ID('dbo.ff_XCMTitularesAltaCMFORD')
+    ORDER BY P.parameter_id;
 END
-ELSE
-    SELECT '04_PLANTILLA_FORD_3748' AS bloque, 'Faltan tablas de plantilla/campos' AS advertencia;
 
-/* 05. Configuracion de las operaciones Ford. Evita confundir IDs externos 109/137 con empresa interna. */
-IF OBJECT_ID('dbo.ff_CargaMasivaOperacionEmpresa', 'U') IS NOT NULL
-   AND OBJECT_ID('dbo.ff_CargaMasivaOperacion', 'U') IS NOT NULL
+/* 09. Disponibilidad de catalogos de oficina utilizados por el SP Ford. */
+IF OBJECT_ID('dbo.ff_TablaEncabezado', 'U') IS NOT NULL
+   AND OBJECT_ID('dbo.ff_TablaEncabezadoDetalle', 'U') IS NOT NULL
 BEGIN
     SELECT
-        '05_OPERACIONES_FORD_517' AS bloque,
-        CE.CEIdOperacionEmpresa,
-        CE.CEIdEmpresa,
-        CE.CEIdOperacion,
-        O.CONombre,
-        O.CODescripcion,
-        CE.CEIdPlantilla,
-        LTRIM(RTRIM(CE.CEStoredProc)) AS storedProcedure,
-        CE.CEStoredProcAtributos,
-        CE.CEIdEstatus
-    FROM dbo.ff_CargaMasivaOperacionEmpresa CE
-    INNER JOIN dbo.ff_CargaMasivaOperacion O
-        ON O.COIdOperacion = CE.CEIdOperacion
-    WHERE CE.CEIdEmpresa = 517
-    ORDER BY CE.CEIdEstatus DESC, CE.CEIdOperacion, CE.CEIdOperacionEmpresa;
+        '09_CATALOGOS_OFICINA_FORD' AS bloque,
+        H.ENIdEmpresa,
+        H.ENEncabezado,
+        COUNT(*) AS detallesActivos,
+        COUNT(DISTINCT LEFT(LTRIM(RTRIM(D.TEDescripcion)), 5)) AS clavesDistintas
+    FROM dbo.ff_TablaEncabezado H
+    INNER JOIN dbo.ff_TablaEncabezadoDetalle D
+        ON D.TEEnClave = H.ENClave
+    WHERE H.ENIdEmpresa IN (517, 518, 661)
+      AND H.ENIdEstatus = 1
+      AND H.ENEncabezado IN ('area', 'FORD MOTOR')
+    GROUP BY H.ENIdEmpresa, H.ENEncabezado
+    ORDER BY H.ENIdEmpresa, H.ENEncabezado;
 END
 ELSE
-    SELECT '05_OPERACIONES_FORD_517' AS bloque, 'Faltan tablas de configuracion de carga masiva' AS advertencia;
+    SELECT '09_CATALOGOS_OFICINA_FORD' AS bloque,
+           'Faltan tablas de encabezados/catalogos' AS advertencia;
 
-/* 06. Columnas existentes en ff_Empleado para saber donde termina cada posicion. */
-IF OBJECT_ID('dbo.ff_Empleado', 'U') IS NOT NULL
-BEGIN
-    SELECT
-        '06_COLUMNAS_FF_EMPLEADO' AS bloque,
-        C.column_id,
-        C.name AS columna,
-        TYPE_NAME(C.user_type_id) AS tipoDato,
-        C.max_length,
-        C.precision,
-        C.scale,
-        C.is_nullable,
-        DC.definition AS valorDefault
-    FROM sys.columns C
-    LEFT JOIN sys.default_constraints DC
-        ON DC.parent_object_id = C.object_id
-       AND DC.parent_column_id = C.column_id
-    WHERE C.object_id = OBJECT_ID('dbo.ff_Empleado')
-      AND
-      (
-          C.name IN
-          (
-              'EMIdEmpresa', 'EMNumeroEmpleado', 'EMIdEstatus', 'EMIdPerfil',
-              'EMArchivoInformacion', 'EMEmpresa', 'EMIdSexo', 'EMColoniaFisico',
-              'EMApellidoPaterno', 'EMApellidoMaterno', 'EMNombre1',
-              'EMFechaNacimiento', 'EMFechaIngresoEmpresa', 'EMFechaAlta', 'EMFechaBaja',
-              'EMOficina_text', 'EMCentroCostos_text', 'EMrfc', 'EMSalarioBase',
-              'EMCorreoElectronico', 'EMCalleFiscal', 'EMColoniaFiscal',
-              'EMMunicipioDelegacionFiscal', 'EMEstadoFisical_text', 'EMCodigoPostalFiscal',
-              'EMArea_text', 'EMPuestoDescripcion', 'Desarrollo', 'EMcurp', 'EMnss',
-              'EMCalleFisico', 'EMFechaAntiguedadPP',
-              'EMFecha_solicitud_movimiento', 'EMFecha_ejecucion_movimiento'
-          )
-          OR C.name LIKE '%movimiento%'
-          OR C.name LIKE '%perfil%'
-      )
-    ORDER BY C.column_id;
-END
-ELSE
-    SELECT '06_COLUMNAS_FF_EMPLEADO' AS bloque, 'No existe dbo.ff_Empleado' AS advertencia;
-
-/* 07. Objetos que conocen los campos donde llegan evento, motivo, estado y clase Ford. */
-SELECT
-    '07_USO_CAMPOS_FORD' AS bloque,
-    S.name AS esquema,
-    O.name AS objeto,
-    O.type_desc,
-    CASE WHEN M.definition LIKE '%EMArchivoInformacion%' THEN 1 ELSE 0 END AS usaGrupo,
-    CASE WHEN M.definition LIKE '%EMEmpresa%' THEN 1 ELSE 0 END AS usaEmpresaExterna,
-    CASE WHEN M.definition LIKE '%EMColoniaFisico%' THEN 1 ELSE 0 END AS usaValorEstatus,
-    CASE WHEN M.definition LIKE '%EMArea_text%' THEN 1 ELSE 0 END AS usaEventoFord,
-    CASE WHEN M.definition LIKE '%EMPuestoDescripcion%' THEN 1 ELSE 0 END AS usaMotivoFord,
-    CASE WHEN M.definition LIKE '%EMCalleFisico%' THEN 1 ELSE 0 END AS usaClaseEmpleado,
-    CASE WHEN M.definition LIKE '%EMFechaAntiguedadPP%' THEN 1 ELSE 0 END AS usaFechaPlanPensiones
-FROM sys.sql_modules M
-INNER JOIN sys.objects O ON O.object_id = M.object_id
-INNER JOIN sys.schemas S ON S.schema_id = O.schema_id
-WHERE M.definition LIKE '%EMArchivoInformacion%'
-   OR M.definition LIKE '%EMEmpresa%'
-   OR M.definition LIKE '%EMColoniaFisico%'
-   OR M.definition LIKE '%EMArea_text%'
-   OR M.definition LIKE '%EMPuestoDescripcion%'
-   OR M.definition LIKE '%EMCalleFisico%'
-   OR M.definition LIKE '%EMFechaAntiguedadPP%'
-ORDER BY S.name, O.name;
-
-/* 08. Catalogos de movimientos. Son catalogos, no datos personales. */
-IF OBJECT_ID('dbo.ff_TipoMovimiento', 'U') IS NOT NULL
-BEGIN
-    SELECT
-        '08A_FF_TIPO_MOVIMIENTO' AS bloque,
-        TM.TMidTipoMovimiento,
-        TM.TMDescripcion
-    FROM dbo.ff_TipoMovimiento TM
-    ORDER BY TM.TMidTipoMovimiento;
-END
-ELSE
-    SELECT '08A_FF_TIPO_MOVIMIENTO' AS bloque, 'No existe dbo.ff_TipoMovimiento' AS advertencia;
-
-IF OBJECT_ID('dbo.fb_TipoMovimiento', 'U') IS NOT NULL
-BEGIN
-    SELECT
-        '08B_FB_TIPO_MOVIMIENTO' AS bloque,
-        TM.TMidTipoMovimiento,
-        TM.TMNombreMovimiento,
-        TM.TMClaveMovimientoADN,
-        TM.TMDescripcionMovimiento,
-        TM.TMRequiereDescripcion
-    FROM dbo.fb_TipoMovimiento TM
-    ORDER BY TM.TMidTipoMovimiento;
-END
-ELSE
-    SELECT '08B_FB_TIPO_MOVIMIENTO' AS bloque, 'No existe dbo.fb_TipoMovimiento' AS advertencia;
-
-/* 09. Metadatos de tablas de bitacora/carga rapida, sin leer su contenido. */
-SELECT
-    '09_COLUMNAS_BITACORA_Y_CARGA' AS bloque,
-    S.name AS esquema,
-    T.name AS tabla,
-    C.column_id,
-    C.name AS columna,
-    TYPE_NAME(C.user_type_id) AS tipoDato,
-    C.max_length,
-    C.is_nullable
-FROM sys.tables T
-INNER JOIN sys.schemas S ON S.schema_id = T.schema_id
-INNER JOIN sys.columns C ON C.object_id = T.object_id
-WHERE T.name IN
-(
-    'bf_BitacoraServicioEmpleados',
-    'bf_RegistroCargaRapida',
-    'ff_CargaMasivaLog',
-    'bf_EmpleadoTemporal'
-)
-ORDER BY S.name, T.name, C.column_id;
-
-/* 10. Restricciones/checks que pudieran documentar codigos HIR, REH, etc. */
-SELECT
-    '10_RESTRICCIONES_CODIGOS' AS bloque,
-    S.name AS esquema,
-    T.name AS tabla,
-    CC.name AS restriccion,
-    CC.definition
-FROM sys.check_constraints CC
-INNER JOIN sys.tables T ON T.object_id = CC.parent_object_id
-INNER JOIN sys.schemas S ON S.schema_id = T.schema_id
-WHERE CC.definition LIKE '%HIR%'
-   OR CC.definition LIKE '%REH%'
-   OR CC.definition LIKE '%TER%'
-   OR CC.definition LIKE '%XFR%'
-   OR CC.definition LIKE '%PAY%'
-   OR CC.definition LIKE '%POS%'
-   OR CC.definition LIKE '%PRO%'
-   OR CC.definition LIKE '%DEM%'
-   OR CC.definition LIKE '%DTA%'
-ORDER BY S.name, T.name, CC.name;
