@@ -28,6 +28,24 @@ ORDER BY E.EMNumeroEmpleado, E.EMIdEmpresa;
 
 
 
+DECLARE @IdAdministrador INT = 123; -- Sustituir por el ID del administrador con el que iniciaste sesión
+
+EXEC dbo.ff_ConsultaEmpleadosEmpresa
+     @IdCorporativo     = 516,
+     @IdEmpresas        = '517,661',
+     @Busca             = 'QA26CW000',
+     @Operador1         = 'contiene',
+     @CampoBusca        = 'EMNumeroEmpleado',
+     @BusquedaAvanzada  = 0,
+     @OperadorAvanzado  = 'and',
+     @Busca2            = '',
+     @Operador2         = 'contiene',
+     @CampoBusca2       = 'EMNumeroEmpleado',
+     @idAdm             = @IdAdministrador;
+
+
+
+
 
 
 
