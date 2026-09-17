@@ -1,9 +1,3 @@
-Mens. 207, Nivel 16, Estado 1, Línea 237
-Invalid column name 'TMDescripcion'.
-
-Hora de finalización: 2026-09-17T02:36:20.8250118-06:00
-
-
 /*
   INGENIERIA INVERSA CADENA FORD / SOAP CargaMasiva - FASE 2
 
@@ -239,10 +233,13 @@ IF OBJECT_ID('dbo.fb_TipoMovimiento', 'U') IS NOT NULL
 BEGIN
     SELECT
         '08B_FB_TIPO_MOVIMIENTO' AS bloque,
-        TM.TMIdTipoMovimiento,
-        TM.TMDescripcion
+        TM.TMidTipoMovimiento,
+        TM.TMNombreMovimiento,
+        TM.TMClaveMovimientoADN,
+        TM.TMDescripcionMovimiento,
+        TM.TMRequiereDescripcion
     FROM dbo.fb_TipoMovimiento TM
-    ORDER BY TM.TMIdTipoMovimiento;
+    ORDER BY TM.TMidTipoMovimiento;
 END
 ELSE
     SELECT '08B_FB_TIPO_MOVIMIENTO' AS bloque, 'No existe dbo.fb_TipoMovimiento' AS advertencia;
@@ -289,4 +286,3 @@ WHERE CC.definition LIKE '%HIR%'
    OR CC.definition LIKE '%DEM%'
    OR CC.definition LIKE '%DTA%'
 ORDER BY S.name, T.name, CC.name;
-
