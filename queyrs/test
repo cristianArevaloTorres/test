@@ -1,303 +1,286 @@
 /*
-  INGENIERIA INVERSA DE LA CADENA FORD / SOAP CargaMasiva
+  INGENIERIA INVERSA CADENA FORD / SOAP CargaMasiva - FASE 2
 
   SOLO LECTURA:
-    - No contiene INSERT, UPDATE, DELETE, MERGE ni ejecuta operaciones de negocio.
-    - Consulta metadatos, configuracion de carga masiva y definiciones SQL.
-    - Ejecutar en la misma base de datos utilizada por BeFlex/EmpleadoService.
+    - No ejecuta los procedimientos encontrados.
+    - No consulta datos personales de empleados.
+    - Obtiene definiciones, dependencias y metadatos de configuracion.
 
-  OBJETIVO:
-    1. Confirmar que significan 109, 137 y 517 dentro de la base.
-    2. Obtener las operaciones BF2 configuradas para esas empresas.
-    3. Relacionar IdOperacion -> plantilla -> SP -> parametros.
-    4. Encontrar objetos SQL que conozcan los codigos Ford
-       HIR, REH, TER, XFR, PRO, DEM, PAY, POS y DTA.
-    5. Encontrar la tabla y los SP de empleados temporales.
+  HALLAZGOS QUE ORIGINAN ESTA FASE:
+    - La empresa interna Ford es EMIdEmpresa = 517.
+    - Ford tiene una plantilla especial de alta: PLIdPlantilla = 3748.
+    - Esa plantilla usa dbo.ff_XCMTitularesAltaCMFORD.
+    - Sus campos coinciden, casi posicion por posicion, con la cadena 02|... Ford.
+    - El SP Ford depende directamente de los SP base de alta y baja, pero aun
+      falta ver el cuerpo para saber exactamente con que reglas decide la accion.
 
-  Para compartir resultados no es necesario enviar nombres, RFC, CURP, NSS,
-  correos ni cadenas completas. Bastan los bloques de configuracion/metadatos.
+  COMPARTIR RESULTADOS:
+    - Enviar todos los bloques generados por este script.
+    - No es necesario enviar ninguna cadena real ni datos de empleados.
 */
 
 SET NOCOUNT ON;
 SET LOCK_TIMEOUT 15000;
 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
-DECLARE @MostrarDefiniciones BIT = 0; -- Cambiar a 1 solo si se requieren los cuerpos de los SP configurados.
-
-/* 0. Servidor/base donde se ejecuto. */
+/* 00. Contexto de ejecucion. */
 SELECT
     '00_CONTEXTO' AS bloque,
     CONVERT(NVARCHAR(128), SERVERPROPERTY('ServerName')) AS servidor,
     DB_NAME() AS baseDatos,
     CONVERT(NVARCHAR(128), SERVERPROPERTY('ProductVersion')) AS versionSql;
 
-/* 1. Identidad de los numeros observados en el proceso Ford. */
-IF OBJECT_ID('dbo.ff_Empresa', 'U') IS NOT NULL
-BEGIN
-    SELECT
-        '01_EMPRESAS_CANDIDATAS' AS bloque,
-        E.EMIdEmpresa,
-        E.EMNombre,
-        E.EMIdCorporativo,
-        E.EMIdConfiguracion
-    FROM dbo.ff_Empresa E
-    WHERE E.EMIdEmpresa IN (109, 137, 517)
-    ORDER BY E.EMIdEmpresa;
-END
-ELSE
-    SELECT '01_EMPRESAS_CANDIDATAS' AS bloque, 'No existe dbo.ff_Empresa' AS advertencia;
+/* 01. Cuerpo de los SP que pueden explicar la ruta completa. */
+SELECT
+    '01_DEFINICIONES_OBJETIVO' AS bloque,
+    V.orden,
+    V.nombreObjeto,
+    CASE WHEN OBJECT_ID(V.nombreObjeto) IS NULL THEN 0 ELSE 1 END AS existe,
+    O.type_desc,
+    OBJECT_DEFINITION(OBJECT_ID(V.nombreObjeto)) AS definicion
+FROM
+(
+    VALUES
+      (1,  'dbo.ff_XCMTitularesAltaCMFORD'),
+      (2,  'dbo.ff_XCMTitularesAlta_Base'),
+      (3,  'dbo.ff_XCMAseguradosBaja_Base'),
+      (4,  'dbo.ff_UpdateSolicitud'),
+      (5,  'dbo.ff_ActualizaNumEmpleadoTitular'),
+      (6,  'dbo.bf_ReactivacionEmpleadosTitular'),
+      (7,  'dbo.ff_transferenciaMasivaEmpleado'),
+      (8,  'dbo.ff_CargaMasivaCompensacionEmpleado'),
+      (9,  'dbo.bf_CargaMasivaRegistro'),
+      (10, 'dbo.bf_AltaBitacoraEmpleados')
+) V(orden, nombreObjeto)
+LEFT JOIN sys.objects O
+    ON O.object_id = OBJECT_ID(V.nombreObjeto)
+ORDER BY V.orden;
 
-/* 2. Catalogo global de operaciones. Permite confirmar los nombres de 1,2,3,13,14,15, etc. */
-IF OBJECT_ID('dbo.ff_CargaMasivaOperacion', 'U') IS NOT NULL
-BEGIN
-    SELECT
-        '02_CATALOGO_OPERACIONES' AS bloque,
-        O.COIdOperacion,
-        O.CONombre,
-        O.CODescripcion
-    FROM dbo.ff_CargaMasivaOperacion O
-    ORDER BY O.COIdOperacion;
-END
-ELSE
-    SELECT '02_CATALOGO_OPERACIONES' AS bloque, 'No existe dbo.ff_CargaMasivaOperacion' AS advertencia;
+/* 02. Quien llama al SP especial Ford y a los componentes de carga generica. */
+SELECT
+    '02_LLAMADORES_SQL' AS bloque,
+    S.name AS esquema,
+    O.name AS objeto,
+    O.type_desc,
+    CASE WHEN M.definition LIKE '%ff_XCMTitularesAltaCMFORD%' THEN 1 ELSE 0 END AS llamaAltaFord,
+    CASE WHEN M.definition LIKE '%bf_CargaMasivaRegistro%' THEN 1 ELSE 0 END AS llamaCargaMasivaRegistro,
+    CASE WHEN M.definition LIKE '%ff_cargaMasivaGen%' THEN 1 ELSE 0 END AS llamaCargaMasivaGen,
+    CASE WHEN M.definition LIKE '%ff_transferenciaMasivaEmpleado%' THEN 1 ELSE 0 END AS llamaTransferencia
+FROM sys.sql_modules M
+INNER JOIN sys.objects O ON O.object_id = M.object_id
+INNER JOIN sys.schemas S ON S.schema_id = O.schema_id
+WHERE M.definition LIKE '%ff_XCMTitularesAltaCMFORD%'
+   OR M.definition LIKE '%bf_CargaMasivaRegistro%'
+   OR M.definition LIKE '%ff_cargaMasivaGen%'
+   OR M.definition LIKE '%ff_transferenciaMasivaEmpleado%'
+ORDER BY S.name, O.name;
 
-/* 3. Operaciones activas y no activas de las tres empresas candidatas. */
-IF OBJECT_ID('dbo.ff_CargaMasivaOperacionEmpresa', 'U') IS NOT NULL
-   AND OBJECT_ID('dbo.ff_CargaMasivaOperacion', 'U') IS NOT NULL
-   AND OBJECT_ID('dbo.ff_Plantilla', 'U') IS NOT NULL
-BEGIN
-    SELECT
-        '03_OPERACIONES_POR_EMPRESA' AS bloque,
-        CE.CEIdEmpresa,
-        CE.CEIdOperacionEmpresa,
-        CE.CEIdOperacion,
-        O.CONombre,
-        O.CODescripcion,
-        CE.CEIdPlantilla,
-        P.PLDescripcion AS plantilla,
-        LTRIM(RTRIM(CE.CEStoredProc)) AS storedProcedure,
-        CE.CEStoredProcAtributos,
-        CE.CEIdEstatus,
-        CASE
-            WHEN OBJECT_ID(
-                    CASE WHEN CHARINDEX('.', LTRIM(RTRIM(CE.CEStoredProc))) = 0
-                         THEN 'dbo.' + LTRIM(RTRIM(CE.CEStoredProc))
-                         ELSE LTRIM(RTRIM(CE.CEStoredProc)) END,
-                    'P') IS NULL
-            THEN 'SP_NO_ENCONTRADO'
-            ELSE 'OK'
-        END AS validacionSP
-    FROM dbo.ff_CargaMasivaOperacionEmpresa CE
-    INNER JOIN dbo.ff_CargaMasivaOperacion O
-        ON O.COIdOperacion = CE.CEIdOperacion
-    LEFT JOIN dbo.ff_Plantilla P
-        ON P.PLIdPlantilla = CE.CEIdPlantilla
-    WHERE CE.CEIdEmpresa IN (109, 137, 517)
-    ORDER BY CE.CEIdEmpresa, CE.CEIdEstatus DESC, CE.CEIdOperacion;
-END
-ELSE
-    SELECT '03_OPERACIONES_POR_EMPRESA' AS bloque, 'Faltan tablas de configuracion de carga masiva' AS advertencia;
+/* 03. Dependencias directas de los SP objetivo. */
+SELECT DISTINCT
+    '03_DEPENDENCIAS_OBJETIVO' AS bloque,
+    V.orden,
+    V.nombreObjeto,
+    D.referenced_schema_name,
+    D.referenced_entity_name,
+    D.referenced_class_desc,
+    D.is_ambiguous
+FROM
+(
+    VALUES
+      (1, 'dbo.ff_XCMTitularesAltaCMFORD'),
+      (2, 'dbo.ff_XCMTitularesAlta_Base'),
+      (3, 'dbo.ff_XCMAseguradosBaja_Base'),
+      (4, 'dbo.ff_UpdateSolicitud'),
+      (5, 'dbo.ff_ActualizaNumEmpleadoTitular'),
+      (6, 'dbo.bf_ReactivacionEmpleadosTitular'),
+      (7, 'dbo.ff_transferenciaMasivaEmpleado'),
+      (8, 'dbo.bf_CargaMasivaRegistro')
+) V(orden, nombreObjeto)
+INNER JOIN sys.sql_expression_dependencies D
+    ON D.referencing_id = OBJECT_ID(V.nombreObjeto)
+ORDER BY V.orden, D.referenced_schema_name, D.referenced_entity_name;
 
-/* 4. Campos exactos de las plantillas configuradas. */
-IF OBJECT_ID('dbo.ff_CargaMasivaOperacionEmpresa', 'U') IS NOT NULL
-   AND OBJECT_ID('dbo.ff_CargaMasivaOperacion', 'U') IS NOT NULL
-   AND OBJECT_ID('dbo.ff_ConfiguracionPlantilla', 'U') IS NOT NULL
+/* 04. Configuracion completa de la plantilla Ford, incluidos IDs de campo. */
+IF OBJECT_ID('dbo.ff_ConfiguracionPlantilla', 'U') IS NOT NULL
    AND OBJECT_ID('dbo.ff_Campo', 'U') IS NOT NULL
 BEGIN
     SELECT
-        '04_CAMPOS_PLANTILLA' AS bloque,
-        CE.CEIdEmpresa,
-        CE.CEIdOperacion,
-        O.CONombre,
-        CE.CEIdPlantilla,
+        '04_PLANTILLA_FORD_3748' AS bloque,
+        CP.PLIdPlantilla,
+        CP.CPIdConfiguracionPlantilla,
         CP.CPOrden,
+        CP.CAIdCampo,
         LTRIM(RTRIM(C.CANombreCampo)) AS campo,
         LTRIM(RTRIM(CP.CPEtiqueta)) AS etiqueta,
         C.CATipoDato,
         C.CALongitud,
         CP.CPRequerido,
         CP.CPRangoValores,
-        CP.CPIdEstatus AS estatusCampo
+        CP.CPIdEstatus
+    FROM dbo.ff_ConfiguracionPlantilla CP
+    INNER JOIN dbo.ff_Campo C
+        ON C.CAIdCampo = CP.CAIdCampo
+    WHERE CP.PLIdPlantilla = 3748
+    ORDER BY CP.CPOrden, CP.CPIdConfiguracionPlantilla;
+END
+ELSE
+    SELECT '04_PLANTILLA_FORD_3748' AS bloque, 'Faltan tablas de plantilla/campos' AS advertencia;
+
+/* 05. Configuracion de las operaciones Ford. Evita confundir IDs externos 109/137 con empresa interna. */
+IF OBJECT_ID('dbo.ff_CargaMasivaOperacionEmpresa', 'U') IS NOT NULL
+   AND OBJECT_ID('dbo.ff_CargaMasivaOperacion', 'U') IS NOT NULL
+BEGIN
+    SELECT
+        '05_OPERACIONES_FORD_517' AS bloque,
+        CE.CEIdOperacionEmpresa,
+        CE.CEIdEmpresa,
+        CE.CEIdOperacion,
+        O.CONombre,
+        O.CODescripcion,
+        CE.CEIdPlantilla,
+        LTRIM(RTRIM(CE.CEStoredProc)) AS storedProcedure,
+        CE.CEStoredProcAtributos,
+        CE.CEIdEstatus
     FROM dbo.ff_CargaMasivaOperacionEmpresa CE
     INNER JOIN dbo.ff_CargaMasivaOperacion O
         ON O.COIdOperacion = CE.CEIdOperacion
-    INNER JOIN dbo.ff_ConfiguracionPlantilla CP
-        ON CP.PLIdPlantilla = CE.CEIdPlantilla
-    INNER JOIN dbo.ff_Campo C
-        ON C.CAIdCampo = CP.CAIdCampo
-    WHERE CE.CEIdEmpresa IN (109, 137, 517)
-      AND CE.CEIdEstatus = 1
-    ORDER BY CE.CEIdEmpresa, CE.CEIdOperacion, CP.CPOrden, CP.CPIdConfiguracionPlantilla;
+    WHERE CE.CEIdEmpresa = 517
+    ORDER BY CE.CEIdEstatus DESC, CE.CEIdOperacion, CE.CEIdOperacionEmpresa;
 END
 ELSE
-    SELECT '04_CAMPOS_PLANTILLA' AS bloque, 'Faltan tablas de plantilla/campos' AS advertencia;
+    SELECT '05_OPERACIONES_FORD_517' AS bloque, 'Faltan tablas de configuracion de carga masiva' AS advertencia;
 
-/* 5. Firma de los SP configurados. Es la mejor forma de contrastar las 28 posiciones Ford. */
-IF OBJECT_ID('dbo.ff_CargaMasivaOperacionEmpresa', 'U') IS NOT NULL
+/* 06. Columnas existentes en ff_Empleado para saber donde termina cada posicion. */
+IF OBJECT_ID('dbo.ff_Empleado', 'U') IS NOT NULL
 BEGIN
     SELECT
-        '05_PARAMETROS_SP_CONFIGURADOS' AS bloque,
-        CE.CEIdEmpresa,
-        CE.CEIdOperacion,
-        CE.CEIdPlantilla,
-        LTRIM(RTRIM(CE.CEStoredProc)) AS storedProcedure,
-        P.parameter_id,
-        P.name AS parametro,
-        TYPE_NAME(P.user_type_id) AS tipoDato,
-        P.max_length,
-        P.precision,
-        P.scale,
-        P.is_output
-    FROM dbo.ff_CargaMasivaOperacionEmpresa CE
-    CROSS APPLY
-    (
-        SELECT CASE WHEN CHARINDEX('.', LTRIM(RTRIM(CE.CEStoredProc))) = 0
-                    THEN 'dbo.' + LTRIM(RTRIM(CE.CEStoredProc))
-                    ELSE LTRIM(RTRIM(CE.CEStoredProc)) END AS nombreObjeto
-    ) N
-    INNER JOIN sys.objects SO
-        ON SO.object_id = OBJECT_ID(N.nombreObjeto)
-    LEFT JOIN sys.parameters P
-        ON P.object_id = SO.object_id
-    WHERE CE.CEIdEmpresa IN (109, 137, 517)
-      AND CE.CEIdEstatus = 1
-    ORDER BY CE.CEIdEmpresa, CE.CEIdOperacion, P.parameter_id;
+        '06_COLUMNAS_FF_EMPLEADO' AS bloque,
+        C.column_id,
+        C.name AS columna,
+        TYPE_NAME(C.user_type_id) AS tipoDato,
+        C.max_length,
+        C.precision,
+        C.scale,
+        C.is_nullable,
+        DC.definition AS valorDefault
+    FROM sys.columns C
+    LEFT JOIN sys.default_constraints DC
+        ON DC.parent_object_id = C.object_id
+       AND DC.parent_column_id = C.column_id
+    WHERE C.object_id = OBJECT_ID('dbo.ff_Empleado')
+      AND
+      (
+          C.name IN
+          (
+              'EMIdEmpresa', 'EMNumeroEmpleado', 'EMIdEstatus', 'EMIdPerfil',
+              'EMArchivoInformacion', 'EMEmpresa', 'EMIdSexo', 'EMColoniaFisico',
+              'EMApellidoPaterno', 'EMApellidoMaterno', 'EMNombre1',
+              'EMFechaNacimiento', 'EMFechaIngresoEmpresa', 'EMFechaAlta', 'EMFechaBaja',
+              'EMOficina_text', 'EMCentroCostos_text', 'EMrfc', 'EMSalarioBase',
+              'EMCorreoElectronico', 'EMCalleFiscal', 'EMColoniaFiscal',
+              'EMMunicipioDelegacionFiscal', 'EMEstadoFisical_text', 'EMCodigoPostalFiscal',
+              'EMArea_text', 'EMPuestoDescripcion', 'Desarrollo', 'EMcurp', 'EMnss',
+              'EMCalleFisico', 'EMFechaAntiguedadPP',
+              'EMFecha_solicitud_movimiento', 'EMFecha_ejecucion_movimiento'
+          )
+          OR C.name LIKE '%movimiento%'
+          OR C.name LIKE '%perfil%'
+      )
+    ORDER BY C.column_id;
 END
+ELSE
+    SELECT '06_COLUMNAS_FF_EMPLEADO' AS bloque, 'No existe dbo.ff_Empleado' AS advertencia;
 
-/* 6. Objetos SQL candidatos que parecen interpretar la cadena Ford o los codigos de evento. */
+/* 07. Objetos que conocen los campos donde llegan evento, motivo, estado y clase Ford. */
 SELECT
-    '06_OBJETOS_CANDIDATOS_CADENA_FORD' AS bloque,
+    '07_USO_CAMPOS_FORD' AS bloque,
     S.name AS esquema,
     O.name AS objeto,
     O.type_desc,
-    CASE WHEN M.definition LIKE '%FORDCARGA%' THEN 1 ELSE 0 END AS mencionaFordCarga,
-    CASE WHEN M.definition LIKE '%CargaMasiva%' OR M.definition LIKE '%GuardaDatos%' THEN 1 ELSE 0 END AS mencionaCargaMasiva,
-    CASE WHEN M.definition LIKE '%EmpleadoTemporal%' OR M.definition LIKE '%ETDescripcion%' THEN 1 ELSE 0 END AS mencionaTemporal,
-    CASE WHEN M.definition LIKE '%GPID%' THEN 1 ELSE 0 END AS mencionaGPID,
-    CASE WHEN M.definition LIKE '%''HIR''%' OR M.definition LIKE '%HIR|%' THEN 1 ELSE 0 END AS mencionaHIR,
-    CASE WHEN M.definition LIKE '%''REH''%' OR M.definition LIKE '%REH|%' THEN 1 ELSE 0 END AS mencionaREH,
-    CASE WHEN M.definition LIKE '%''TER''%' OR M.definition LIKE '%TER|%' THEN 1 ELSE 0 END AS mencionaTER,
-    CASE WHEN M.definition LIKE '%''XFR''%' OR M.definition LIKE '%XFR|%' THEN 1 ELSE 0 END AS mencionaXFR,
-    CASE WHEN M.definition LIKE '%''PAY''%' OR M.definition LIKE '%PAY|%' THEN 1 ELSE 0 END AS mencionaPAY,
-    CASE WHEN M.definition LIKE '%''POS''%' OR M.definition LIKE '%POS|%' THEN 1 ELSE 0 END AS mencionaPOS,
-    CASE WHEN M.definition LIKE '%''PRO''%' OR M.definition LIKE '%PRO|%' THEN 1 ELSE 0 END AS mencionaPRO,
-    CASE WHEN M.definition LIKE '%''DEM''%' OR M.definition LIKE '%DEM|%' THEN 1 ELSE 0 END AS mencionaDEM,
-    CASE WHEN M.definition LIKE '%''DTA''%' OR M.definition LIKE '%DTA|%' THEN 1 ELSE 0 END AS mencionaDTA
+    CASE WHEN M.definition LIKE '%EMArchivoInformacion%' THEN 1 ELSE 0 END AS usaGrupo,
+    CASE WHEN M.definition LIKE '%EMEmpresa%' THEN 1 ELSE 0 END AS usaEmpresaExterna,
+    CASE WHEN M.definition LIKE '%EMColoniaFisico%' THEN 1 ELSE 0 END AS usaValorEstatus,
+    CASE WHEN M.definition LIKE '%EMArea_text%' THEN 1 ELSE 0 END AS usaEventoFord,
+    CASE WHEN M.definition LIKE '%EMPuestoDescripcion%' THEN 1 ELSE 0 END AS usaMotivoFord,
+    CASE WHEN M.definition LIKE '%EMCalleFisico%' THEN 1 ELSE 0 END AS usaClaseEmpleado,
+    CASE WHEN M.definition LIKE '%EMFechaAntiguedadPP%' THEN 1 ELSE 0 END AS usaFechaPlanPensiones
 FROM sys.sql_modules M
 INNER JOIN sys.objects O ON O.object_id = M.object_id
 INNER JOIN sys.schemas S ON S.schema_id = O.schema_id
-WHERE M.definition LIKE '%FORDCARGA%'
-   OR M.definition LIKE '%CargaMasiva%'
-   OR M.definition LIKE '%GuardaDatos%'
-   OR M.definition LIKE '%EmpleadoTemporal%'
-   OR M.definition LIKE '%ETDescripcion%'
-   OR M.definition LIKE '%GPID%'
-   OR M.definition LIKE '%''HIR''%'
-   OR M.definition LIKE '%''REH''%'
-   OR M.definition LIKE '%''TER''%'
-   OR M.definition LIKE '%''XFR''%'
-   OR M.definition LIKE '%''PAY''%'
-   OR M.definition LIKE '%''POS''%'
-   OR M.definition LIKE '%''PRO''%'
-   OR M.definition LIKE '%''DEM''%'
-   OR M.definition LIKE '%''DTA''%'
+WHERE M.definition LIKE '%EMArchivoInformacion%'
+   OR M.definition LIKE '%EMEmpresa%'
+   OR M.definition LIKE '%EMColoniaFisico%'
+   OR M.definition LIKE '%EMArea_text%'
+   OR M.definition LIKE '%EMPuestoDescripcion%'
+   OR M.definition LIKE '%EMCalleFisico%'
+   OR M.definition LIKE '%EMFechaAntiguedadPP%'
 ORDER BY S.name, O.name;
 
-/* 7. Procedimientos con parametros que puedan recibir la cadena o datos Ford. */
-SELECT
-    '07_PARAMETROS_CANDIDATOS' AS bloque,
-    S.name AS esquema,
-    O.name AS objeto,
-    O.type_desc,
-    P.parameter_id,
-    P.name AS parametro,
-    TYPE_NAME(P.user_type_id) AS tipoDato,
-    P.max_length
-FROM sys.parameters P
-INNER JOIN sys.objects O ON O.object_id = P.object_id
-INNER JOIN sys.schemas S ON S.schema_id = O.schema_id
-WHERE P.name LIKE '%cadena%'
-   OR P.name LIKE '%gpid%'
-   OR P.name LIKE '%movimiento%'
-   OR P.name LIKE '%evento%'
-   OR P.name LIKE '%descripcion%'
-ORDER BY S.name, O.name, P.parameter_id;
+/* 08. Catalogos de movimientos. Son catalogos, no datos personales. */
+IF OBJECT_ID('dbo.ff_TipoMovimiento', 'U') IS NOT NULL
+BEGIN
+    SELECT
+        '08A_FF_TIPO_MOVIMIENTO' AS bloque,
+        TM.TMidTipoMovimiento,
+        TM.TMDescripcion
+    FROM dbo.ff_TipoMovimiento TM
+    ORDER BY TM.TMidTipoMovimiento;
+END
+ELSE
+    SELECT '08A_FF_TIPO_MOVIMIENTO' AS bloque, 'No existe dbo.ff_TipoMovimiento' AS advertencia;
 
-/* 8. Tablas/columnas donde podria persistirse cadena, GPID, evento o movimiento. */
+IF OBJECT_ID('dbo.fb_TipoMovimiento', 'U') IS NOT NULL
+BEGIN
+    SELECT
+        '08B_FB_TIPO_MOVIMIENTO' AS bloque,
+        TM.TMIdTipoMovimiento,
+        TM.TMDescripcion
+    FROM dbo.fb_TipoMovimiento TM
+    ORDER BY TM.TMIdTipoMovimiento;
+END
+ELSE
+    SELECT '08B_FB_TIPO_MOVIMIENTO' AS bloque, 'No existe dbo.fb_TipoMovimiento' AS advertencia;
+
+/* 09. Metadatos de tablas de bitacora/carga rapida, sin leer su contenido. */
 SELECT
-    '08_COLUMNAS_CANDIDATAS' AS bloque,
+    '09_COLUMNAS_BITACORA_Y_CARGA' AS bloque,
     S.name AS esquema,
     T.name AS tabla,
     C.column_id,
     C.name AS columna,
     TYPE_NAME(C.user_type_id) AS tipoDato,
-    C.max_length
+    C.max_length,
+    C.is_nullable
 FROM sys.tables T
 INNER JOIN sys.schemas S ON S.schema_id = T.schema_id
 INNER JOIN sys.columns C ON C.object_id = T.object_id
-WHERE C.name LIKE '%cadena%'
-   OR C.name LIKE '%gpid%'
-   OR C.name LIKE '%movimiento%'
-   OR C.name LIKE '%evento%'
-   OR C.name LIKE '%temporal%'
-   OR C.name LIKE '%descripcion%'
+WHERE T.name IN
+(
+    'bf_BitacoraServicioEmpleados',
+    'bf_RegistroCargaRapida',
+    'ff_CargaMasivaLog',
+    'bf_EmpleadoTemporal'
+)
 ORDER BY S.name, T.name, C.column_id;
 
-/* 9. Cuerpos de los tres SP temporales llamados por el proceso Ford. */
+/* 10. Restricciones/checks que pudieran documentar codigos HIR, REH, etc. */
 SELECT
-    '09_DEFINICION_SP_TEMPORALES' AS bloque,
-    V.nombreObjeto,
-    OBJECT_DEFINITION(OBJECT_ID(V.nombreObjeto)) AS definicion
-FROM
-(
-    VALUES
-      ('dbo.bf_ObtenerEmpleadosTemporales'),
-      ('dbo.bf_InsertaEmpleadoTemporal'),
-      ('dbo.bf_EliminarEmpleadosTemporales')
-) V(nombreObjeto)
-WHERE OBJECT_ID(V.nombreObjeto) IS NOT NULL;
+    '10_RESTRICCIONES_CODIGOS' AS bloque,
+    S.name AS esquema,
+    T.name AS tabla,
+    CC.name AS restriccion,
+    CC.definition
+FROM sys.check_constraints CC
+INNER JOIN sys.tables T ON T.object_id = CC.parent_object_id
+INNER JOIN sys.schemas S ON S.schema_id = T.schema_id
+WHERE CC.definition LIKE '%HIR%'
+   OR CC.definition LIKE '%REH%'
+   OR CC.definition LIKE '%TER%'
+   OR CC.definition LIKE '%XFR%'
+   OR CC.definition LIKE '%PAY%'
+   OR CC.definition LIKE '%POS%'
+   OR CC.definition LIKE '%PRO%'
+   OR CC.definition LIKE '%DEM%'
+   OR CC.definition LIKE '%DTA%'
+ORDER BY S.name, T.name, CC.name;
 
-/* 10. Dependencias declaradas por los SP de carga configurados. */
-IF OBJECT_ID('dbo.ff_CargaMasivaOperacionEmpresa', 'U') IS NOT NULL
-BEGIN
-    SELECT DISTINCT
-        '10_DEPENDENCIAS_SP_CONFIGURADOS' AS bloque,
-        CE.CEIdEmpresa,
-        CE.CEIdOperacion,
-        LTRIM(RTRIM(CE.CEStoredProc)) AS storedProcedure,
-        D.referenced_schema_name,
-        D.referenced_entity_name,
-        D.referenced_class_desc
-    FROM dbo.ff_CargaMasivaOperacionEmpresa CE
-    CROSS APPLY
-    (
-        SELECT CASE WHEN CHARINDEX('.', LTRIM(RTRIM(CE.CEStoredProc))) = 0
-                    THEN 'dbo.' + LTRIM(RTRIM(CE.CEStoredProc))
-                    ELSE LTRIM(RTRIM(CE.CEStoredProc)) END AS nombreObjeto
-    ) N
-    INNER JOIN sys.sql_expression_dependencies D
-        ON D.referencing_id = OBJECT_ID(N.nombreObjeto)
-    WHERE CE.CEIdEmpresa IN (109, 137, 517)
-      AND CE.CEIdEstatus = 1
-    ORDER BY CE.CEIdEmpresa, CE.CEIdOperacion, D.referenced_schema_name, D.referenced_entity_name;
-END
-
-/* 11. Opcional: cuerpo de cada SP configurado. Puede producir resultados largos. */
-IF @MostrarDefiniciones = 1
-   AND OBJECT_ID('dbo.ff_CargaMasivaOperacionEmpresa', 'U') IS NOT NULL
-BEGIN
-    SELECT DISTINCT
-        '11_DEFINICIONES_SP_CONFIGURADOS' AS bloque,
-        CE.CEIdEmpresa,
-        CE.CEIdOperacion,
-        LTRIM(RTRIM(CE.CEStoredProc)) AS storedProcedure,
-        OBJECT_DEFINITION(OBJECT_ID(
-            CASE WHEN CHARINDEX('.', LTRIM(RTRIM(CE.CEStoredProc))) = 0
-                 THEN 'dbo.' + LTRIM(RTRIM(CE.CEStoredProc))
-                 ELSE LTRIM(RTRIM(CE.CEStoredProc)) END
-        )) AS definicion
-    FROM dbo.ff_CargaMasivaOperacionEmpresa CE
-    WHERE CE.CEIdEmpresa IN (109, 137, 517)
-      AND CE.CEIdEstatus = 1
-    ORDER BY CE.CEIdEmpresa, CE.CEIdOperacion;
-END;
