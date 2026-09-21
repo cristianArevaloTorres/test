@@ -1,3 +1,74 @@
+PS C:\repo\reportes\FRONT> $RepoFront = 'C:\repo\reportes\FRONT'
+>> Set-Location -LiteralPath $RepoFront
+>> 
+>> if (-not (Test-Path -LiteralPath '.git')) {
+>>     throw "Esta carpeta no es un clon Git: $RepoFront"
+>> }
+>> 
+>> $FrontFiles = @(
+>>                     'git add src/app/services/cobranza/reporte-cobranza.service.ts',
+>>                     'git add src/app/beflex/adm-reportes/cobranza/cobranza.component.ts',
+>>                     'git add src/app/beflex/adm-reportes/cobranza/cobranza.component.html',
+>>                     'git add src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts',
+>>                     'git add src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html'
+>> )
+>> 
+>> git status --short
+>> git add -- $FrontFiles
+>> 
+>> 
+>> git commit -m "CORRECCION DE OBSERVACIONES "
+>> 
+>> $Branch = git branch --show-current
+>> git push -u origin $
+>> 
+ M .vs/VSWorkspaceState.json
+ M .vs/slnx.sqlite
+ M package-lock.json
+ M src/app/beflex/adm-reportes/cobranza/cobranza.component.html
+ M src/app/beflex/adm-reportes/cobranza/cobranza.component.ts
+ M src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
+ M src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
+ M src/app/services/cobranza/reporte-cobranza.service.ts
+ M src/app/services/global.ts
+?? .vs/FRONT.slnx/
+?? .vs/FRONT/
+fatal: pathspec 'git add src/app/services/cobranza/reporte-cobranza.service.ts' did not match any files
+On branch QA
+Your branch is ahead of 'origin/QA' by 1 commit.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   .vs/VSWorkspaceState.json
+        modified:   .vs/slnx.sqlite
+        modified:   package-lock.json
+        modified:   src/app/beflex/adm-reportes/cobranza/cobranza.component.html
+        modified:   src/app/beflex/adm-reportes/cobranza/cobranza.component.ts
+        modified:   src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
+        modified:   src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
+        modified:   src/app/services/cobranza/reporte-cobranza.service.ts
+        modified:   src/app/services/global.ts
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .vs/FRONT.slnx/
+        .vs/FRONT/
+
+no changes added to commit (use "git add" and/or "git commit -a")
+error: src refspec $ does not match any
+error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
+PS C:\repo\reportes\FRONT> 
+
+
+
+
+
+
+
+
+
 Buenas noches,
 
 Comparto los resultados de las pruebas de los archivos generados de sabana y cobranza:
