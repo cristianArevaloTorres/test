@@ -1,15 +1,151 @@
-Set-Location 'C:\repo\reportes\FRONT'
+PS C:\repo\reportes\FRONT> $RepoFront = 'C:\repo\reportes\FRONT'
+>> Set-Location -LiteralPath $RepoFront
+>> 
+>> 
+>> $FrontFiles = @(
+>>     'src/app/services/cobranza/reporte-cobranza.service.ts',
+>>     'src/app/beflex/adm-reportes/cobranza/cobranza.component.ts',
+>>     'src/app/beflex/adm-reportes/cobranza/cobranza.component.html',
+>>     'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts',
+>>     'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html'
+>> )
+>> 
+>> git remote -v
+>> git branch --show-current
+>> git status --short
+>> 
+>> git add -- $FrontFiles
+>> 
+>> git commit -m "observaciones issues cobranza sabana"
+>> 
+>> $Branch = git branch --show-current
+>> git push -u origin $Branch
+>> 
+>> 
+>> git push -u origin $Branch
+>> if ($LASTEXITCODE -ne 0) {
+>>     throw "No fue posible enviar la rama $Branch."
+>> }
+>> 
+origin  https://github.com/LcktnMX/BeFlex3-EmpAdm.git (fetch)
+origin  https://github.com/LcktnMX/BeFlex3-EmpAdm.git (push)
+QA
+ M .vs/VSWorkspaceState.json
+ M .vs/slnx.sqlite
+ M package-lock.json
+ M src/app/beflex/adm-reportes/cobranza/cobranza.component.html
+ M src/app/beflex/adm-reportes/cobranza/cobranza.component.ts
+ M src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
+ M src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
+ M src/app/services/cobranza/reporte-cobranza.service.ts
+ M src/app/services/global.ts
+?? .vs/FRONT.slnx/
+?? .vs/FRONT/
+warning: in the working copy of 'src/app/beflex/adm-reportes/cobranza/cobranza.component.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/adm-reportes/cobranza/cobranza.component.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/services/cobranza/reporte-cobranza.service.ts', LF will be replaced by CRLF the next time Git touches it
+[QA 5400e776] observaciones issues cobranza sabana
+ Committer: CristianLockton <consultor.ti40@lockton.com>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
 
-git fetch origin
-if ($LASTEXITCODE -ne 0) { throw 'Fallo git fetch.' }
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
 
-git log --oneline origin/QA..HEAD
+After doing this, you may fix the identity used for this commit with:
 
-git push origin HEAD:issue-reportesabanaQA
-if ($LASTEXITCODE -ne 0) { throw 'Fallo el push a issue-reportesabanaQA.' }
+    git commit --amend --reset-author
 
+ 5 files changed, 169 insertions(+), 85 deletions(-)
+To https://github.com/LcktnMX/BeFlex3-EmpAdm.git
+ ! [rejected]          QA -> QA (fetch first)
+error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+To https://github.com/LcktnMX/BeFlex3-EmpAdm.git
+ ! [rejected]          QA -> QA (fetch first)
+error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+No fue posible enviar la rama QA.
+En línea: 27 Carácter: 5
++     throw "No fue posible enviar la rama $Branch."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (No fue posible enviar la rama QA.:String) [], RuntimeException
+    + FullyQualifiedErrorId : No fue posible enviar la rama QA.
+ 
+PS C:\repo\reportes\FRONT> +^C
+PS C:\repo\reportes\FRONT> ^C
+PS C:\repo\reportes\FRONT> Set-Location 'C:\repo\reportes\FRONT'
+>>
+>> git fetch origin
+>> if ($LASTEXITCODE -ne 0) { throw 'Fallo git fetch.' }
+>>
+>> git log --oneline origin/QA..HEAD
+>> 
+>> git push origin HEAD:issue-reportesabanaQA
+>> if ($LASTEXITCODE -ne 0) { throw 'Fallo el push a issue-reportesabanaQA.' }
+remote: Enumerating objects: 1118, done.
+remote: Counting objects: 100% (273/273), done.
+remote: Compressing objects: 100% (36/36), done.
+remote: Total 1118 (delta 251), reused 240 (delta 237), pack-reused 845 (from 2)
+Receiving objects: 100% (1118/1118), 2.89 MiB | 5.64 MiB/s, done.
+Resolving deltas: 100% (780/780), completed with 63 local objects.
+From https://github.com/LcktnMX/BeFlex3-EmpAdm
+   1f7a9181..21728491  QA                     -> origin/QA
+ * [new branch]        azure-migration/backend-service-url -> origin/azure-migration/backend-service-url
+   90bcbcd6..3473648c  defaulteoCargaMaisva   -> origin/defaulteoCargaMaisva
+   4ed6bdf2..33a0599e  devDTI-QA              -> origin/devDTI-QA
+ * [new branch]        entrega/CREA06-prod    -> origin/entrega/CREA06-prod
+   fb18a77e..0a5b821e  feature/CREA09         -> origin/feature/CREA09
+ * [new branch]        feature/fix-notificaciones-bemobile -> origin/feature/fix-notificaciones-bemobile
+   6dc26ce1..c8a668e3  feature/mejorasIncidenciasCC -> origin/feature/mejorasIncidenciasCC
+ * [new branch]        feature/notificacioenes-bemobile -> origin/feature/notificacioenes-bemobile
+ * [new branch]        issue-reportesabanaQA  -> origin/issue-reportesabanaQA
+ * [new branch]        lockton/dti/14-QA-notificaciones -> origin/lockton/dti/14-QA-notificaciones
+ * [new branch]        lockton/dti/14-QA-recuperacion-contrasena -> origin/lockton/dti/14-QA-recuperacion-contrasena
+ * [new branch]        lockton/dti/14-notificaciones-programadas -> origin/lockton/dti/14-notificaciones-programadas
+ * [new branch]        lockton/dti/14-recuperacion-contrasena -> origin/lockton/dti/14-recuperacion-contrasena
+ * [new branch]        lockton/dti/master-14-notificaciones-programadas -> origin/lockton/dti/master-14-notificaciones-programadas
+ * [new branch]        lockton/dti/master-fix-borrado-documentos-per -> origin/lockton/dti/master-fix-borrado-documentos-per
+ * [new branch]        lockton/nat/mejorasIncidenciasCC -> origin/lockton/nat/mejorasIncidenciasCC
+   fa1c74b6..58fa19c1  lockton/niko.sygno/FixIncidenciasbeFlex -> origin/lockton/niko.sygno/FixIncidenciasbeFlex
+ * [new branch]        lockton/niko.sygno/MejoraeIncidenciasbeFlexMaster -> origin/lockton/niko.sygno/MejoraeIncidenciasbeFlexMaster
+ * [new branch]        lockton/niko.sygno/MejorasConstanciasFiscales -> origin/lockton/niko.sygno/MejorasConstanciasFiscales
+ * [new branch]        lockton/niko.sygno/RedirecionamientoReportes -> origin/lockton/niko.sygno/RedirecionamientoReportes
+ * [new branch]        lockton/niko.sygno/Tickets-produccion -> origin/lockton/niko.sygno/Tickets-produccion
+ * [new branch]        lockton/niko.sygno/cambiosfaltantestickets -> origin/lockton/niko.sygno/cambiosfaltantestickets
+   15958966..7c6c3566  master                 -> origin/master
+ * [new branch]        master-backup-20260821 -> origin/master-backup-20260821
+ * [new branch]        master-backup-20260828 -> origin/master-backup-20260828
+ * [new branch]        master-backup-20260904 -> origin/master-backup-20260904
+ * [new branch]        master-backup-20260911 -> origin/master-backup-20260911
+ * [new branch]        master-backup-20260918 -> origin/master-backup-20260918
+ * [new branch]        preProd-CREA009-RevisionResultadosPostEnrollment -> origin/preProd-CREA009-RevisionResultadosPostEnrollment
+ * [new branch]        preProd-Fix-beMobileNotificaciones -> origin/preProd-Fix-beMobileNotificaciones
+5400e776 (HEAD -> QA) observaciones issues cobranza sabana
+b4cab8b1 Actualiza filtros y generación de reportes B3
+To https://github.com/LcktnMX/BeFlex3-EmpAdm.git
+ ! [rejected]          HEAD -> issue-reportesabanaQA (non-fast-forward)
+error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
+hint: Updates were rejected because a pushed branch tip is behind its remote
+hint: counterpart. If you want to integrate the remote changes, use 'git pull'
+hint: before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+Fallo el push a issue-reportesabanaQA.
+En línea: 9 Carácter: 28
++ ... ASTEXITCODE -ne 0) { throw 'Fallo el push a issue-reportesabanaQA.' }
++                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Fallo el push a issue-reportesabanaQA.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Fallo el push a issue-reportesabanaQA.
 
-
-
-git switch issue-reportesabanaQA
-git branch --set-upstream-to=origin/issue-reportesabanaQA
+PS C:\repo\reportes\FRONT> 
