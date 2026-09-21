@@ -10,3 +10,6 @@ Respecto a sus preguntas:
 Les agradeceremos validar nuevamente la generación y descarga desde ambas pantallas, el cambio de Altas a Bajas sin pérdida de fechas y que los empleados activos no aparezcan en el reporte de Bajas. Tomamos nota de que, en la muestra revisada, las cantidades de registros e importes de ambos reportes se observaron correctos.
 Quedamos atentos a sus resultados o a cualquier diferencia que identifiquen en QA.
 Saludos.
+
+
+Hoja de Mascotas en Bajas: Esta hoja no se genera en los reportes de Bajas por una regla ya existente en ff_Sabana_BF3. El procedimiento llama a ff_SabanaMascotas_BF3 únicamente cuando @idEstatus = 1 (Altas); para @idEstatus = 2 (Bajas) no realiza esa llamada. Por tanto, su ausencia en Bajas no es consecuencia de los ajustes recientes.
