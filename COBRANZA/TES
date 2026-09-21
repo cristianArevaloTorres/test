@@ -1,65 +1,71 @@
-PS C:\repo\reportes\FRONT> $RepoFront = 'C:\repo\reportes\FRONT'
->> Set-Location -LiteralPath $RepoFront
->> 
->> if (-not (Test-Path -LiteralPath '.git')) {
->>     throw "Esta carpeta no es un clon Git: $RepoFront"
->> }
->> 
->> $FrontFiles = @(
->>                     'git add src/app/services/cobranza/reporte-cobranza.service.ts',
->>                     'git add src/app/beflex/adm-reportes/cobranza/cobranza.component.ts',
->>                     'git add src/app/beflex/adm-reportes/cobranza/cobranza.component.html',
->>                     'git add src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts',
->>                     'git add src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html'
->> )
->> 
->> git status --short
->> git add -- $FrontFiles
->> 
->> 
->> git commit -m "CORRECCION DE OBSERVACIONES "
->> 
->> $Branch = git branch --show-current
->> git push -u origin $
->> 
- M .vs/VSWorkspaceState.json
- M .vs/slnx.sqlite
- M package-lock.json
- M src/app/beflex/adm-reportes/cobranza/cobranza.component.html
- M src/app/beflex/adm-reportes/cobranza/cobranza.component.ts
- M src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
- M src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
- M src/app/services/cobranza/reporte-cobranza.service.ts
- M src/app/services/global.ts
-?? .vs/FRONT.slnx/
-?? .vs/FRONT/
-fatal: pathspec 'git add src/app/services/cobranza/reporte-cobranza.service.ts' did not match any files
-On branch QA
-Your branch is ahead of 'origin/QA' by 1 commit.
-  (use "git push" to publish your local commits)
+$ErrorActionPreference = 'Stop'
 
-Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
-  (use "git restore <file>..." to discard changes in working directory)
-        modified:   .vs/VSWorkspaceState.json
-        modified:   .vs/slnx.sqlite
-        modified:   package-lock.json
-        modified:   src/app/beflex/adm-reportes/cobranza/cobranza.component.html
-        modified:   src/app/beflex/adm-reportes/cobranza/cobranza.component.ts
-        modified:   src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
-        modified:   src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
-        modified:   src/app/services/cobranza/reporte-cobranza.service.ts
-        modified:   src/app/services/global.ts
+$RepoFront = 'C:\repo\reportes\FRONT'
+Set-Location -LiteralPath $RepoFront
 
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        .vs/FRONT.slnx/
-        .vs/FRONT/
+git rev-parse --is-inside-work-tree | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    throw "Esta carpeta no es un repositorio Git: $RepoFront"
+}
 
-no changes added to commit (use "git add" and/or "git commit -a")
-error: src refspec $ does not match any
-error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
-PS C:\repo\reportes\FRONT> 
+$FrontFiles = @(
+    'src/app/services/cobranza/reporte-cobranza.service.ts',
+    'src/app/beflex/adm-reportes/cobranza/cobranza.component.ts',
+    'src/app/beflex/adm-reportes/cobranza/cobranza.component.html',
+    'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts',
+    'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html'
+)
+
+$MissingFiles = @($FrontFiles | Where-Object {
+    -not (Test-Path -LiteralPath $_ -PathType Leaf)
+})
+if ($MissingFiles.Count -gt 0) {
+    throw "No se encontraron estos archivos:`n$($MissingFiles -join "`n")"
+}
+
+Write-Host 'Estado antes de agregar archivos:' -ForegroundColor Cyan
+git status --short
+
+# Cada elemento contiene solamente la ruta. No debe incluir "git add".
+git add -- $FrontFiles
+if ($LASTEXITCODE -ne 0) {
+    throw 'git add no pudo preparar los archivos.'
+}
+
+$StagedFiles = @(git diff --cached --name-only)
+$UnexpectedFiles = @($StagedFiles | Where-Object { $_ -notin $FrontFiles })
+if ($UnexpectedFiles.Count -gt 0) {
+    Write-Host 'Se encontraron archivos previamente preparados que no pertenecen a esta entrega:' -ForegroundColor Red
+    $UnexpectedFiles | ForEach-Object { Write-Host "  $_" }
+    throw 'Revise el staging antes de crear el commit.'
+}
+
+if ($StagedFiles.Count -eq 0) {
+    Write-Host 'No hay cambios nuevos para crear otro commit.' -ForegroundColor Yellow
+} else {
+    Write-Host 'Archivos que se incluiran en el commit:' -ForegroundColor Cyan
+    git diff --cached --name-only
+    git commit -m 'CORRECCION DE OBSERVACIONES SABANA Y COBRANZA B3'
+    if ($LASTEXITCODE -ne 0) {
+        throw 'No fue posible crear el commit.'
+    }
+}
+
+$Branch = (git branch --show-current).Trim()
+if ([string]::IsNullOrWhiteSpace($Branch)) {
+    throw 'No fue posible determinar la rama actual.'
+}
+
+Write-Host "Commits locales que se enviaran a origin/${Branch}:" -ForegroundColor Cyan
+git log --oneline "origin/$Branch..HEAD"
+
+git push -u origin $Branch
+if ($LASTEXITCODE -ne 0) {
+    throw "No fue posible enviar la rama $Branch."
+}
+
+Write-Host "Push terminado correctamente en origin/$Branch." -ForegroundColor Green
+git status --short
 
 
 
