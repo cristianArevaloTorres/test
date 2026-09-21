@@ -1,3 +1,24 @@
+Buenas noches,
+
+Comparto los resultados de las pruebas de los archivos generados de sabana y cobranza:
+•	Empresas muestra: Zurich, Compucom, BD, Corteva, Atos y Koblenz
+•	Sababa revisar las observaciones del archivo adjunto (Revisión sabana BD)
+o	En la pantalla de sabana al cambiar de activos a baja, reinicia la pantalla y mueve los filtros de fecha seleccionados.
+•	Cobranza en general los archivos con correctos, solo es necesario revisar los siguientes puntos:
+o	¿En que carpeta del servidor se están almacenando los archivos? 
+o	Los reportes se listan en la pantalla principal de cada operación, pero al generarlo te manda al módulo de reportes, ¿los archivos se están duplicando?
+o	La cobranza te permite seleccionar fecha inicial y perfiles, pero estos no tienen algún efecto en el reporte. Entiendo que los controles nos funcionan para siguientes etapas, para esta se recomienda ocultarlos.
+
+Un buen avance es que los resultados a nivel de cantidad de registros y cantidades en ambos archivos los vimos correctos.
+
+Si hay dudas las revisamos.
+Saludos
+
+
+
+
+
+
 $RepoApi = 'C:\repo\reportes\APIREPORTS'
 Set-Location -LiteralPath $RepoApi
 
