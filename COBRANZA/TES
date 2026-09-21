@@ -1,75 +1,92 @@
-$ErrorActionPreference = 'Stop'
+PS C:\repo\reportes\FRONT> $RepoFront = 'C:\repo\reportes\FRONT'
+>> Set-Location -LiteralPath $RepoFront
+>> 
+>> 
+>> $FrontFiles = @(
+>>     'src/app/services/cobranza/reporte-cobranza.service.ts',
+>>     'src/app/beflex/adm-reportes/cobranza/cobranza.component.ts',
+>>     'src/app/beflex/adm-reportes/cobranza/cobranza.component.html',
+>>     'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts',
+>>     'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html'
+>> )
+>> 
+>> git remote -v
+>> git branch --show-current
+>> git status --short
+>> 
+>> git add -- $FrontFiles
+>> 
+>> git commit -m "observaciones issues cobranza sabana"
+>> 
+>> $Branch = git branch --show-current
+>> git push -u origin $Branch
+>> 
+>> 
+>> git push -u origin $Branch
+>> if ($LASTEXITCODE -ne 0) {
+>>     throw "No fue posible enviar la rama $Branch."
+>> }
+>> 
+origin  https://github.com/LcktnMX/BeFlex3-EmpAdm.git (fetch)
+origin  https://github.com/LcktnMX/BeFlex3-EmpAdm.git (push)
+QA
+ M .vs/VSWorkspaceState.json
+ M .vs/slnx.sqlite
+ M package-lock.json
+ M src/app/beflex/adm-reportes/cobranza/cobranza.component.html
+ M src/app/beflex/adm-reportes/cobranza/cobranza.component.ts
+ M src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
+ M src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
+ M src/app/services/cobranza/reporte-cobranza.service.ts
+ M src/app/services/global.ts
+?? .vs/FRONT.slnx/
+?? .vs/FRONT/
+warning: in the working copy of 'src/app/beflex/adm-reportes/cobranza/cobranza.component.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/adm-reportes/cobranza/cobranza.component.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/services/cobranza/reporte-cobranza.service.ts', LF will be replaced by CRLF the next time Git touches it
+[QA 5400e776] observaciones issues cobranza sabana
+ Committer: CristianLockton <consultor.ti40@lockton.com>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
 
-$RepoFront = 'C:\repo\reportes\FRONT'
-Set-Location -LiteralPath $RepoFront
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
 
-git rev-parse --is-inside-work-tree | Out-Null
-if ($LASTEXITCODE -ne 0) {
-    throw "Esta carpeta no es un repositorio Git: $RepoFront"
-}
+After doing this, you may fix the identity used for this commit with:
 
-$FrontFiles = @(
-    'src/app/services/cobranza/reporte-cobranza.service.ts',
-    'src/app/beflex/adm-reportes/cobranza/cobranza.component.ts',
-    'src/app/beflex/adm-reportes/cobranza/cobranza.component.html',
-    'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts',
-    'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html'
-)
+    git commit --amend --reset-author
 
-$MissingFiles = @($FrontFiles | Where-Object {
-    -not (Test-Path -LiteralPath $_ -PathType Leaf)
-})
-if ($MissingFiles.Count -gt 0) {
-    throw "No se encontraron estos archivos:`n$($MissingFiles -join "`n")"
-}
-
-Write-Host 'Estado antes de agregar archivos:' -ForegroundColor Cyan
-git status --short
-
-# Cada elemento contiene solamente la ruta. No debe incluir "git add".
-git add -- $FrontFiles
-if ($LASTEXITCODE -ne 0) {
-    throw 'git add no pudo preparar los archivos.'
-}
-
-$StagedFiles = @(git diff --cached --name-only)
-$UnexpectedFiles = @($StagedFiles | Where-Object { $_ -notin $FrontFiles })
-if ($UnexpectedFiles.Count -gt 0) {
-    Write-Host 'Se encontraron archivos previamente preparados que no pertenecen a esta entrega:' -ForegroundColor Red
-    $UnexpectedFiles | ForEach-Object { Write-Host "  $_" }
-    throw 'Revise el staging antes de crear el commit.'
-}
-
-if ($StagedFiles.Count -eq 0) {
-    Write-Host 'No hay cambios nuevos para crear otro commit.' -ForegroundColor Yellow
-} else {
-    Write-Host 'Archivos que se incluiran en el commit:' -ForegroundColor Cyan
-    git diff --cached --name-only
-    git commit -m 'CORRECCION DE OBSERVACIONES SABANA Y COBRANZA B3'
-    if ($LASTEXITCODE -ne 0) {
-        throw 'No fue posible crear el commit.'
-    }
-}
-
-$Branch = (git branch --show-current).Trim()
-if ([string]::IsNullOrWhiteSpace($Branch)) {
-    throw 'No fue posible determinar la rama actual.'
-}
-
-Write-Host "Commits locales que se enviaran a origin/${Branch}:" -ForegroundColor Cyan
-git log --oneline "origin/$Branch..HEAD"
-
-git push -u origin $Branch
-if ($LASTEXITCODE -ne 0) {
-    throw "No fue posible enviar la rama $Branch."
-}
-
-Write-Host "Push terminado correctamente en origin/$Branch." -ForegroundColor Green
-git status --short
+ 5 files changed, 169 insertions(+), 85 deletions(-)
+To https://github.com/LcktnMX/BeFlex3-EmpAdm.git
+ ! [rejected]          QA -> QA (fetch first)
+error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+To https://github.com/LcktnMX/BeFlex3-EmpAdm.git
+ ! [rejected]          QA -> QA (fetch first)
+error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+No fue posible enviar la rama QA.
+En línea: 27 Carácter: 5
++     throw "No fue posible enviar la rama $Branch."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (No fue posible enviar la rama QA.:String) [], RuntimeException
+    + FullyQualifiedErrorId : No fue posible enviar la rama QA.
+ 
+PS C:\repo\reportes\FRONT> +
 
 
-
-
+y elñ braznch es este : issue-reportesabanaQA 
 
 
 
