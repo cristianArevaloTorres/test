@@ -1,10 +1,12 @@
-2026-09-08 14:36:22,017 ERROR [com.lockton.rpt.services.impl.CobranzaServiceImpl] (ForkJoinPool.commonPool-worker-7) No se pudo solicitar la notificacion de Cobranza: class com.lockton.rpt.models.entities.ConfiguracionReporteGen cannot be cast to class java.lang.String (com.lockton.rpt.models.entities.ConfiguracionReporteGen is in unnamed module of loader 'deployment.WSBeFlexReportes.war' @57fe36db; java.lang.String is in module java.base of loader 'bootstrap'): java.lang.ClassCastException: class com.lockton.rpt.models.entities.ConfiguracionReporteGen cannot be cast to class java.lang.String (com.lockton.rpt.models.entities.ConfiguracionReporteGen is in unnamed module of loader 'deployment.WSBeFlexReportes.war' @57fe36db; java.lang.String is in module java.base of loader 'bootstrap')
-    at deployment.WSBeFlexReportes.war//com.lockton.rpt.services.impl.CobranzaServiceImpl.notificarResultado(CobranzaServiceImpl.java:274)
-    at deployment.WSBeFlexReportes.war//com.lockton.rpt.services.impl.CobranzaServiceImpl.lambda$solicitarAsync$0(CobranzaServiceImpl.java:139)
-    at java.base/java.util.concurrent.CompletableFuture$AsyncRun.run(CompletableFuture.java:1736)
-    at java.base/java.util.concurrent.CompletableFuture$AsyncRun.exec(CompletableFuture.java:1728)
-    at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:290)
-    at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1020)
-    at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1656)
-    at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1594)
-    at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:183)
+Asunto: Ajustes de Sábana y Cobranza BF3 listos para validación en QA
+Buenas tardes,
+Gracias por compartir los resultados de las pruebas. Tomamos como referencia las observaciones del documento Revisión sábana BD QA y los comentarios del correo. Los ajustes quedaron listos para su validación en QA:
+En Sábana, se corrigió la consulta de Bajas en GMM, Vida y Opcionales para que no incluya empleados que continúan activos. También se ajustó la pantalla para que, al cambiar entre Altas y Bajas, conserve la vigencia y las fechas seleccionadas. Se aclaró la función de Confidencial: incluye o excluye empleados con salario confidencial, pero no cambia el periodo indicado. Solicitamos confirmar visualmente el formato de las hojas frente a los reportes de referencia.
+En Cobranza, se ocultó el filtro Perfil, reservado para una etapa posterior. Las fechas inicial y final permanecen disponibles; no se modificaron los cálculos ni las cantidades del reporte. También se reforzó el manejo de sesión y configuración para que la pantalla muestre un mensaje controlado si falta información.
+Respecto a sus preguntas:
+- Ubicación: el archivo se guarda en la ruta configurada para API Reports, bajo <ruta base>/<idEmpresa>/Cobranza/<archivo.xlsx>. El valor concreto de la ruta debe confirmarse en el servidor de QA.
+- ¿Se duplican los archivos? No por aparecer en dos pantallas: Cobranza y Seguimiento ofrecen accesos al mismo archivo físico. Se solicita comprobarlo durante la prueba en QA.
+- Descarga desde la pantalla de Cobranza: se corrigió para que utilice API Reports, igual que Seguimiento. Antes construía una liga pública que podía apuntar a una ubicación distinta y mostrar que el archivo no existía.
+Les agradeceremos validar nuevamente la generación y descarga desde ambas pantallas, el cambio de Altas a Bajas sin pérdida de fechas y que los empleados activos no aparezcan en el reporte de Bajas. Tomamos nota de que, en la muestra revisada, las cantidades de registros e importes de ambos reportes se observaron correctos.
+Quedamos atentos a sus resultados o a cualquier diferencia que identifiquen en QA.
+Saludos.
