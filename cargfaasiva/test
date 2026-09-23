@@ -1,297 +1,83 @@
-    STRING_AGG
+PS C:\repo\reportes\FRONT> $RepoFront = 'C:\repo\reportes\FRONT'
+>> Set-Location -LiteralPath $RepoFront
+>> 
+>> 
+>> $FrontFiles = @(
+>>       'src/app/beflex/adm-reportes/cobranza/cobranza.component.html',
+>>     'src/app/beflex/adm-reportes/cobranza/cobranza.component.ts',
+>>     'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html',
+>>     'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts'
+>> )
+>> 
+>> git remote -v
+>> git branch --show-current
+>> git status --short
+>> 
+>> git add -- $FrontFiles
+>> 
+>> git commit -m "observaciones issues cobranza sabana"
+>> 
+>> $Branch = git branch --show-current
+>> git push -u origin $Branch
+>> 
+>> 
+>> git push -u origin $Branch
+>> if ($LASTEXITCODE -ne 0) {
+>>     throw "No fue posible enviar la rama $Branch."
+>> }
+>> 
+origin  https://github.com/LcktnMX/BeFlex3-EmpAdm.git (fetch)
+origin  https://github.com/LcktnMX/BeFlex3-EmpAdm.git (push)
+QA
+ M .vs/VSWorkspaceState.json
+ M .vs/slnx.sqlite
+ M package-lock.json
+ M src/app/beflex/adm-reportes/cobranza/cobranza.component.html
+ M src/app/beflex/adm-reportes/cobranza/cobranza.component.ts
+ M src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
+ M src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
+ M src/app/services/global.ts
+?? .vs/FRONT.slnx/
+?? .vs/FRONT/
+warning: in the working copy of 'src/app/beflex/adm-reportes/cobranza/cobranza.component.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/adm-reportes/cobranza/cobranza.component.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts', LF will be replaced by CRLF the next time Git touches it
+[QA f0d8b3f4] observaciones issues cobranza sabana
+ Committer: CristianLockton <consultor.ti40@lockton.com>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
 
-/*
-  EVIDENCIA DE USO DEL SOAP Y PLANTILLAS DE CARGA MASIVA
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
 
-  SOLO LECTURA:
-    - No modifica datos ni ejecuta procedimientos de negocio.
-    - No muestra CMCadena, usuarios, contrasenas ni datos de empleados.
-    - Ejecutar en FlexiForbesv2 del ambiente que se desea comprobar.
+After doing this, you may fix the identity used for this commit with:
 
-  IMPORTANTE:
-    bf_RegistroCargaRapida demuestra que una empresa envio una peticion al SOAP.
-    La bitacora no guarda CEIdPlantilla ni CEStoredProc. Por eso la plantilla se
-    puede atribuir con certeza de configuracion solamente cuando la empresa tiene
-    UNA configuracion activa para la operacion 2. Si tiene dos, se reporta aparte
-    como AMBIGUA y no se afirma cual fue ejecutada historicamente.
-*/
+    git commit --amend --reset-author
 
-SET NOCOUNT ON;
-SET LOCK_TIMEOUT 15000;
-SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
-
-DECLARE @IdOperacion INT = 2;
-DECLARE @DiasRecientes INT = 365;
-DECLARE @IdEmpresaDeloitte INT = 186;
-
-/* 00. Contexto. */
-SELECT
-    '00_CONTEXTO' AS bloque,
-    CONVERT(NVARCHAR(128), SERVERPROPERTY('ServerName')) AS servidor,
-    DB_NAME() AS baseDatos,
-    GETDATE() AS fechaConsulta,
-    @DiasRecientes AS diasRecientes;
-
-/*
-  01. Evidencia directa del SOAP.
-  El formato Empresa:...:Usuario: es escrito por los endpoints de carga masiva.
-*/
-;WITH Recepciones AS
-(
-    SELECT
-        R.CMId,
-        R.CMFecha,
-        EmpresaRecibida = LTRIM(RTRIM(SUBSTRING
-        (
-            R.CMCadena,
-            LEN(N'Empresa:') + 1,
-            CHARINDEX(N':Usuario:', R.CMCadena) - (LEN(N'Empresa:') + 1)
-        )))
-    FROM dbo.bf_RegistroCargaRapida R
-    WHERE R.CMResultado = 0
-      AND R.CMCadena LIKE N'Empresa:%'
-      AND CHARINDEX(N':Usuario:', R.CMCadena) > LEN(N'Empresa:')
-)
-SELECT
-    '01_RESUMEN_USO_SOAP' AS bloque,
-    COUNT(*) AS peticionesHistoricas,
-    COUNT(DISTINCT EmpresaRecibida) AS empresasHistoricas,
-    SUM(CASE WHEN CMFecha >= DATEADD(DAY, -@DiasRecientes, GETDATE()) THEN 1 ELSE 0 END)
-        AS peticionesPeriodoReciente,
-    COUNT(DISTINCT CASE
-        WHEN CMFecha >= DATEADD(DAY, -@DiasRecientes, GETDATE())
-        THEN EmpresaRecibida END) AS empresasPeriodoReciente,
-    MIN(CMFecha) AS primeraPeticion,
-    MAX(CMFecha) AS ultimaPeticion
-FROM Recepciones;
-
-/* 02. Empresas que realmente aparecen en la bitacora SOAP. */
-;WITH Recepciones AS
-(
-    SELECT
-        R.CMFecha,
-        EmpresaRecibida = LTRIM(RTRIM(SUBSTRING
-        (
-            R.CMCadena,
-            LEN(N'Empresa:') + 1,
-            CHARINDEX(N':Usuario:', R.CMCadena) - (LEN(N'Empresa:') + 1)
-        )))
-    FROM dbo.bf_RegistroCargaRapida R
-    WHERE R.CMResultado = 0
-      AND R.CMCadena LIKE N'Empresa:%'
-      AND CHARINDEX(N':Usuario:', R.CMCadena) > LEN(N'Empresa:')
-)
-SELECT
-    '02_USO_SOAP_POR_EMPRESA' AS bloque,
-    R.EmpresaRecibida,
-    E.EMIdEmpresa AS empresaInterna,
-    E.EMNombre AS empresa,
-    COUNT(*) AS peticionesHistoricas,
-    SUM(CASE WHEN R.CMFecha >= DATEADD(DAY, -@DiasRecientes, GETDATE()) THEN 1 ELSE 0 END)
-        AS peticionesPeriodoReciente,
-    MIN(R.CMFecha) AS primeraPeticion,
-    MAX(R.CMFecha) AS ultimaPeticion
-FROM Recepciones R
-OUTER APPLY
-(
-    SELECT TOP (1)
-        X.EMIdEmpresa,
-        X.EMNombre
-    FROM dbo.ff_Empresa X
-    WHERE CONVERT(VARCHAR(100), X.EMIdEmpresa) = R.EmpresaRecibida
-       OR CONVERT(VARCHAR(100), X.EMIdEmpresaFlexiForbes) = R.EmpresaRecibida
-    ORDER BY X.EMIdEstatus DESC, X.EMIdEmpresa
-) E
-GROUP BY R.EmpresaRecibida, E.EMIdEmpresa, E.EMNombre
-ORDER BY peticionesHistoricas DESC, R.EmpresaRecibida;
-
-/*
-  03. Plantillas actualmente asociadas a empresas con uso SOAP.
-  Solo incluye empresas con UNA configuracion activa de operacion 2.
-*/
-;WITH Recepciones AS
-(
-    SELECT
-        R.CMFecha,
-        EmpresaRecibida = LTRIM(RTRIM(SUBSTRING
-        (
-            R.CMCadena,
-            LEN(N'Empresa:') + 1,
-            CHARINDEX(N':Usuario:', R.CMCadena) - (LEN(N'Empresa:') + 1)
-        )))
-    FROM dbo.bf_RegistroCargaRapida R
-    WHERE R.CMResultado = 0
-      AND R.CMCadena LIKE N'Empresa:%'
-      AND CHARINDEX(N':Usuario:', R.CMCadena) > LEN(N'Empresa:')
-),
-Uso AS
-(
-    SELECT
-        R.EmpresaRecibida,
-        E.EMIdEmpresa,
-        COUNT(*) AS peticionesHistoricas,
-        SUM(CASE WHEN R.CMFecha >= DATEADD(DAY, -@DiasRecientes, GETDATE()) THEN 1 ELSE 0 END)
-            AS peticionesPeriodoReciente,
-        MAX(R.CMFecha) AS ultimaPeticion
-    FROM Recepciones R
-    OUTER APPLY
-    (
-        SELECT TOP (1) X.EMIdEmpresa
-        FROM dbo.ff_Empresa X
-        WHERE CONVERT(VARCHAR(100), X.EMIdEmpresa) = R.EmpresaRecibida
-           OR CONVERT(VARCHAR(100), X.EMIdEmpresaFlexiForbes) = R.EmpresaRecibida
-        ORDER BY X.EMIdEstatus DESC, X.EMIdEmpresa
-    ) E
-    GROUP BY R.EmpresaRecibida, E.EMIdEmpresa
-),
-ConfiguracionUnica AS
-(
-    SELECT
-        CE.CEIdEmpresa,
-        MIN(CE.CEIdOperacionEmpresa) AS CEIdOperacionEmpresa
-    FROM dbo.ff_CargaMasivaOperacionEmpresa CE
-    WHERE CE.CEIdOperacion = @IdOperacion
-      AND CE.CEIdEstatus = 1
-    GROUP BY CE.CEIdEmpresa
-    HAVING COUNT(*) = 1
-)
-SELECT
-    '03_USO_SOAP_POR_PLANTILLA_ACTUAL_UNICA' AS bloque,
-    CE.CEIdPlantilla,
-    P.PLDescripcion AS plantilla,
-    LTRIM(RTRIM(CE.CEStoredProc)) AS storedProcedure,
-    COUNT(DISTINCT U.EmpresaRecibida) AS empresasConUsoSOAP,
-    SUM(U.peticionesHistoricas) AS peticionesHistoricas,
-    SUM(U.peticionesPeriodoReciente) AS peticionesPeriodoReciente,
-    MAX(U.ultimaPeticion) AS ultimaPeticion
-FROM Uso U
-INNER JOIN ConfiguracionUnica CU
-    ON CU.CEIdEmpresa = U.EMIdEmpresa
-INNER JOIN dbo.ff_CargaMasivaOperacionEmpresa CE
-    ON CE.CEIdOperacionEmpresa = CU.CEIdOperacionEmpresa
-LEFT JOIN dbo.ff_Plantilla P
-    ON P.PLIdPlantilla = CE.CEIdPlantilla
-GROUP BY CE.CEIdPlantilla, P.PLDescripcion, LTRIM(RTRIM(CE.CEStoredProc))
-ORDER BY peticionesHistoricas DESC, CE.CEIdPlantilla;
-
-/*
-  04. Ejemplos concretos, excluyendo Deloitte 186.
-  La configuracion mostrada es unica y activa actualmente para operacion 2.
-*/
-;WITH Recepciones AS
-(
-    SELECT
-        R.CMFecha,
-        EmpresaRecibida = LTRIM(RTRIM(SUBSTRING
-        (
-            R.CMCadena,
-            LEN(N'Empresa:') + 1,
-            CHARINDEX(N':Usuario:', R.CMCadena) - (LEN(N'Empresa:') + 1)
-        )))
-    FROM dbo.bf_RegistroCargaRapida R
-    WHERE R.CMResultado = 0
-      AND R.CMCadena LIKE N'Empresa:%'
-      AND CHARINDEX(N':Usuario:', R.CMCadena) > LEN(N'Empresa:')
-),
-Uso AS
-(
-    SELECT
-        R.EmpresaRecibida,
-        E.EMIdEmpresa,
-        E.EMNombre,
-        COUNT(*) AS peticionesHistoricas,
-        SUM(CASE WHEN R.CMFecha >= DATEADD(DAY, -@DiasRecientes, GETDATE()) THEN 1 ELSE 0 END)
-            AS peticionesPeriodoReciente,
-        MAX(R.CMFecha) AS ultimaPeticion
-    FROM Recepciones R
-    OUTER APPLY
-    (
-        SELECT TOP (1) X.EMIdEmpresa, X.EMNombre
-        FROM dbo.ff_Empresa X
-        WHERE CONVERT(VARCHAR(100), X.EMIdEmpresa) = R.EmpresaRecibida
-           OR CONVERT(VARCHAR(100), X.EMIdEmpresaFlexiForbes) = R.EmpresaRecibida
-        ORDER BY X.EMIdEstatus DESC, X.EMIdEmpresa
-    ) E
-    GROUP BY R.EmpresaRecibida, E.EMIdEmpresa, E.EMNombre
-),
-ConfiguracionUnica AS
-(
-    SELECT
-        CE.CEIdEmpresa,
-        MIN(CE.CEIdOperacionEmpresa) AS CEIdOperacionEmpresa
-    FROM dbo.ff_CargaMasivaOperacionEmpresa CE
-    WHERE CE.CEIdOperacion = @IdOperacion
-      AND CE.CEIdEstatus = 1
-    GROUP BY CE.CEIdEmpresa
-    HAVING COUNT(*) = 1
-)
-SELECT TOP (100)
-    '04_EMPRESAS_NO_DELOITTE_CON_USO_Y_PLANTILLA' AS bloque,
-    U.EmpresaRecibida,
-    U.EMIdEmpresa AS empresaInterna,
-    U.EMNombre AS empresa,
-    CE.CEIdPlantilla,
-    P.PLDescripcion AS plantilla,
-    LTRIM(RTRIM(CE.CEStoredProc)) AS storedProcedure,
-    U.peticionesHistoricas,
-    U.peticionesPeriodoReciente,
-    U.ultimaPeticion
-FROM Uso U
-INNER JOIN ConfiguracionUnica CU
-    ON CU.CEIdEmpresa = U.EMIdEmpresa
-INNER JOIN dbo.ff_CargaMasivaOperacionEmpresa CE
-    ON CE.CEIdOperacionEmpresa = CU.CEIdOperacionEmpresa
-LEFT JOIN dbo.ff_Plantilla P
-    ON P.PLIdPlantilla = CE.CEIdPlantilla
-WHERE U.EMIdEmpresa <> @IdEmpresaDeloitte
-ORDER BY U.peticionesHistoricas DESC, U.EMIdEmpresa;
-
-/* 05. Empresas cuya plantilla historica NO puede atribuirse por duplicidad actual. */
-SELECT
-    '05_CONFIGURACION_ACTUAL_AMBIGUA' AS bloque,
-    CE.CEIdEmpresa,
-    E.EMNombre AS empresa,
-    CE.CEIdOperacion,
-    COUNT(*) AS configuracionesActivas,
-    STRING_AGG
-    (
-        CONCAT
-        (
-            'Plantilla=', CE.CEIdPlantilla,
-            '; SP=', LTRIM(RTRIM(CE.CEStoredProc)),
-            '; Config=', CE.CEIdOperacionEmpresa
-        ),
-        ' | '
-    ) AS configuraciones
-FROM dbo.ff_CargaMasivaOperacionEmpresa CE
-LEFT JOIN dbo.ff_Empresa E
-    ON E.EMIdEmpresa = CE.CEIdEmpresa
-WHERE CE.CEIdOperacion = @IdOperacion
-  AND CE.CEIdEstatus = 1
-GROUP BY CE.CEIdEmpresa, E.EMNombre, CE.CEIdOperacion
-HAVING COUNT(*) > 1
-ORDER BY CE.CEIdEmpresa;
-
-/* 06. Configuracion exacta de Deloitte para contrastarla con la evidencia. */
-SELECT
-    '06_CONFIGURACION_DELOITTE' AS bloque,
-    CE.CEIdOperacionEmpresa,
-    CE.CEIdEmpresa,
-    E.EMNombre AS empresa,
-    E.EMIdEmpresaFlexiForbes AS claveExterna,
-    CE.CEIdOperacion,
-    CE.CEIdPlantilla,
-    P.PLDescripcion AS plantilla,
-    LTRIM(RTRIM(CE.CEStoredProc)) AS storedProcedure,
-    CE.CEIdEstatus,
-    CE.CEFechaAdd,
-    CE.CEFechaUMod
-FROM dbo.ff_CargaMasivaOperacionEmpresa CE
-LEFT JOIN dbo.ff_Empresa E
-    ON E.EMIdEmpresa = CE.CEIdEmpresa
-LEFT JOIN dbo.ff_Plantilla P
-    ON P.PLIdPlantilla = CE.CEIdPlantilla
-WHERE CE.CEIdEmpresa = @IdEmpresaDeloitte
-  AND CE.CEIdOperacion = @IdOperacion
-ORDER BY CE.CEIdEstatus DESC, CE.CEIdOperacionEmpresa;
-
+ 4 files changed, 188 deletions(-)
+To https://github.com/LcktnMX/BeFlex3-EmpAdm.git
+ ! [rejected]          QA -> QA (fetch first)
+error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+To https://github.com/LcktnMX/BeFlex3-EmpAdm.git
+ ! [rejected]          QA -> QA (fetch first)
+error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+No fue posible enviar la rama QA.
+En línea: 26 Carácter: 5
++     throw "No fue posible enviar la rama $Branch."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (No fue posible enviar la rama QA.:String) [], RuntimeException
+    + FullyQualifiedErrorId : No fue posible enviar la rama QA.
+ 
+PS C:\repo\reportes\FRONT> 
