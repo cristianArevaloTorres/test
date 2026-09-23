@@ -1,83 +1,87 @@
-PS C:\repo\reportes\FRONT> $RepoFront = 'C:\repo\reportes\FRONT'
->> Set-Location -LiteralPath $RepoFront
->> 
->> 
->> $FrontFiles = @(
->>       'src/app/beflex/adm-reportes/cobranza/cobranza.component.html',
->>     'src/app/beflex/adm-reportes/cobranza/cobranza.component.ts',
->>     'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html',
->>     'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts'
->> )
->> 
->> git remote -v
->> git branch --show-current
->> git status --short
->> 
->> git add -- $FrontFiles
->> 
->> git commit -m "observaciones issues cobranza sabana"
->> 
->> $Branch = git branch --show-current
->> git push -u origin $Branch
->> 
->> 
->> git push -u origin $Branch
->> if ($LASTEXITCODE -ne 0) {
->>     throw "No fue posible enviar la rama $Branch."
->> }
->> 
-origin  https://github.com/LcktnMX/BeFlex3-EmpAdm.git (fetch)
-origin  https://github.com/LcktnMX/BeFlex3-EmpAdm.git (push)
-QA
- M .vs/VSWorkspaceState.json
- M .vs/slnx.sqlite
- M package-lock.json
- M src/app/beflex/adm-reportes/cobranza/cobranza.component.html
- M src/app/beflex/adm-reportes/cobranza/cobranza.component.ts
- M src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
- M src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
- M src/app/services/global.ts
-?? .vs/FRONT.slnx/
-?? .vs/FRONT/
-warning: in the working copy of 'src/app/beflex/adm-reportes/cobranza/cobranza.component.html', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'src/app/beflex/adm-reportes/cobranza/cobranza.component.ts', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts', LF will be replaced by CRLF the next time Git touches it
-[QA f0d8b3f4] observaciones issues cobranza sabana
- Committer: CristianLockton <consultor.ti40@lockton.com>
-Your name and email address were configured automatically based
-on your username and hostname. Please check that they are accurate.
-You can suppress this message by setting them explicitly:
+$ErrorActionPreference = 'Stop'
 
-    git config --global user.name "Your Name"
-    git config --global user.email you@example.com
+$RepoFront = 'C:\repo\reportes\FRONT'
+$TargetBranch = 'issue-reportesabanaQA'
+$Commit = 'f0d8b3f4'
+$StashName = "temporal-antes-de-subir-$Commit"
 
-After doing this, you may fix the identity used for this commit with:
+Set-Location -LiteralPath $RepoFront
 
-    git commit --amend --reset-author
+git rev-parse --is-inside-work-tree | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    throw "No es un repositorio Git: $RepoFront"
+}
 
- 4 files changed, 188 deletions(-)
-To https://github.com/LcktnMX/BeFlex3-EmpAdm.git
- ! [rejected]          QA -> QA (fetch first)
-error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
-hint: Updates were rejected because the remote contains work that you do not
-hint: have locally. This is usually caused by another repository pushing to
-hint: the same ref. If you want to integrate the remote changes, use
-hint: 'git pull' before pushing again.
-hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-To https://github.com/LcktnMX/BeFlex3-EmpAdm.git
- ! [rejected]          QA -> QA (fetch first)
-error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
-hint: Updates were rejected because the remote contains work that you do not
-hint: have locally. This is usually caused by another repository pushing to
-hint: the same ref. If you want to integrate the remote changes, use
-hint: 'git pull' before pushing again.
-hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-No fue posible enviar la rama QA.
-En línea: 26 Carácter: 5
-+     throw "No fue posible enviar la rama $Branch."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (No fue posible enviar la rama QA.:String) [], RuntimeException
-    + FullyQualifiedErrorId : No fue posible enviar la rama QA.
- 
-PS C:\repo\reportes\FRONT> 
+git cat-file -e "$Commit`^{commit}"
+if ($LASTEXITCODE -ne 0) {
+    throw "No existe localmente el commit $Commit."
+}
+
+$OriginalBranch = (git branch --show-current).Trim()
+if ([string]::IsNullOrWhiteSpace($OriginalBranch)) {
+    throw 'No fue posible determinar la rama local actual.'
+}
+
+Write-Host "Rama local actual: $OriginalBranch" -ForegroundColor Cyan
+Write-Host "Commit que se enviara: $Commit" -ForegroundColor Cyan
+git show --no-patch --oneline $Commit
+
+$HadLocalChanges = -not [string]::IsNullOrWhiteSpace(
+    (git status --porcelain | Out-String)
+)
+
+if ($HadLocalChanges) {
+    git stash push -u -m $StashName
+    if ($LASTEXITCODE -ne 0) {
+        throw 'No fue posible guardar temporalmente los cambios locales.'
+    }
+}
+
+git fetch origin
+if ($LASTEXITCODE -ne 0) {
+    throw 'Fallo git fetch.'
+}
+
+git show-ref --verify --quiet "refs/remotes/origin/$TargetBranch"
+if ($LASTEXITCODE -ne 0) {
+    throw "No existe origin/$TargetBranch."
+}
+
+$TempBranch = "entrega-$Commit-$([DateTime]::Now.ToString('yyyyMMddHHmmss'))"
+git switch -c $TempBranch "origin/$TargetBranch"
+if ($LASTEXITCODE -ne 0) {
+    throw "No fue posible crear la rama temporal desde origin/$TargetBranch."
+}
+
+git cherry-pick $Commit
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ''
+    Write-Host 'El cherry-pick encontro conflictos y NO se hizo push.' -ForegroundColor Red
+    Write-Host 'Resuelva los archivos, ejecute git add y despues git cherry-pick --continue.' -ForegroundColor Yellow
+    Write-Host 'Para cancelar: git cherry-pick --abort' -ForegroundColor Yellow
+    throw "No fue posible aplicar automaticamente el commit $Commit."
+}
+
+git push origin "HEAD:$TargetBranch"
+if ($LASTEXITCODE -ne 0) {
+    throw "No fue posible enviar el commit a origin/$TargetBranch."
+}
+
+git switch $OriginalBranch
+if ($LASTEXITCODE -ne 0) {
+    throw "El push termino, pero no fue posible volver a $OriginalBranch."
+}
+
+git branch -D $TempBranch | Out-Null
+
+if ($HadLocalChanges) {
+    git stash pop
+    if ($LASTEXITCODE -ne 0) {
+        throw 'El push termino, pero los cambios locales deben restaurarse manualmente desde el stash.'
+    }
+}
+
+Write-Host ''
+Write-Host "Commit $Commit enviado correctamente a origin/$TargetBranch." -ForegroundColor Green
+Write-Host "Continuas localmente en la rama $OriginalBranch." -ForegroundColor Green
+git status --short
