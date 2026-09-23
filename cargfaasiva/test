@@ -3,7 +3,9 @@
 723	SCHNEIDER	SCHNEIDER NATIONAL DE MEXICO SA DE CVC
 727	BIOMETC	
 
-
+- Sin marcar, solo incluye empleados con EMIdSalarioConfidencial = 0.
+- Marcado, incluye empleados con valor 0 y 1.
+El check solamente filtra la consulta; no ejecuta ningún UPDATE sobre ff_Empleado.
 
 $ErrorActionPreference = 'Stop'
 
