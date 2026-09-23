@@ -3,6 +3,38 @@
 723	SCHNEIDER	SCHNEIDER NATIONAL DE MEXICO SA DE CVC
 727	BIOMETC	
 
+El check no cambia columnas ni valores; solamente puede agregar o excluir filas según dbo.ff_Empleado.EMIdSalarioConfidencial.
+Estado	Confidencial	Qué muestra
+Altas	Sin seleccionar (0)	Solo empleados con EMIdSalarioConfidencial = 0. Se excluyen los que tienen 1 y, con la lógica actual, también los NULL.
+Altas	Seleccionado (1)	Todos los empleados que cumplan los demás filtros: confidenciales y no confidenciales.
+Bajas	Sin seleccionar	No aplica actualmente el filtro de confidencialidad.
+Bajas	Seleccionado	Produce el mismo resultado que sin seleccionarlo; el parámetro no se utiliza en las consultas de bajas.
+
+
+Ejemplo concreto con los archivos de Zurich:
+- Sin check: 4,612 registros.
+- Con check: 4,623 registros.
+- Al marcarlo se agregaron 11 registros; no se eliminó ninguno.
+- Ambos archivos conservaron 29 hojas y las mismas columnas.
+Los registros adicionales aparecieron en:
+- GMM FUNC ACTUAL: +3
+- VIDA: +1
+- ACCIDENTES PERSONALES: +3
+- GRAVES ENFERMEDADES: +1
+- PLAN DE PENSIÓN: +1
+- VIDA CÓNYUGE: +1
+- VISIÓN: +1
+Las otras 22 hojas no cambiaron porque, para esa empresa y periodo, no tenían registros confidenciales adicionales.
+Dependiendo de la configuración de cada empresa:
+- Solo cambiarán las hojas correspondientes a los planes donde existan empleados confidenciales.
+- Si una hoja mezcla empleados confidenciales y no confidenciales, sin check tendrá menos filas; con check mostrará ambos grupos.
+- Si una hoja contiene exclusivamente empleados confidenciales, podría no aparecer sin check y aparecer al marcarlo.
+- Mascotas no cambia porque ese procedimiento no recibe @Confidencial.
+En resumen: en altas, marcar agrega registros confidenciales; en bajas, actualmente marcar o desmarcar no produce diferencia.
+
+
+
+
 - Sin marcar, solo incluye empleados con EMIdSalarioConfidencial = 0.
 - Marcado, incluye empleados con valor 0 y 1.
 El check solamente filtra la consulta; no ejecuta ningún UPDATE sobre ff_Empleado.
