@@ -1,4 +1,365 @@
+/*
+  DIAGNOSTICO DE CONVIVENCIA BF2 / BF3 - CARGA MASIVA DE TITULARES
 
-Hola, [Nombre]. Identifiqué que la lentitud y el consumo de memoria pueden originarse por la ejecución concurrente de reportes de Cobranza dentro del mismo JVM/Catalina, especialmente porque algunos procesos duran varias horas.
-Implementé una cola exclusiva para Cobranza: los reportes quedan en estado “En espera” y se procesa únicamente uno a la vez. También se deshabilitó el worker automático, se limitó la cola y se liberan correctamente los recursos temporales del Excel.
-Con esto evitamos que varias ejecuciones saturen simultáneamente la memoria, el pool de conexiones y la base de datos. Queda desplegar en QA y realizar una prueba con el reporte de mayor volumen para confirmar el consumo máximo de memoria antes de producción.
+  SOLO LECTURA:
+    - No contiene INSERT, UPDATE, DELETE, MERGE ni ejecuta SP de negocio.
+    - No muestra cadenas, usuarios, contrasenas ni datos de empleados.
+    - Ejecutar en la base FlexiForbesv2 del ambiente que se desea comprobar.
+
+  OBJETIVOS:
+    1. Confirmar cuantas empresas tienen activa la operacion 2.
+    2. Confirmar cuantas empresas realmente consumen el SOAP y desde cuando.
+    3. Medir la frecuencia y posibles peticiones cercanas/simultaneas.
+    4. Comparar las plantillas 507 (BF2/Deloitte) y 12062 (BF3).
+    5. Obtener las firmas de los SP destino y los SP que resuelven configuracion.
+*/
+
+SET NOCOUNT ON;
+SET LOCK_TIMEOUT 15000;
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+DECLARE @IdOperacion INT = 2;
+DECLARE @PlantillaBF2 INT = 507;
+DECLARE @PlantillaBF3 INT = 12062;
+DECLARE @DiasRecientes INT = 365;
+
+/* 00. Servidor y base donde se ejecuto. */
+SELECT
+    '00_CONTEXTO' AS bloque,
+    CONVERT(NVARCHAR(128), SERVERPROPERTY('ServerName')) AS servidor,
+    DB_NAME() AS baseDatos,
+    GETDATE() AS fechaConsulta,
+    @DiasRecientes AS diasConsideradosRecientes;
+
+/* 01. Resumen: cuantas empresas/configuraciones activas existen para operacion 2. */
+SELECT
+    '01_RESUMEN_CONFIGURACION_OP2' AS bloque,
+    COUNT(DISTINCT CE.CEIdEmpresa) AS empresasConfiguradas,
+    COUNT(*) AS configuracionesActivas,
+    MIN(CE.CEFechaAdd) AS configuracionMasAntigua,
+    MAX(COALESCE(CE.CEFechaUMod, CE.CEFechaAdd)) AS ultimaModificacion
+FROM dbo.ff_CargaMasivaOperacionEmpresa CE
+WHERE CE.CEIdOperacion = @IdOperacion
+  AND CE.CEIdEstatus = 1;
+
+/* 02. Detalle de las empresas configuradas para operacion 2. */
+SELECT
+    '02_DETALLE_CONFIGURACION_OP2' AS bloque,
+    CE.CEIdOperacionEmpresa,
+    CE.CEIdEmpresa,
+    E.EMNombre AS empresa,
+    E.EMIdEmpresaFlexiForbes AS claveExterna,
+    CE.CEIdOperacion,
+    O.CONombre AS operacion,
+    CE.CEIdPlantilla,
+    P.PLDescripcion AS plantilla,
+    LTRIM(RTRIM(CE.CEStoredProc)) AS storedProcedure,
+    CE.CEStoredProcAtributos,
+    CE.CEIdEstatus,
+    CE.CEFechaAdd,
+    CE.CEFechaUMod
+FROM dbo.ff_CargaMasivaOperacionEmpresa CE
+LEFT JOIN dbo.ff_Empresa E
+    ON E.EMIdEmpresa = CE.CEIdEmpresa
+LEFT JOIN dbo.ff_CargaMasivaOperacion O
+    ON O.COIdOperacion = CE.CEIdOperacion
+LEFT JOIN dbo.ff_Plantilla P
+    ON P.PLIdPlantilla = CE.CEIdPlantilla
+WHERE CE.CEIdOperacion = @IdOperacion
+  AND CE.CEIdEstatus = 1
+ORDER BY CE.CEIdEmpresa, CE.CEIdOperacionEmpresa;
+
+/* 03. Conflictos: mas de una configuracion activa para empresa + operacion. */
+SELECT
+    '03_CONFIGURACIONES_DUPLICADAS' AS bloque,
+    CE.CEIdEmpresa,
+    E.EMNombre AS empresa,
+    CE.CEIdOperacion,
+    COUNT(*) AS configuracionesActivas
+FROM dbo.ff_CargaMasivaOperacionEmpresa CE
+LEFT JOIN dbo.ff_Empresa E
+    ON E.EMIdEmpresa = CE.CEIdEmpresa
+WHERE CE.CEIdEstatus = 1
+GROUP BY CE.CEIdEmpresa, E.EMNombre, CE.CEIdOperacion
+HAVING COUNT(*) > 1
+ORDER BY CE.CEIdEmpresa, CE.CEIdOperacion;
+
+/* 04. Existencia y cantidad de campos de las plantillas BF2/BF3. */
+SELECT
+    '04_RESUMEN_PLANTILLAS' AS bloque,
+    V.PLIdPlantilla,
+    P.PLDescripcion,
+    CASE WHEN P.PLIdPlantilla IS NULL THEN 0 ELSE 1 END AS existeEnCatalogo,
+    COUNT(CP.CPIdConfiguracionPlantilla) AS configuracionesTotales,
+    SUM(CASE
+            WHEN CP.CPIdEstatus = 1 AND C.CAIdEstatus = 1 THEN 1
+            ELSE 0
+        END) AS camposActivos
+FROM (VALUES (@PlantillaBF2), (@PlantillaBF3)) V(PLIdPlantilla)
+LEFT JOIN dbo.ff_Plantilla P
+    ON P.PLIdPlantilla = V.PLIdPlantilla
+LEFT JOIN dbo.ff_ConfiguracionPlantilla CP
+    ON CP.PLIdPlantilla = V.PLIdPlantilla
+LEFT JOIN dbo.ff_Campo C
+    ON C.CAIdCampo = CP.CAIdCampo
+GROUP BY V.PLIdPlantilla, P.PLIdPlantilla, P.PLDescripcion
+ORDER BY V.PLIdPlantilla;
+
+/* 05. Posiciones exactas en el orden utilizado por ff_CPlantillaCampos. */
+SELECT
+    '05_CAMPOS_PLANTILLAS' AS bloque,
+    CP.PLIdPlantilla,
+    ROW_NUMBER() OVER
+    (
+        PARTITION BY CP.PLIdPlantilla
+        ORDER BY CP.CPIdConfiguracionPlantilla
+    ) AS posicionReal,
+    CP.CPIdConfiguracionPlantilla,
+    CP.CPOrden,
+    CP.CAIdCampo,
+    LTRIM(RTRIM(C.CANombreCampo)) AS campo,
+    C.CATipoDato,
+    C.CALongitud,
+    CP.CPRequerido,
+    CP.CPRangoValores
+FROM dbo.ff_ConfiguracionPlantilla CP
+INNER JOIN dbo.ff_Campo C
+    ON C.CAIdCampo = CP.CAIdCampo
+WHERE CP.PLIdPlantilla IN (@PlantillaBF2, @PlantillaBF3)
+  AND CP.CPIdEstatus = 1
+  AND C.CAIdEstatus = 1
+ORDER BY CP.PLIdPlantilla, CP.CPIdConfiguracionPlantilla;
+
+/* 06. Firmas de los dos SP destino. */
+SELECT
+    '06_PARAMETROS_SP_DESTINO' AS bloque,
+    V.nombreObjeto,
+    CASE WHEN OBJECT_ID(V.nombreObjeto, 'P') IS NULL THEN 0 ELSE 1 END AS existe,
+    P.parameter_id,
+    P.name AS parametro,
+    TYPE_NAME(P.user_type_id) AS tipoDato,
+    P.max_length,
+    P.precision,
+    P.scale,
+    P.is_output
+FROM
+(
+    VALUES
+      ('dbo.ff_XCMTitularesAltaCMDeloitte'),
+      ('dbo.ff_XCMTitularesAltaCMM_BF3')
+) V(nombreObjeto)
+LEFT JOIN sys.parameters P
+    ON P.object_id = OBJECT_ID(V.nombreObjeto, 'P')
+ORDER BY V.nombreObjeto, P.parameter_id;
+
+/* 07. Definiciones de los SP que seleccionan configuracion y plantilla. */
+SELECT
+    '07_DEFINICIONES_RESOLUCION' AS bloque,
+    V.nombreObjeto,
+    CASE WHEN OBJECT_ID(V.nombreObjeto, 'P') IS NULL THEN 0 ELSE 1 END AS existe,
+    OBJECT_DEFINITION(OBJECT_ID(V.nombreObjeto, 'P')) AS definicion
+FROM
+(
+    VALUES
+      ('dbo.ff_CCMOperacionPropiedades'),
+      ('dbo.ff_CPlantillaCampos'),
+      ('dbo.ff_CCMEmpresaAdmin')
+) V(nombreObjeto)
+ORDER BY V.nombreObjeto;
+
+/*
+  A partir de aqui se analiza uso real del SOAP.
+  Solo se extrae el valor Empresa: anterior a :Usuario:.
+  Nunca se devuelve CMCadena.
+*/
+
+/* 08. Cobertura y retencion general de la bitacora. */
+SELECT
+    '08_COBERTURA_BITACORA' AS bloque,
+    COUNT(*) AS totalRegistros,
+    MIN(CMFecha) AS primeraFecha,
+    MAX(CMFecha) AS ultimaFecha,
+    SUM(CASE
+            WHEN CMResultado = 0
+             AND CMCadena LIKE N'Empresa:%'
+             AND CHARINDEX(N':Usuario:', CMCadena) > LEN(N'Empresa:')
+            THEN 1 ELSE 0
+        END) AS recepcionesSOAPIdentificables
+FROM dbo.bf_RegistroCargaRapida;
+
+/* 09. Empresas que realmente han enviado peticiones: historico y periodo reciente. */
+;WITH Recepciones AS
+(
+    SELECT
+        R.CMId,
+        R.CMFecha,
+        R.CMResultado,
+        EmpresaRecibida = LTRIM(RTRIM(SUBSTRING
+        (
+            R.CMCadena,
+            LEN(N'Empresa:') + 1,
+            CHARINDEX(N':Usuario:', R.CMCadena) - (LEN(N'Empresa:') + 1)
+        )))
+    FROM dbo.bf_RegistroCargaRapida R
+    WHERE R.CMResultado = 0
+      AND R.CMCadena LIKE N'Empresa:%'
+      AND CHARINDEX(N':Usuario:', R.CMCadena) > LEN(N'Empresa:')
+)
+SELECT
+    '09_USO_REAL_POR_EMPRESA' AS bloque,
+    R.EmpresaRecibida,
+    COALESCE
+    (
+        (SELECT TOP (1) E.EMIdEmpresa
+           FROM dbo.ff_Empresa E
+          WHERE CONVERT(VARCHAR(100), E.EMIdEmpresa) = R.EmpresaRecibida
+             OR CONVERT(VARCHAR(100), E.EMIdEmpresaFlexiForbes) = R.EmpresaRecibida
+          ORDER BY E.EMIdEstatus DESC, E.EMIdEmpresa),
+        0
+    ) AS empresaInternaIdentificada,
+    COUNT(*) AS totalPeticiones,
+    MIN(R.CMFecha) AS primeraPeticion,
+    MAX(R.CMFecha) AS ultimaPeticion,
+    SUM(CASE WHEN R.CMFecha >= DATEADD(DAY, -30, GETDATE()) THEN 1 ELSE 0 END) AS ultimos30Dias,
+    SUM(CASE WHEN R.CMFecha >= DATEADD(DAY, -90, GETDATE()) THEN 1 ELSE 0 END) AS ultimos90Dias,
+    SUM(CASE WHEN R.CMFecha >= DATEADD(DAY, -@DiasRecientes, GETDATE()) THEN 1 ELSE 0 END) AS periodoReciente
+FROM Recepciones R
+GROUP BY R.EmpresaRecibida
+ORDER BY totalPeticiones DESC, R.EmpresaRecibida;
+
+/* 10. Dictamen directo: una o varias empresas en historico y periodo reciente. */
+;WITH Recepciones AS
+(
+    SELECT
+        R.CMFecha,
+        EmpresaRecibida = LTRIM(RTRIM(SUBSTRING
+        (
+            R.CMCadena,
+            LEN(N'Empresa:') + 1,
+            CHARINDEX(N':Usuario:', R.CMCadena) - (LEN(N'Empresa:') + 1)
+        )))
+    FROM dbo.bf_RegistroCargaRapida R
+    WHERE R.CMResultado = 0
+      AND R.CMCadena LIKE N'Empresa:%'
+      AND CHARINDEX(N':Usuario:', R.CMCadena) > LEN(N'Empresa:')
+)
+SELECT
+    '10_DICTAMEN_EMPRESA_UNICA' AS bloque,
+    COUNT(DISTINCT EmpresaRecibida) AS empresasHistoricas,
+    COUNT(DISTINCT CASE
+        WHEN CMFecha >= DATEADD(DAY, -@DiasRecientes, GETDATE())
+        THEN EmpresaRecibida END) AS empresasPeriodoReciente,
+    CASE COUNT(DISTINCT EmpresaRecibida)
+        WHEN 0 THEN 'SIN_EVIDENCIA_EN_BITACORA'
+        WHEN 1 THEN 'UNA_SOLa_EMPRESA_EN_HISTORICO'
+        ELSE 'VARIAS_EMPRESAS_EN_HISTORICO'
+    END AS dictamenHistorico,
+    CASE COUNT(DISTINCT CASE
+        WHEN CMFecha >= DATEADD(DAY, -@DiasRecientes, GETDATE())
+        THEN EmpresaRecibida END)
+        WHEN 0 THEN 'SIN_EVIDENCIA_EN_PERIODO'
+        WHEN 1 THEN 'UNA_SOLa_EMPRESA_EN_PERIODO'
+        ELSE 'VARIAS_EMPRESAS_EN_PERIODO'
+    END AS dictamenPeriodo
+FROM Recepciones;
+
+/* 11. Consumo mensual para detectar desde cuando y con que continuidad se usa. */
+;WITH Recepciones AS
+(
+    SELECT
+        R.CMFecha,
+        EmpresaRecibida = LTRIM(RTRIM(SUBSTRING
+        (
+            R.CMCadena,
+            LEN(N'Empresa:') + 1,
+            CHARINDEX(N':Usuario:', R.CMCadena) - (LEN(N'Empresa:') + 1)
+        )))
+    FROM dbo.bf_RegistroCargaRapida R
+    WHERE R.CMResultado = 0
+      AND R.CMCadena LIKE N'Empresa:%'
+      AND CHARINDEX(N':Usuario:', R.CMCadena) > LEN(N'Empresa:')
+)
+SELECT
+    '11_USO_MENSUAL' AS bloque,
+    EmpresaRecibida,
+    DATEFROMPARTS(YEAR(CMFecha), MONTH(CMFecha), 1) AS mes,
+    COUNT(*) AS peticiones
+FROM Recepciones
+GROUP BY EmpresaRecibida, YEAR(CMFecha), MONTH(CMFecha)
+ORDER BY EmpresaRecibida, mes;
+
+/* 12. Intervalos: permite validar si realmente llegan de forma espaciada. */
+;WITH Recepciones AS
+(
+    SELECT
+        R.CMId,
+        R.CMFecha,
+        EmpresaRecibida = LTRIM(RTRIM(SUBSTRING
+        (
+            R.CMCadena,
+            LEN(N'Empresa:') + 1,
+            CHARINDEX(N':Usuario:', R.CMCadena) - (LEN(N'Empresa:') + 1)
+        )))
+    FROM dbo.bf_RegistroCargaRapida R
+    WHERE R.CMResultado = 0
+      AND R.CMCadena LIKE N'Empresa:%'
+      AND CHARINDEX(N':Usuario:', R.CMCadena) > LEN(N'Empresa:')
+),
+Intervalos AS
+(
+    SELECT
+        EmpresaRecibida,
+        CMFecha,
+        DATEDIFF
+        (
+            SECOND,
+            LAG(CMFecha) OVER
+            (
+                PARTITION BY EmpresaRecibida
+                ORDER BY CMFecha, CMId
+            ),
+            CMFecha
+        ) AS segundosDesdeAnterior
+    FROM Recepciones
+)
+SELECT
+    '12_FRECUENCIA_PETICIONES' AS bloque,
+    EmpresaRecibida,
+    COUNT(segundosDesdeAnterior) AS intervalosMedidos,
+    MIN(segundosDesdeAnterior) AS intervaloMinimoSegundos,
+    AVG(CONVERT(BIGINT, segundosDesdeAnterior)) AS intervaloPromedioSegundos,
+    MAX(segundosDesdeAnterior) AS intervaloMaximoSegundos,
+    SUM(CASE WHEN segundosDesdeAnterior < 60 THEN 1 ELSE 0 END) AS intervalosMenoresA60Seg,
+    SUM(CASE WHEN segundosDesdeAnterior < 300 THEN 1 ELSE 0 END) AS intervalosMenoresA5Min
+FROM Intervalos
+WHERE segundosDesdeAnterior IS NOT NULL
+GROUP BY EmpresaRecibida
+ORDER BY EmpresaRecibida;
+
+/* 13. Ultimas peticiones sin exponer la cadena ni credenciales. */
+;WITH Recepciones AS
+(
+    SELECT
+        R.CMId,
+        R.CMFecha,
+        R.CMResultado,
+        EmpresaRecibida = LTRIM(RTRIM(SUBSTRING
+        (
+            R.CMCadena,
+            LEN(N'Empresa:') + 1,
+            CHARINDEX(N':Usuario:', R.CMCadena) - (LEN(N'Empresa:') + 1)
+        )))
+    FROM dbo.bf_RegistroCargaRapida R
+    WHERE R.CMResultado = 0
+      AND R.CMCadena LIKE N'Empresa:%'
+      AND CHARINDEX(N':Usuario:', R.CMCadena) > LEN(N'Empresa:')
+)
+SELECT TOP (50)
+    '13_ULTIMAS_PETICIONES' AS bloque,
+    CMId,
+    EmpresaRecibida,
+    CMFecha,
+    CMResultado
+FROM Recepciones
+ORDER BY CMId DESC;
+
