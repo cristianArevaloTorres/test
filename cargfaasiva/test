@@ -1,128 +1,463 @@
-718	UNICCO	UNION DE CREDITO PARA LA CONTADURIA PUBLICA, S.A. DE C.V.C
-721	CCPM	COLEGIO DE CONTADORES PUBLICOS DE MEXICO, A.C.C
-723	SCHNEIDER	SCHNEIDER NATIONAL DE MEXICO SA DE CVC
-727	BIOMETC	
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Web;
 
-El check no cambia columnas ni valores; solamente puede agregar o excluir filas según dbo.ff_Empleado.EMIdSalarioConfidencial.
-Estado	Confidencial	Qué muestra
-Altas	Sin seleccionar (0)	Solo empleados con EMIdSalarioConfidencial = 0. Se excluyen los que tienen 1 y, con la lógica actual, también los NULL.
-Altas	Seleccionado (1)	Todos los empleados que cumplan los demás filtros: confidenciales y no confidenciales.
-Bajas	Sin seleccionar	No aplica actualmente el filtro de confidencialidad.
-Bajas	Seleccionado	Produce el mismo resultado que sin seleccionarlo; el parámetro no se utiliza en las consultas de bajas.
+//using XmlWebServices.RepCobranza;
+//using XmlWebServices.Utils;
 
+namespace ServiciosLocktonTI.Administracion
+{
+ 
+    public class CargaMasivaProcess
+    {
+        private const string DocumentFolder = "DocumentoEmpresa";
+        private readonly CommonBusiness commonBiz;
+        private bool _logEnabled;
+        private int _idEmpresa;
+        private int _idOperacion;
+        private int _idDocumento;
+        private int _idUsuario;
+        private string _nombreEmpresa;
+        private string _logFilename;
+        private string _logPath;
+        private string _appRootPath;
+        private CargaMasivaExecutionResult _result;
+        private CargaMasivaExecutionMode _mode;
+        private CargaMasivaDocumento _documento;
+        private CargaMasivaParser _parser;
+        private DataRow _operationProperties;
+        private Plantilla _plantilla;
+        private SortedList _options;
+        private StreamWriter _log;
 
-Ejemplo concreto con los archivos de Zurich:
-- Sin check: 4,612 registros.
-- Con check: 4,623 registros.
-- Al marcarlo se agregaron 11 registros; no se eliminó ninguno.
-- Ambos archivos conservaron 29 hojas y las mismas columnas.
-Los registros adicionales aparecieron en:
-- GMM FUNC ACTUAL: +3
-- VIDA: +1
-- ACCIDENTES PERSONALES: +3
-- GRAVES ENFERMEDADES: +1
-- PLAN DE PENSIÓN: +1
-- VIDA CÓNYUGE: +1
-- VISIÓN: +1
-Las otras 22 hojas no cambiaron porque, para esa empresa y periodo, no tenían registros confidenciales adicionales.
-Dependiendo de la configuración de cada empresa:
-- Solo cambiarán las hojas correspondientes a los planes donde existan empleados confidenciales.
-- Si una hoja mezcla empleados confidenciales y no confidenciales, sin check tendrá menos filas; con check mostrará ambos grupos.
-- Si una hoja contiene exclusivamente empleados confidenciales, podría no aparecer sin check y aparecer al marcarlo.
-- Mascotas no cambia porque ese procedimiento no recibe @Confidencial.
-En resumen: en altas, marcar agrega registros confidenciales; en bajas, actualmente marcar o desmarcar no produce diferencia.
+        public CargaMasivaProcess(string appRootPath, bool useLog)
+        {
+            this.commonBiz = new CommonBusiness();
+            switch (appRootPath)
+            {
+                case "":
+                case null:
+                    throw new ArgumentException("La ruta a la raíz de la aplicación no es válida.", nameof(appRootPath));
+                default:
+                    this._appRootPath = appRootPath;
+                    this._logEnabled = useLog;
+                    break;
+            }
+        }
 
+        public CargaMasivaProcess(string appRootPath, bool useLog, string Validator)
+        {
+            this.commonBiz = new CommonBusiness();
+            switch (appRootPath)
+            {
+                case "":
+                case null:
+                    throw new ArgumentException("La ruta a la raíz de la aplicación no es válida.", nameof(appRootPath));
+                default:
+                    this._appRootPath = appRootPath;
+                    this._logEnabled = useLog;
+                    break;
+            }
+        }
 
+        public string LogFileName
+        {
+            get
+            {
+                return this._logFilename;
+            }
+        }
 
+        public string LogFilePath
+        {
+            get
+            {
+                return this._logPath;
+            }
+        }
 
-- Sin marcar, solo incluye empleados con EMIdSalarioConfidencial = 0.
-- Marcado, incluye empleados con valor 0 y 1.
-El check solamente filtra la consulta; no ejecuta ningún UPDATE sobre ff_Empleado.
+        private bool Initialize()
+        {
+            bool flag = true;
+            this.RecordToLog(string.Format("[{0}]: Archivo de registro inicializado correctamente.", (object)DateTime.Now.ToLongTimeString()));
+            try
+            {
+                this.GetOperationProperties();
+                this.RecordToLog(string.Format("[{0}]: Se han cargado las propiedades de la operación.", (object)DateTime.Now.ToLongTimeString()));
+                this._documento = new CargaMasivaDocumento(this._idDocumento, this._appRootPath);
+                this._documento.Open();
+                this.RecordToLog(string.Format("[{0}]: Documento de datos para Carga Masiva inicializado correctamente.", (object)DateTime.Now.ToLongTimeString()));
+                this._plantilla = new Plantilla(int.Parse(this._operationProperties["CEIdPlantilla"].ToString()), this._options);
+                this.RecordToLog(string.Format("[{0}]: Plantilla para Carga Masiva inicializada correctamente.", (object)DateTime.Now.ToLongTimeString()));
+                this._parser = new CargaMasivaParser(this._plantilla, this._documento);
+                if (!this._parser.Initialize())
+                {
+                    this.RecordToLog(string.Format("[{0}]: La inicialización del analizador de Carga Masiva ha fallado: {1}", (object)DateTime.Now.ToLongTimeString(), (object)this._parser.GetLastError()));
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                this.RecordToLog(string.Format("[{0}]: Error durante la inicializacion: {1} ({2}\n{3})", (object)DateTime.Now.ToLongTimeString(), (object)ex.Message, (object)ex.GetType().ToString(), (object)ex.StackTrace));
+                flag = false;
+            }
+            return flag;
+        }
 
-$ErrorActionPreference = 'Stop'
+        private new void Finalize()
+        {
+            if (this._log == null)
+                return;
+            this._log.Flush();
+            this._log.Close();
+            this._log = (StreamWriter)null;
+            string logPath = this._logPath;
+            string logFilename = this._logFilename;
+            this._logPath = this._documento != null ? this._documento.FilePath : this._logPath;
+            this._logFilename = this._documento != null ? string.Format("{0}_{1}.txt", (object)this._documento.FileName, (object)DateTime.Now.ToString("yyyyMMdd_HHmm")) : this._logFilename;
+            File.Move(this._appRootPath + logPath + logFilename, this._appRootPath + this._logPath + this._logFilename);
+        }
 
-$RepoFront = 'C:\repo\reportes\FRONT'
-$TargetBranch = 'issue-reportesabanaQA'
-$Commit = 'f0d8b3f4'
-$StashName = "temporal-antes-de-subir-$Commit"
+        private void GetOperationProperties()
+        {
+            this._operationProperties = this.commonBiz.ExecuteStoredProcedure(new SqlParameter[2]
+            {
+        new SqlParameter("@IdOperacion", (object) this._idOperacion),
+        new SqlParameter("@IdEmpresa", (object) this._idEmpresa)
+            }, "ff_CCMOperacionPropiedades", string.Empty).Tables[0].Rows[0];
+        }
 
-Set-Location -LiteralPath $RepoFront
+        private void RecordToLog(string message)
+        {
+            if (!this._logEnabled)
+                return;
+            if (this._log == null)
+            {
+                this._logFilename = string.Format("cm_{0}.tmp", (object)DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+                this._logPath = string.Format("{0}\\temp\\", (object)"DocumentoEmpresa");
+                if (!Directory.Exists(this._appRootPath + this._logPath))
+                    Directory.CreateDirectory(this._appRootPath + this._logPath);
+            //    this._log = new StreamWriter(this._appRootPath + this._logPath + this._logFilename, false, Encoding.UTF8);
+                this._log.WriteLine("###  REGISTRO DE OPERACION DE CARGA MASIVA  ###\n\n");
+                this._log.WriteLine("[{0}]: Ha comenzado el registro de sucesos.", (object)DateTime.Now.ToLongTimeString());
+            }
+            this._log.WriteLine(message);
+            this._log.Flush();
+        }
 
-git rev-parse --is-inside-work-tree | Out-Null
-if ($LASTEXITCODE -ne 0) {
-    throw "No es un repositorio Git: $RepoFront"
-}
+        public void Dispose()
+        {
+            this.Finalize();
+            if (this._parser != null)
+                this._parser.Finalize();
+            if (this._plantilla != null)
+                this._plantilla.Dispose();
+            if (this._documento != null)
+                this._documento.Dispose();
+            this._parser = (CargaMasivaParser)null;
+            this._plantilla = (Plantilla)null;
+            this._documento = (CargaMasivaDocumento)null;
+            this._operationProperties = (DataRow)null;
+            this._log = (StreamWriter)null;
+        }
 
-git cat-file -e "$Commit`^{commit}"
-if ($LASTEXITCODE -ne 0) {
-    throw "No existe localmente el commit $Commit."
-}
+        private void threadCargaMasiva()
+        {
+            if (!this.Initialize())
+            {
+                this.RecordToLog(string.Format("[{0}]: Terminando el proceso de Carga Masiva...", (object)DateTime.Now.ToLongTimeString()));
+                this.Finalize();
+                this._result = CargaMasivaExecutionResult.InitError;
+            }
+            while (this._parser.NextRegister())
+            {
+                ArrayList spParam = (ArrayList)null;
+                this.RecordToLog(string.Format("\n[{0}]: Procesando el registro {1} del documento de datos.", (object)DateTime.Now.ToLongTimeString(), (object)this._documento.RegisterCount));
+                if (this._parser.TryParse() == CargaMasivaParsingResult.Success)
+                {
+                    bool flag;
+                    if (this._parser.Parse(out spParam) == CargaMasivaParsingResult.Success)
+                    {
+                        try
+                        {
+                            DataSet dataSet = this.commonBiz.ExecuteStoredProcedure((SqlParameter[])spParam.ToArray(typeof(SqlParameter)), this._operationProperties["CEStoredProc"].ToString(), string.Empty);
+                            if (bool.Parse(this._operationProperties["Return_Msg"].ToString()) && dataSet != null)
+                                this.RecordToLog(string.Format("[{0}]: Mensaje devuelto por el StoredProc: {1}", (object)DateTime.Now.ToLongTimeString(), (object)dataSet.Tables[0].Rows[0]["Return_Msg"].ToString()));
+                            flag = !bool.Parse(this._operationProperties["Return_Code"].ToString()) || dataSet == null || int.Parse(dataSet.Tables[0].Rows[0]["Return_Code"].ToString()) == 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            this.RecordToLog(string.Format("[{0}]: Ha ocurrido un error al enviar los datos al StoredProc: {1}", (object)DateTime.Now.ToLongTimeString(), (object)ex.Message));
+                            flag = false;
+                        }
+                    }
+                    else
+                    {
+                        this.RecordToLog(string.Format("[{0}]: La conversión de datos ha fallado para el registro:\n{1}", (object)DateTime.Now.ToLongTimeString(), (object)this._parser.GetLastError()));
+                        flag = false;
+                    }
+                    if (flag)
+                    {
+                        this.RecordToLog(string.Format("[{0}]: El envio y procesamiento del registro actual ha sido satisfactorio. Continuando con el siguiente registro del documento de datos...", (object)DateTime.Now.ToLongTimeString()));
+                    }
+                    else
+                    {
+                        this.RecordToLog(string.Format("[{0}]: El envio y procesamiento del registro de datos actual ha fallado.", (object)DateTime.Now.ToLongTimeString()));
+                        if (this._mode == CargaMasivaExecutionMode.ExecuteAll)
+                        {
+                            this.RecordToLog(string.Format("[{0}]: Continuando con el siguiente registro del documento de datos...", (object)DateTime.Now.ToLongTimeString()));
+                        }
+                        else
+                        {
+                            this.RecordToLog(string.Format("[{0}]: Terminando el proceso de Carga Masiva...", (object)DateTime.Now.ToLongTimeString()));
+                            this.Finalize();
+                            this._result = CargaMasivaExecutionResult.DBError;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    this.RecordToLog(string.Format("[{0}]: La prueba de conversión ha fallado para el registro:\n{1}", (object)DateTime.Now.ToLongTimeString(), (object)this._parser.GetLastError()));
+                    if (this._mode == CargaMasivaExecutionMode.ExecuteAll)
+                    {
+                        this.RecordToLog(string.Format("[{0}]: Continuando con el siguiente registro del documento de datos...", (object)DateTime.Now.ToLongTimeString()));
+                    }
+                    else
+                    {
+                        this.RecordToLog(string.Format("[{0}]: Terminando el proceso de Carga Masiva...", (object)DateTime.Now.ToLongTimeString()));
+                        this.Finalize();
+                        this._result = CargaMasivaExecutionResult.ParsingError;
+                        break;
+                    }
+                }
+            }
+            this.RecordToLog(string.Format("[{0}]: Se han procesado todos los registros del documento de datos. Terminando el proceso de Carga Masiva...", (object)DateTime.Now.ToLongTimeString()));
+            this.Finalize();
+            new Reporte(this._idEmpresa, 1, 1, (string)null, (string)null, 0, this._idUsuario, 28)
+            {
+                strValidador = ConfigurationSettings.AppSettings["localValidator"].ToString(),
+                nombreEmpresa = this._nombreEmpresa,
+                nombreArchivo = this._logFilename,
+                pathAttach = (this._appRootPath + this._logPath + this._logFilename),
+                tipoArchivo = "Archivo adjunto."
+            }.EnviaCorreo();
+            this._result = CargaMasivaExecutionResult.Success;
+        }
+        public Mensaje CargaRapida_(string _admin, string _register, string _user, string _pws)
+        {
+            Mensaje aMensaje = new Mensaje();
+            bool flag = true;
+            this._result = CargaMasivaExecutionResult.UnknownError;
+            try
+            {
+                try
+                {
+                    this._idEmpresa = this.Get_IdEmpresa(_admin, _user, _pws.ToUpper());
+                }
+                catch (Exception ex)
+                {
+                    this._result = CargaMasivaExecutionResult.AuthenticationError;
+                    aMensaje.Detalle = "Error de autenticación";
+                }
+                this._idOperacion = 2;
+                try
+                {
+                    this.GetOperationProperties();
+                }
+                catch
+                {
+                    this._result = CargaMasivaExecutionResult.InitError;
+                    aMensaje.Detalle = "Error al cargar la configuración de la empresa";
+                }
+                try
+                {
+                    this._plantilla = new Plantilla(int.Parse(this._operationProperties["CEIdPlantilla"].ToString()), this._options, "");
+                }
+                catch
+                {
+                    this._result = CargaMasivaExecutionResult.DBError;
+                    aMensaje.Detalle = "Error al cargar la configuración de la empresa";
+                }
+                ArrayList spParam = (ArrayList)null;
+                CargaMasivaParsingResult masivaParsingResult;
+                try
+                {
+                    CargaMasivaParser cargaMasivaParser = new CargaMasivaParser(this._plantilla);
+                    string[] documentFieldValues = _register.Split('|');
+                    string[] documentFieldNames = this.FieldNameCons(int.Parse(this._operationProperties["CEIdPlantilla"].ToString()));
+                    masivaParsingResult = cargaMasivaParser.FastParse(documentFieldNames, documentFieldValues, out spParam, out aMensaje);
+                }
+                catch (Exception ex)
+                {
+                    masivaParsingResult = CargaMasivaParsingResult.UnknownError;
+                    aMensaje.Detalle = ex.Message;
+                }
+                if (masivaParsingResult.Equals((object)CargaMasivaParsingResult.Success))
+                {
+                    try
+                    {
+                        DataSet dataSet = this.commonBiz.ExecuteStoredProcedure((SqlParameter[])spParam.ToArray(typeof(SqlParameter)), this._operationProperties["CEStoredProc"].ToString(), string.Empty);
+                        if (bool.Parse(this._operationProperties["Return_Msg"].ToString()) && dataSet != null)
+                            this._result = CargaMasivaExecutionResult.Success;
+                        flag = !bool.Parse(this._operationProperties["Return_Code"].ToString()) || dataSet == null || int.Parse(dataSet.Tables[1].Rows[0]["Return_Code"].ToString()) == 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        this.RegistrarEntradaRapida(ex.Message, 3);
+                        flag = false;
+                        aMensaje.Detalle = ex.Message;
+                    }
+                }
+                else
+                    this._result = CargaMasivaExecutionResult.ParsingError;
+            }
+            catch (Exception ex)
+            {
+               // new ClErrores().MeEnviaError(ex);
+               // aMensaje.Detalle = ex.Message;
+            }
+            aMensaje.Id = (int)this._result;
+            aMensaje.Descripcion = this._result.ToString();
+            return aMensaje;
+        }
+        public int CargaRapida(string _admin, string _register, string _user, string _pws)
+        {
+            bool flag = true;
+            this._result = CargaMasivaExecutionResult.UnknownError;
+            try
+            {
+                try
+                {
+                    this._idEmpresa = this.Get_IdEmpresa(_admin, _user, _pws.ToUpper());
+                }
+                catch (Exception ex)
+                {
+                    this._result = CargaMasivaExecutionResult.AuthenticationError;
+                }
+                this._idOperacion = 2;
+                try
+                {
+                    this.GetOperationProperties();
+                }
+                catch
+                {
+                    this._result = CargaMasivaExecutionResult.InitError;
+                }
+                this._plantilla = new Plantilla(int.Parse(this._operationProperties["CEIdPlantilla"].ToString()), this._options, "");
+                ArrayList spParam = (ArrayList)null;
+                CargaMasivaParsingResult masivaParsingResult;
+                try
+                {
+                    CargaMasivaParser cargaMasivaParser = new CargaMasivaParser(this._plantilla);
+                    string[] documentFieldValues = _register.Split('|');
+                    string[] documentFieldNames = this.FieldNameCons(int.Parse(this._operationProperties["CEIdPlantilla"].ToString()));
+                    masivaParsingResult = cargaMasivaParser.FastParse(documentFieldNames, documentFieldValues, out spParam);
+                }
+                catch
+                {
+                    masivaParsingResult = CargaMasivaParsingResult.UnknownError;
+                }
+                if (masivaParsingResult.Equals((object)CargaMasivaParsingResult.Success))
+                {
+                    try
+                    {
+                        DataSet dataSet = this.commonBiz.ExecuteStoredProcedure((SqlParameter[])spParam.ToArray(typeof(SqlParameter)), this._operationProperties["CEStoredProc"].ToString(), string.Empty);
+                        if (bool.Parse(this._operationProperties["Return_Msg"].ToString()) && dataSet != null)
+                            this._result = CargaMasivaExecutionResult.Success;
+                        flag = !bool.Parse(this._operationProperties["Return_Code"].ToString()) || dataSet == null || int.Parse(dataSet.Tables[0].Rows[0]["Return_Code"].ToString()) == 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        this.RegistrarEntradaRapida(ex.Message, 3);
+                        flag = false;
+                    }
+                }
+                else
+                    this._result = CargaMasivaExecutionResult.ParsingError;
+                if (!flag)
+                    this._result = CargaMasivaExecutionResult.DBError;
+                return (int)this._result;
+            }
+            catch (Exception ex)
+            {
+               //new ClErrores().MeEnviaError(ex);
+                return (int)this._result;
+            }
+        }
 
-$OriginalBranch = (git branch --show-current).Trim()
-if ([string]::IsNullOrWhiteSpace($OriginalBranch)) {
-    throw 'No fue posible determinar la rama local actual.'
-}
+        public CargaMasivaExecutionResult ExecuteCargaMasiva(
+          int IdEmpresa,
+          int IdOperacion,
+          int IdDocumento,
+          CargaMasivaExecutionMode mode,
+          SortedList options,
+          int IdUsuario,
+          string nombreEmpresa)
+        {
+            this._idEmpresa = IdEmpresa;
+            this._idOperacion = IdOperacion;
+            this._idDocumento = IdDocumento;
+            this._options = options;
+            this._idUsuario = IdUsuario;
+            this._nombreEmpresa = nombreEmpresa;
+            this._mode = mode;
+            Thread thread = new Thread(new ThreadStart(this.threadCargaMasiva));
+            CultureInfo cultureInfo = new CultureInfo("es-mx");
+            try
+            {
+                thread.CurrentCulture = cultureInfo;
+                thread.IsBackground = true;
+                thread.Name = "CargaMasiva_BeFlex";
+                thread.Priority = ThreadPriority.Normal;
+                thread.Start();
+                return this._result;
+            }
+            catch
+            {
+                return CargaMasivaExecutionResult.ThreadError;
+            }
+        }
 
-Write-Host "Rama local actual: $OriginalBranch" -ForegroundColor Cyan
-Write-Host "Commit que se enviara: $Commit" -ForegroundColor Cyan
-git show --no-patch --oneline $Commit
+        private int Get_IdEmpresa(string _admin, string _user, string _pws)
+        {
+            clEncriptacion clEncriptacion = new clEncriptacion();
+            return Convert.ToInt32(this.commonBiz.ExecuteStoredProcedure(new SqlParameter[3]
+            {
+        new SqlParameter("@IdEmpresa", (object) _admin),
+        new SqlParameter("@User", (object) _user),
+        new SqlParameter("@Pws", (object) clEncriptacion.Encriptar(_pws))
+            }, "ff_CCMEmpresaAdmin", string.Empty).Tables[0].Rows[0][0]);
+        }
 
-$HadLocalChanges = -not [string]::IsNullOrWhiteSpace(
-    (git status --porcelain | Out-String)
-)
+        private string[] FieldNameCons(int _IdPlantilla)
+        {
+            DataTable table = this.commonBiz.ExecuteStoredProcedure(new SqlParameter[1]
+            {
+        new SqlParameter("@IdPlantilla", (object) _IdPlantilla)
+            }, "ff_CPlantillaCampos", string.Empty).Tables[0];
+            string str = "";
+            foreach (DataRow row in (InternalDataCollectionBase)table.Rows)
+                str = str + row["CANombreCampo"].ToString() + "|";
+            return str.Remove(str.Length - 1, 1).Split('|');
+        }
 
-if ($HadLocalChanges) {
-    git stash push -u -m $StashName
-    if ($LASTEXITCODE -ne 0) {
-        throw 'No fue posible guardar temporalmente los cambios locales.'
+        public void RegistrarEntradaRapida(string _cadena, int _resultado)
+        {
+            this.commonBiz.ExecuteStoredProcedure(new SqlParameter[2]
+            {
+        new SqlParameter("@cadena", (object) _cadena),
+        new SqlParameter("@res", (object) _resultado)
+            }, "bf_CargaMasivaRegistro", string.Empty);
+        }
     }
+
 }
-
-git fetch origin
-if ($LASTEXITCODE -ne 0) {
-    throw 'Fallo git fetch.'
-}
-
-git show-ref --verify --quiet "refs/remotes/origin/$TargetBranch"
-if ($LASTEXITCODE -ne 0) {
-    throw "No existe origin/$TargetBranch."
-}
-
-$TempBranch = "entrega-$Commit-$([DateTime]::Now.ToString('yyyyMMddHHmmss'))"
-git switch -c $TempBranch "origin/$TargetBranch"
-if ($LASTEXITCODE -ne 0) {
-    throw "No fue posible crear la rama temporal desde origin/$TargetBranch."
-}
-
-git cherry-pick $Commit
-if ($LASTEXITCODE -ne 0) {
-    Write-Host ''
-    Write-Host 'El cherry-pick encontro conflictos y NO se hizo push.' -ForegroundColor Red
-    Write-Host 'Resuelva los archivos, ejecute git add y despues git cherry-pick --continue.' -ForegroundColor Yellow
-    Write-Host 'Para cancelar: git cherry-pick --abort' -ForegroundColor Yellow
-    throw "No fue posible aplicar automaticamente el commit $Commit."
-}
-
-git push origin "HEAD:$TargetBranch"
-if ($LASTEXITCODE -ne 0) {
-    throw "No fue posible enviar el commit a origin/$TargetBranch."
-}
-
-git switch $OriginalBranch
-if ($LASTEXITCODE -ne 0) {
-    throw "El push termino, pero no fue posible volver a $OriginalBranch."
-}
-
-git branch -D $TempBranch | Out-Null
-
-if ($HadLocalChanges) {
-    git stash pop
-    if ($LASTEXITCODE -ne 0) {
-        throw 'El push termino, pero los cambios locales deben restaurarse manualmente desde el stash.'
-    }
-}
-
-Write-Host ''
-Write-Host "Commit $Commit enviado correctamente a origin/$TargetBranch." -ForegroundColor Green
-Write-Host "Continuas localmente en la rama $OriginalBranch." -ForegroundColor Green
-git status --short
