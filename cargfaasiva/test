@@ -1,3 +1,35 @@
+Error de servidor en la aplicación '/'.
+Error en la comprobación de las puertas de memoria, la memoria libre (629719040 bytes) es menor que el 5% de la memoria total. Como resultado, el servicio no estará disponible para las solicitudes entrantes. Para resolver esta situación, reduzcan la carga en el equipo o ajuste el valor deminFreeMemoryPercentageToActivateService en el elemento de configuración serviceHostingEnvironment.
+Descripción: Excepción no controlada al ejecutar la solicitud Web actual. Revise el seguimiento de la pila para obtener más información acerca del error y dónde se originó en el código.
+
+Detalles de la excepción: System.InsufficientMemoryException: Error en la comprobación de las puertas de memoria, la memoria libre (629719040 bytes) es menor que el 5% de la memoria total. Como resultado, el servicio no estará disponible para las solicitudes entrantes. Para resolver esta situación, reduzcan la carga en el equipo o ajuste el valor deminFreeMemoryPercentageToActivateService en el elemento de configuración serviceHostingEnvironment.
+
+Error de código fuente:
+
+Se ha generado una excepción no controlada durante la ejecución de la solicitud Web actual. La información sobre el origen y la ubicación de la excepción pueden identificarse utilizando la excepción del seguimiento de la pila siguiente.
+
+Seguimiento de la pila:
+
+
+[InsufficientMemoryException: Error en la comprobación de las puertas de memoria, la memoria libre (629719040 bytes) es menor que el 5% de la memoria total. Como resultado, el servicio no estará disponible para las solicitudes entrantes. Para resolver esta situación, reduzcan la carga en el equipo o ajuste el valor deminFreeMemoryPercentageToActivateService en el elemento de configuración serviceHostingEnvironment.]
+   System.ServiceModel.Activation.ServiceMemoryGates.Check(Int32 minFreeMemoryPercentage, Boolean throwOnLowMemory, UInt64& availableMemoryBytes) +381
+   System.ServiceModel.HostingManager.CheckMemoryCloseIdleServices(EventTraceActivity eventTraceActivity) +97
+   System.ServiceModel.HostingManager.EnsureServiceAvailable(String normalizedVirtualPath, EventTraceActivity eventTraceActivity) +643
+
+[ServiceActivationException: El servicio '/Servicios/BF_wbsABC_Empleados.svc' no se puede activar debido a una excepción durante la compilación. El mensaje de la excepción es: Error en la comprobación de las puertas de memoria, la memoria libre (629719040 bytes) es menor que el 5% de la memoria total. Como resultado, el servicio no estará disponible para las solicitudes entrantes. Para resolver esta situación, reduzcan la carga en el equipo o ajuste el valor deminFreeMemoryPercentageToActivateService en el elemento de configuración serviceHostingEnvironment..]
+   System.Runtime.AsyncResult.End(IAsyncResult result) +513485
+   System.ServiceModel.Activation.HostedHttpRequestAsyncResult.End(IAsyncResult result) +173
+   System.ServiceModel.Activation.ServiceHttpHandler.EndProcessRequest(IAsyncResult result) +7
+   System.Web.CallHandlerExecutionStep.InvokeEndHandler(IAsyncResult ar) +139
+   System.Web.CallHandlerExecutionStep.OnAsyncHandlerCompletion(IAsyncResult ar) +128
+
+
+
+
+
+
+
+
 Hola equipo,
 Les compartimos que los ajustes relacionados con el proceso de defaulteo ya se encuentran disponibles en el ambiente de QA para su validación.
 El alcance de esta actualización se concentró exclusivamente en la interfaz gráfica y en mejorar la experiencia de usuario. La funcionalidad del backend, las reglas de negocio y el procesamiento existente se conservaron sin cambios, con el objetivo de reducir riesgos y mantener el comportamiento actual del sistema.
