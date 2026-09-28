@@ -1,3 +1,6 @@
+http://belocktonha.mx/BeFlex_Servicios/BeFlex_WS/BF_wbsABC_Empleados.svc
+
+
 <protocolMapping>
   <add binding="basicHttpsBinding" scheme="https" />
 </protocolMapping>
