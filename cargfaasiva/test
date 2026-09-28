@@ -4,7 +4,7 @@ http://belocktonha.mx/BeFlex_Servicios/BeFlex_WS/BF_wbsABC_Empleados.svc
 http://belocktonha.mx/BeFlex_Servicios/BeFlex_WS/BF_wbsABC_Empleados.svc?wsdl
 http://belocktonha.mx/BeFlex_Servicios/Beflex_SR/BF_wbsABC_Empleados.svc
 http://belocktonha.mx/BeFlex_Servicios/Beflex_SR/BF_wbsABC_Empleados.svc?wsdl
-
+https://belocktonha.mx/LocktonServices
 <protocolMapping>
   <add binding="basicHttpsBinding" scheme="https" />
 </protocolMapping>
