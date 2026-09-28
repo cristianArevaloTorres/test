@@ -1,44 +1,71 @@
-Error de servidor en la aplicación '/'.
-Error en la comprobación de las puertas de memoria, la memoria libre (629719040 bytes) es menor que el 5% de la memoria total. Como resultado, el servicio no estará disponible para las solicitudes entrantes. Para resolver esta situación, reduzcan la carga en el equipo o ajuste el valor deminFreeMemoryPercentageToActivateService en el elemento de configuración serviceHostingEnvironment.
-Descripción: Excepción no controlada al ejecutar la solicitud Web actual. Revise el seguimiento de la pila para obtener más información acerca del error y dónde se originó en el código.
-
-Detalles de la excepción: System.InsufficientMemoryException: Error en la comprobación de las puertas de memoria, la memoria libre (629719040 bytes) es menor que el 5% de la memoria total. Como resultado, el servicio no estará disponible para las solicitudes entrantes. Para resolver esta situación, reduzcan la carga en el equipo o ajuste el valor deminFreeMemoryPercentageToActivateService en el elemento de configuración serviceHostingEnvironment.
-
-Error de código fuente:
-
-Se ha generado una excepción no controlada durante la ejecución de la solicitud Web actual. La información sobre el origen y la ubicación de la excepción pueden identificarse utilizando la excepción del seguimiento de la pila siguiente.
-
-Seguimiento de la pila:
-
-
-[InsufficientMemoryException: Error en la comprobación de las puertas de memoria, la memoria libre (629719040 bytes) es menor que el 5% de la memoria total. Como resultado, el servicio no estará disponible para las solicitudes entrantes. Para resolver esta situación, reduzcan la carga en el equipo o ajuste el valor deminFreeMemoryPercentageToActivateService en el elemento de configuración serviceHostingEnvironment.]
-   System.ServiceModel.Activation.ServiceMemoryGates.Check(Int32 minFreeMemoryPercentage, Boolean throwOnLowMemory, UInt64& availableMemoryBytes) +381
-   System.ServiceModel.HostingManager.CheckMemoryCloseIdleServices(EventTraceActivity eventTraceActivity) +97
-   System.ServiceModel.HostingManager.EnsureServiceAvailable(String normalizedVirtualPath, EventTraceActivity eventTraceActivity) +643
-
-[ServiceActivationException: El servicio '/Servicios/BF_wbsABC_Empleados.svc' no se puede activar debido a una excepción durante la compilación. El mensaje de la excepción es: Error en la comprobación de las puertas de memoria, la memoria libre (629719040 bytes) es menor que el 5% de la memoria total. Como resultado, el servicio no estará disponible para las solicitudes entrantes. Para resolver esta situación, reduzcan la carga en el equipo o ajuste el valor deminFreeMemoryPercentageToActivateService en el elemento de configuración serviceHostingEnvironment..]
-   System.Runtime.AsyncResult.End(IAsyncResult result) +513485
-   System.ServiceModel.Activation.HostedHttpRequestAsyncResult.End(IAsyncResult result) +173
-   System.ServiceModel.Activation.ServiceHttpHandler.EndProcessRequest(IAsyncResult result) +7
-   System.Web.CallHandlerExecutionStep.InvokeEndHandler(IAsyncResult ar) +139
-   System.Web.CallHandlerExecutionStep.OnAsyncHandlerCompletion(IAsyncResult ar) +128
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <configSections>
+    <!-- For more information on Entity Framework configuration, visit http://go.microsoft.com/fwlink/?LinkID=237468 -->
+    <section name="entityFramework" type="System.Data.Entity.Internal.ConfigFile.EntityFrameworkSection, EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" requirePermission="false" />
+  </configSections>
+  <appSettings>
+    <add key="Validator" value="LOCKTON_INFO"/>
+    <add key="aspnet:UseTaskFriendlySynchronizationContext" value="true" />
+    <add key="HostCorreo" value="172.20.18.150" />
+    <add key="smtpClientUser" value="enviosopera" />
+    <add key="smtpClientPass" value="Lockton.2012" />
+    <add key="ConnectionString" value="Data Source=Lockmx-dbdev16;Initial Catalog=FlexiForbesv2;integrated security=True;" />
 
 
-
-
-
-
-
-
-Hola equipo,
-Les compartimos que los ajustes relacionados con el proceso de defaulteo ya se encuentran disponibles en el ambiente de QA para su validación.
-El alcance de esta actualización se concentró exclusivamente en la interfaz gráfica y en mejorar la experiencia de usuario. La funcionalidad del backend, las reglas de negocio y el procesamiento existente se conservaron sin cambios, con el objetivo de reducir riesgos y mantener el comportamiento actual del sistema.
-Durante la revisión también identificamos que las mejoras de rendimiento contempladas inicialmente ya se encontraban implementadas en la solución, aunque mediante un enfoque distinto al previsto. Después de analizar su funcionamiento, confirmamos que actualmente cumplen con el objetivo esperado, por lo que consideramos más responsable conservarlas y evitar modificaciones innecesarias que pudieran introducir riesgos adicionales.
-En resumen:
-- La actualización ya se encuentra en QA.
-- Los cambios corresponden únicamente a la experiencia visual y de navegación.
-- La funcionalidad del backend y las reglas de negocio permanecen intactas.
-- Las funcionalidades de rendimiento existentes se revisaron y se confirmó que están operando adecuadamente.
-- No se reemplazaron mecanismos funcionales que ya cumplían con el resultado esperado.
-Agradeceremos su apoyo con la validación en QA, especialmente en los recorridos habituales del proceso de defaulteo. En caso de detectar alguna diferencia visual o de comportamiento, quedamos atentos para revisarla y darle seguimiento.
-Saludos.
+  </appSettings>
+  <system.web>
+    <compilation debug="true" targetFramework="4.6.1" />
+    <httpRuntime targetFramework="4.6.1" />
+  </system.web>
+  <system.serviceModel>
+    <client>
+      <endpoint address="http://lockmx-lonedev.mx.lockton.com:2002/InsercionSICAS.svc"
+        binding="basicHttpBinding" bindingConfiguration="BasicHttpBinding_IInsercionSICAS"
+        contract="Autos.IInsercionSICAS" name="BasicHttpBinding_IInsercionSICAS" />
+    </client>
+    <bindings>
+      <basicHttpBinding>
+        <binding maxBufferPoolSize="2147483647" maxBufferSize="2147483647"
+          maxReceivedMessageSize="2147483647" messageEncoding="Text">
+          <readerQuotas maxDepth="2000000" maxStringContentLength="2147483647"
+            maxArrayLength="2147483647" maxBytesPerRead="2147483647" maxNameTableCharCount="2147483647" />
+        </binding>
+        <binding name="BasicHttpBinding_IInsercionSICAS"  receiveTimeout="00:10:00"
+          sendTimeout="00:10:00" maxReceivedMessageSize="2147483647"/>
+      </basicHttpBinding>
+    </bindings>
+    <behaviors>
+      <serviceBehaviors>
+        <behavior>
+          <!-- Para evitar revelar información de los metadatos, establezca los valores siguientes en false antes de la implementación -->
+          <serviceMetadata httpGetEnabled="true" httpsGetEnabled="true" />
+          <!-- Para recibir detalles de las excepciones en los fallos, con el fin de poder realizar la depuración, establezca el valor siguiente en true. Para no revelar información sobre las excepciones, establézcalo en false antes de la implementación -->
+          <serviceDebug includeExceptionDetailInFaults="false" />
+        </behavior>
+      </serviceBehaviors>
+    </behaviors>
+    <protocolMapping>
+      <add binding="basicHttpsBinding" scheme="https" />
+    </protocolMapping>
+    <serviceHostingEnvironment aspNetCompatibilityEnabled="true" multipleSiteBindingsEnabled="true" />
+  </system.serviceModel>
+  <system.webServer>
+    <modules runAllManagedModulesForAllRequests="true" />
+    <!--
+        Para examinar el directorio raíz de la aplicación web durante la depuración, establezca el valor siguiente en true.
+        Establézcalo en false antes de la implementación para evitar revelar información sobre la carpeta de aplicación web.
+      -->
+    <directoryBrowse enabled="true" />
+  </system.webServer>
+  <connectionStrings>
+    <add name="FlexiForbesEntities" connectionString="metadata=res://*/Modelo.FlexiForbesModel.csdl|res://*/Modelo.FlexiForbesModel.ssdl|res://*/Modelo.FlexiForbesModel.msl;provider=System.Data.SqlClient;provider connection string=&quot;data source=Lockmx-dbdev16;initial catalog=FlexiForbesv2;integrated security=True;MultipleActiveResultSets=True;App=EntityFramework&quot;" providerName="System.Data.EntityClient" />
+  </connectionStrings>
+  <entityFramework>
+    <defaultConnectionFactory type="System.Data.Entity.Infrastructure.LocalDbConnectionFactory, EntityFramework">
+      <parameters>
+        <parameter value="v13.0" />
+      </parameters>
+    </defaultConnectionFactory>
+  </entityFramework>
+</configuration>
