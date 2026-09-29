@@ -1,110 +1,347 @@
-<body class="">
-    <app-root _nghost-fly-c0="" ng-version="11.2.14" aria-hidden="true"><router-outlet _ngcontent-fly-c0=""></router-outlet><app-befl _nghost-fly-c3="" class="ng-tns-c3-0 ng-star-inserted"><!----><link _ngcontent-fly-c3="" rel="stylesheet" class="ng-tns-c3-0 ng-star-inserted" href="https://belocktonha.com/Stilos/General/2921/Cla2921.css"><!----><link _ngcontent-fly-c3="" rel="stylesheet" class="ng-tns-c3-0 ng-star-inserted" href="https://belocktonha.com/Stilos/General/Cla2921.css"><div _ngcontent-fly-c3="" class="container-bf"><!----><!----><app-sidebar _ngcontent-fly-c3="" _nghost-fly-c4="" class="ng-tns-c4-1 ng-tns-c3-0 ng-star-inserted"><!----><!----><div _ngcontent-fly-c4="" class="container-fluid px-0 ng-tns-c4-1 ng-star-inserted"><div _ngcontent-fly-c4="" class="row collapse no-gutters d-flex h-100 position-relative show"><!----><div _ngcontent-fly-c4="" class="col-3 p-0 h-100 w-sidebar navbar-collapse collapse d-none d-md-flex sidebar ng-tns-c4-1 ng-star-inserted"><div _ngcontent-fly-c4="" class="side-bar-lt navbar-dark text-white position-fixed h-100 align-self-start w-sidebar color-sidebar"><h6 _ngcontent-fly-c4="" class="px-3 pt-3" align="right"><a _ngcontent-fly-c4="" class="px-1 d-inline d-md-none text-white" data-bs-target=".collapse" data-bs-toggle="collapse"><i _ngcontent-fly-c4="" class="fa fa-arrow-left side-menu-color-text" aria-hidden="true"></i></a></h6><div _ngcontent-fly-c4="" class="ng-tns-c4-1" align="center"><div _ngcontent-fly-c4="" class="cursor-pointer logotipo logoEmpresa" alt="logo" id="logotipo" style="
-              height: 70px;
-              width: 100px;
-              background-repeat: no-repeat;
-              vertical-align: middle;
-              border-style: none;
-              float: none;
-              box-sizing: border-box;
-              display: inline-block;
-              padding-left: 100px;
-            " tabindex="0"></div></div><br _ngcontent-fly-c4="" class="ng-tns-c4-1"><!----><ul _ngcontent-fly-c4="" class="ul-bf nav flex-column flex-nowrap text-truncate ng-tns-c4-1 ng-star-inserted" style="white-space: pre-line"><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><li _ngcontent-fly-c4="" class="nav-item item-be hvr-grow ng-tns-c4-1 ng-star-inserted"><a _ngcontent-fly-c4="" class="nav-link cursor-pointer side-menu-color-text"><img _ngcontent-fly-c4="" class="img-size-20" src="https://belocktonha.com/Stilos/Menus/2921/Botones administrador_ADMINISTRACION.png"> Administración </a></li><!----><!----><!----><li _ngcontent-fly-c4="" class="nav-item item-be hvr-grow ng-tns-c4-1 ng-star-inserted"><a _ngcontent-fly-c4="" class="nav-link cursor-pointer side-menu-color-text"><img _ngcontent-fly-c4="" class="img-size-20" src="https://belocktonha.com/Stilos/Menus/2921/Botones administrador_SEGURIDAD.PNG"> Seguridad </a></li><!----><!----><!----><li _ngcontent-fly-c4="" class="nav-item item-be hvr-grow ng-tns-c4-1 ng-star-inserted"><a _ngcontent-fly-c4="" class="nav-link cursor-pointer side-menu-color-text"><img _ngcontent-fly-c4="" class="img-size-20" src="https://belocktonha.com/Stilos/Menus/2921/369_64_logout.png"> Cerrar sesión </a></li><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><li _ngcontent-fly-c4="" class="nav-item hvr-grow"><a _ngcontent-fly-c4="" class="nav-link cursor-pointer side-menu-color-text" data-bs-target="#modal-demo" data-bs-toggle="modal"><img _ngcontent-fly-c4="" class="img-size-20" src="assets/img/shared/sidebar/08.png"> Contacto </a></li></ul><div _ngcontent-fly-c4="" class="ng-tns-c4-1" style="margin: 10%"></div><div _ngcontent-fly-c4="" class="container"><hr _ngcontent-fly-c4="" class="line"></div><div _ngcontent-fly-c4="" class="contact" style="word-break: break-all"><p _ngcontent-fly-c4="" class="ng-tns-c4-1"><small _ngcontent-fly-c4="" class="side-menu-color-text">Sitio administrado <br _ngcontent-fly-c4="" class="ng-tns-c4-1">por Lockton México</small></p></div></div></div><!----></div></div><!----></app-sidebar><app-burguer _ngcontent-fly-c3="" class="ng-tns-c3-0" _nghost-fly-c5=""><!----><link _ngcontent-fly-c5="" rel="stylesheet" href="https://belocktonha.com/Stilos/General/2921/Cla2921.css" class="ng-star-inserted"><div _ngcontent-fly-c5="" class="burger-lt container-fluid fixed-top py-3 color-sidebar"><div _ngcontent-fly-c5="" class="row collapse g-0 d-flex h-100 position-relative show"><div _ngcontent-fly-c5="" class="col-3 px-0 w-sidebar navbar-collapse collapse d-none d-md-flex"></div><div _ngcontent-fly-c5="" class="col px-3 px-md-0"><a _ngcontent-fly-c5="" class="text-white p-1 cursor-pointer" data-bs-target=".collapse" data-bs-toggle="collapse" role="button"><i _ngcontent-fly-c5="" class="fa fa-bars fa-lg burger-btn-icon-color"></i></a></div></div></div></app-burguer><div _ngcontent-fly-c3="" class="content-router ng-trigger ng-trigger-myAnimation" style="margin-top: 55px;"><app-breadcrumb _ngcontent-fly-c3="" class="ng-tns-c3-0" _nghost-fly-c6=""><!----><div _ngcontent-fly-c6="" class="row mr-0 ng-star-inserted" style=""><div _ngcontent-fly-c6="" class="col-auto pr-0"><p-breadcrumb _ngcontent-fly-c6="" styleclass="ui-breadcrumb-borderless"><div class="ui-breadcrumb-borderless ui-breadcrumb ui-widget ui-widget-header ui-helper-clearfix ui-corner-all"><ul><!----><!----><!----><li class="undefined ng-star-inserted"><!----><a class="ui-menuitem-link ng-star-inserted" href="#/pages" id="0" tabindex="0"><!----><span class="ui-menuitem-text"></span></a><!----></li><!----><li class="ui-breadcrumb-chevron pi pi-chevron-right ng-star-inserted"></li><!----><li class="undefined ng-star-inserted"><!----><a class="ui-menuitem-link ng-star-inserted" href="#/pages/home" tabindex="0"><!----><span class="ui-menuitem-text"></span></a><!----></li><!----><!----></ul></div></p-breadcrumb></div><div _ngcontent-fly-c6="" class="col-auto vertical-center p-0"><!----><div _ngcontent-fly-c6="" class="modal fade" id="modal-ayuda-home"><div _ngcontent-fly-c6="" class="modal-dialog modal-lg"><div _ngcontent-fly-c6="" class="modal-content"><div _ngcontent-fly-c6="" class="modal-header"><h4 _ngcontent-fly-c6="" class="modal-title">Ayuda</h4><button _ngcontent-fly-c6="" class="close" data-bs-dismiss="modal" type="button"><p _ngcontent-fly-c6="" class="close-modal-color">×</p></button></div><div _ngcontent-fly-c6="" class="modal-body"><p _ngcontent-fly-c6=""></p></div></div></div></div></div><!----><div _ngcontent-fly-c6="" class="col pt-2 pe-3 ng-star-inserted"><div _ngcontent-fly-c6="" class="d-flex justify-content-end align-items-center"><label _ngcontent-fly-c6="" class="mr-2 text-general-color empresas-label font-weight-bold" for="combo-empresa" style="margin-right: 20px;"> Empresa: </label><!----><!----><input _ngcontent-fly-c6="" class="form-control input-text-font ng-untouched ng-pristine ng-star-inserted" disabled="" style="width: fit-content !important;" type="text" size="9"><!----></div></div></div></app-breadcrumb><router-outlet _ngcontent-fly-c3="" class="ng-tns-c3-0"></router-outlet><app-home _nghost-fly-c8="" class="ng-star-inserted" style=""><!----><!----><div _ngcontent-fly-c8="" class="container-fluid px-0 ng-star-inserted" style=""><div _ngcontent-fly-c8="" class="row collapse show g-0 d-flex h-100 position-relative"><div _ngcontent-fly-c8="" class="col" style="height: 100vh;"><div _ngcontent-fly-c8="" class="bgimg-1" style="background-image: url(&quot;https://belocktonha.com/Stilos/banner/2921/null&quot;);"><div _ngcontent-fly-c8="" class="caption"><!----><ol _ngcontent-fly-c8="" class="breadcrumb ng-star-inserted" style="background-color: #E9ECF0; padding-left: 2rem !important;
-    display: -ms-flexbox;
-    display: flex;
-    -ms-flex-wrap: wrap;
-    flex-wrap: wrap;
-    padding: .75rem 1rem;
-    margin-bottom: 1rem;
-    list-style: none;
-    background-color: #e9ecef;
-    border-radius: .25rem;
-            "><li _ngcontent-fly-c8="" class="text-general-color"><b _ngcontent-fly-c8="">Bienvenido(a):</b>&nbsp;</li><li _ngcontent-fly-c8="" class="breadcrumb-item active">CLARA  HUEL SPINKA </li></ol><div _ngcontent-fly-c8="" class="space-top"></div><!----><!----></div></div></div></div></div><div _ngcontent-fly-c8="" class="modal fade" id="modal-consejos" tabindex="-1"><div _ngcontent-fly-c8="" class="modal-dialog modal-lg"><div _ngcontent-fly-c8="" class="modal-content"><div _ngcontent-fly-c8="" class="modal-body"><h2 _ngcontent-fly-c8="" class="d-flex align-items-center"><img _ngcontent-fly-c8="" class="hvr-float me-2" src="assets/img/home/icons/idea.png" style="width: 40px; height: auto;"> Consejos </h2><ol _ngcontent-fly-c8="" class="mt-3"><li _ngcontent-fly-c8="">No utilizar letras únicamente.</li><li _ngcontent-fly-c8="">No utilizar números únicamente.</li><li _ngcontent-fly-c8="">Utiliza una combinación de mayúsculas y minúsculas.</li><li _ngcontent-fly-c8=""> A la combinación anterior, agrégale caracteres y/o símbolos. <sup _ngcontent-fly-c8=""><b _ngcontent-fly-c8="">#$@!%*&amp;^</b></sup></li></ol><h2 _ngcontent-fly-c8="" class="mt-4">Ejemplo</h2><div _ngcontent-fly-c8="" class="card-group"><div _ngcontent-fly-c8="" class="card text-center"><div _ngcontent-fly-c8="" class="card-body"><img _ngcontent-fly-c8="" src="assets/img/home/icons/error.png" style="width: 40px; height: auto; margin-bottom: 5px;"><small _ngcontent-fly-c8="" class="text-muted d-block">Seguridad Baja</small><p _ngcontent-fly-c8="" class="card-text"><b _ngcontent-fly-c8="">password</b></p></div></div><div _ngcontent-fly-c8="" class="card text-center"><div _ngcontent-fly-c8="" class="card-body"><img _ngcontent-fly-c8="" src="assets/img/home/icons/warning.png" style="width: 40px; height: auto; margin-bottom: 5px;"><small _ngcontent-fly-c8="" class="text-muted d-block">Seguridad Media</small><p _ngcontent-fly-c8="" class="card-text"><b _ngcontent-fly-c8="">PaSsW0rd</b></p></div></div><div _ngcontent-fly-c8="" class="card text-center"><div _ngcontent-fly-c8="" class="card-body"><img _ngcontent-fly-c8="" src="assets/img/home/icons/shield.png" style="width: 40px; height: auto; margin-bottom: 5px;"><small _ngcontent-fly-c8="" class="text-muted d-block">Seguridad Alta</small><p _ngcontent-fly-c8="" class="card-text"><b _ngcontent-fly-c8="">PaSsW0rd#*</b></p></div></div></div></div><div _ngcontent-fly-c8="" class="modal-footer"><button _ngcontent-fly-c8="" class="btn btn-success hvr-grow" data-bs-dismiss="modal" type="button">¡Lo tengo!</button></div></div></div></div><div _ngcontent-fly-c8="" class="modal fade" id="modal-ayuda-home" tabindex="-1"><div _ngcontent-fly-c8="" class="modal-dialog modal-lg"><div _ngcontent-fly-c8="" class="modal-content"><div _ngcontent-fly-c8="" class="modal-header"><h4 _ngcontent-fly-c8="" class="modal-title">Ayuda</h4><button _ngcontent-fly-c8="" aria-label="Cerrar" class="btn-close" data-bs-dismiss="modal" type="button"></button></div><div _ngcontent-fly-c8="" class="modal-body"><p _ngcontent-fly-c8=""></p></div></div></div></div></app-home></div></div></app-befl></app-root>
-<script src="runtime-es2015.b656ab72567338fb9747.js" type="module" aria-hidden="true"></script><script src="runtime-es5.b656ab72567338fb9747.js" nomodule="" defer="" aria-hidden="true"></script><script src="polyfills-es5.d2a19544a099741966d5.js" nomodule="" defer="" aria-hidden="true"></script><script src="polyfills-es2015.fd4a390225d2bf1903dd.js" type="module" aria-hidden="true"></script><script src="scripts.9af71901984c99bae836.js" defer="" aria-hidden="true"></script><script src="main-es2015.67d72e601982bed3d8c6.js" type="module" aria-hidden="true"></script><script src="main-es5.67d72e601982bed3d8c6.js" nomodule="" defer="" aria-hidden="true"></script>
-<script aria-hidden="true">
-    $(function() {
-        function obtenerAncho(obj, ancho) {
-            $("#anvent").text("El ancho de la " + obj + " es " + ancho + "px. (Width)");
-        }
+/*
+  DIAGNOSTICO DEL ROL REAL QUE ENTREGA LOS ICONOS A BF3
 
-        function obtenerAlto(obj, alto) {
-            $("#alvent").text("El alto de la " + obj + " es " + alto + "px. (Height)");
-        }
-        obtenerAlto("ventana", $(window).height());
-        obtenerAncho("ventana", $(window).width());
-        $(window).resize(function() {
+  SOLO LECTURA:
+    - No crea, actualiza ni elimina datos permanentes.
+    - No ejecuta procedimientos de negocio.
+    - Puede ejecutarse varias veces.
 
-            obtenerAlto("ventana", $(window).height());
-            obtenerAncho("ventana", $(window).width());
-        });
-    });
-</script>
-<script aria-hidden="true">
-    $(document).ready(function ubsrt() {
-        window.RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
-        var pc = new RTCPeerConnection({
-                iceServers: []
-            }),
-            noop = function() {};
+  CASO:
+    - Corporativo CENTINELA: 2920.
+    - Empresa hija CENTINELA: 2921.
+    - El HTML renderizado en BF3 cargo estas rutas:
+        Botones administrador_ADMINISTRACION.png
+        Botones administrador_SEGURIDAD.PNG
+        369_64_logout.png
+    - La configuracion revisada previamente en el rol 8097 contiene:
+        Boton_ADMINISTRACION.PNG
+        Boton_SEGURIDAD.PNG
+        Boton_CERRAR SESION.PNG
 
-        pc.createDataChannel("");
-        pc.createOffer(pc.setLocalDescription.bind(pc), noop);
-        pc.onicecandidate = function(ice) {
-            if (!ice || !ice.candidate || !ice.candidate.candidate) return;
-            var arrIP =/([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(ice.candidate.candidate);
-            var myIP = "";
-            if(arrIP && arrIP.length > 0){
-                myIP = arrIP[1];
-            }
-            //var myIP = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(ice.candidate.candidate)[1];
-            localStorage.setItem('myIP', myIP);
-            pc.onicecandidate = noop;
-        };
+  OBJETIVO:
+    1. Comparar el rol predeterminado del perfil contra el rol realmente
+       asignado a cada administrador en ff_AdministradorEmpresa.
+    2. Reproducir el filtro que utiliza el API Java para consultar menus:
+           MRidEstatus <> 2
+       El API no filtra exclusivamente MRidEstatus = 1.
+    3. Localizar exactamente que rol conserva los nombres observados en HTML.
+    4. Comparar CENTINELA con los cuatro corporativos que funcionaron.
+*/
 
-    });
-</script>
+SET NOCOUNT ON;
+SET LOCK_TIMEOUT 15000;
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
-<script aria-hidden="true">
-    $('.modal-dialog').parent().on('show.bs.modal', function(e) {
-        console.log('modal');
-        $(e.relatedTarget.attributes['data-bs-target'].value).appendTo('body');
-    })
+DECLARE @IdCorporativoCentinela INT = 2920;
+DECLARE @IdEmpresaCentinela INT = 2921;
 
-    function copiar() {
-        //console.log('llegue');
-        /*var copyText = $('#url').val();
-        alert("llegue" + copyText);
-        $('#url').select();
-        document.execCommand("copy");
-        alert("Texto: " + copyText);*/
-        /////////
-        var codigoACopiar = document.getElementById('link');
-        var seleccion = document.createRange();
-        seleccion.selectNodeContents(codigoACopiar);
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(seleccion);
-        var res = document.execCommand('copy');
-        window.getSelection().removeRange(seleccion);
-        if (res === true) {
-            swal({
-                title: '¡Exito!',
-                text: "URL copiada!.",
-                icon: 'success',
-                timer: 2000,
-                button: false
-            });
-        } else {
-            swal({
-                title: '¡Error!',
-                text: "Error al copiar la URL.",
-                icon: 'error',
-                timer: 2000,
-                button: false
-            });
-        }
-        //alert("texto copiado" + res);
-    }
-</script>
+/*
+  Corporativos que funcionaron en las pruebas anteriores.
+  Si las cuatro pruebas fueron otras, cambiar solamente estos valores.
+*/
+DECLARE @CorporativosCorrectos TABLE
+(
+    IdCorporativo INT NOT NULL PRIMARY KEY
+);
 
+INSERT INTO @CorporativosCorrectos (IdCorporativo)
+VALUES (718), (721), (723), (727);
 
-</body>
+DECLARE @EmpresasComparadas TABLE
+(
+    Tipo VARCHAR(20) NOT NULL,
+    IdCorporativo INT NOT NULL,
+    IdEmpresa INT NOT NULL PRIMARY KEY
+);
+
+INSERT INTO @EmpresasComparadas (Tipo, IdCorporativo, IdEmpresa)
+SELECT
+    'CENTINELA',
+    @IdCorporativoCentinela,
+    @IdEmpresaCentinela;
+
+INSERT INTO @EmpresasComparadas (Tipo, IdCorporativo, IdEmpresa)
+SELECT
+    'FUNCIONA',
+    C.IdCorporativo,
+    E.EMidEmpresa
+FROM @CorporativosCorrectos C
+INNER JOIN dbo.ff_Empresa E
+    ON E.EMidCorporativo = C.IdCorporativo
+   AND E.EMidEmpresa <> C.IdCorporativo
+   AND E.EMidEstatus = 1
+WHERE NOT EXISTS
+(
+    SELECT 1
+    FROM @EmpresasComparadas X
+    WHERE X.IdEmpresa = E.EMidEmpresa
+);
+
+/* 00. Servidor y base. Sirve para contrastarlos con la conexion del API. */
+SELECT
+    '00_CONTEXTO' AS bloque,
+    CONVERT(NVARCHAR(128), SERVERPROPERTY('ServerName')) AS servidor,
+    DB_NAME() AS baseDatos,
+    GETDATE() AS fechaConsulta,
+    @IdCorporativoCentinela AS corporativoCentinela,
+    @IdEmpresaCentinela AS empresaCentinela;
+
+/* 01. Confirma las empresas hijas incluidas en la comparacion. */
+SELECT
+    '01_EMPRESAS_COMPARADAS' AS bloque,
+    X.Tipo,
+    X.IdCorporativo,
+    X.IdEmpresa,
+    E.EMNombre AS empresa,
+    E.EMRazonSocial,
+    E.EMidEstatus
+FROM @EmpresasComparadas X
+LEFT JOIN dbo.ff_Empresa E
+    ON E.EMidEmpresa = X.IdEmpresa
+ORDER BY
+    CASE WHEN X.Tipo = 'CENTINELA' THEN 0 ELSE 1 END,
+    X.IdCorporativo,
+    X.IdEmpresa;
+
+/*
+  02. Comprobacion principal.
+
+  El login administrativo devuelve AEIdRol. Ese es el idRol que el navegador
+  envia al endpoint de menus. No basta con que PEIdRolDefault este correcto.
+*/
+SELECT
+    '02_ROL_REAL_DEL_ADMINISTRADOR' AS bloque,
+    X.Tipo,
+    X.IdCorporativo,
+    X.IdEmpresa,
+    E.EMNombre AS empresa,
+    AE.ADIdAdministrador AS idAdministrador,
+    AE.AEIdEstatus AS estatusAsignacion,
+    AE.AEIdPerfil AS perfilAsignado,
+    P.PENombre AS perfil,
+    P.PEAdministrador,
+    P.PEIdEstatus AS estatusPerfil,
+    P.PEIdRolDefault AS rolPredeterminadoPerfil,
+    AE.AEIdRol AS rolDevueltoPorLogin,
+    R.RODescripcionCorta AS descripcionRolLogin,
+    R.ROAdministrador,
+    R.ROIdEstatus AS estatusRolLogin,
+    CASE
+        WHEN AE.AEIdRol IS NULL
+            THEN 'SIN_ROL_EN_ASIGNACION'
+        WHEN P.PEIdRolDefault IS NULL
+            THEN 'SIN_ROL_PREDETERMINADO_EN_PERFIL'
+        WHEN AE.AEIdRol = P.PEIdRolDefault
+            THEN 'ROL_LOGIN_IGUAL_AL_PREDETERMINADO'
+        ELSE 'ALERTA_ROL_LOGIN_DISTINTO_AL_PREDETERMINADO'
+    END AS dictamenRol
+FROM @EmpresasComparadas X
+LEFT JOIN dbo.ff_Empresa E
+    ON E.EMidEmpresa = X.IdEmpresa
+LEFT JOIN dbo.ff_AdministradorEmpresa AE
+    ON AE.AEIdEmpresa = X.IdEmpresa
+   AND AE.AEIdEstatus = 1
+LEFT JOIN dbo.ff_Perfil P
+    ON P.PEIdPerfil = AE.AEIdPerfil
+LEFT JOIN dbo.ff_Rol R
+    ON R.ROIdRol = AE.AEIdRol
+ORDER BY
+    CASE WHEN X.Tipo = 'CENTINELA' THEN 0 ELSE 1 END,
+    X.IdEmpresa,
+    AE.ADIdAdministrador;
+
+/*
+  03. Resumen por rol de login.
+  filasConsumidasPorApi cuenta estatus 0 y 1 porque Java usa <> 2.
+*/
+;WITH RolesAsignados AS
+(
+    SELECT DISTINCT
+        X.Tipo,
+        X.IdCorporativo,
+        X.IdEmpresa,
+        AE.AEIdRol AS IdRol
+    FROM @EmpresasComparadas X
+    INNER JOIN dbo.ff_AdministradorEmpresa AE
+        ON AE.AEIdEmpresa = X.IdEmpresa
+       AND AE.AEIdEstatus = 1
+)
+SELECT
+    '03_RESUMEN_MENUS_ROL_LOGIN' AS bloque,
+    RA.Tipo,
+    RA.IdCorporativo,
+    RA.IdEmpresa,
+    RA.IdRol,
+    R.RODescripcionCorta AS rol,
+    R.ROAdministrador,
+    R.ROIdEstatus AS estatusRol,
+    SUM(CASE WHEN MR.MRidEstatus = 1 THEN 1 ELSE 0 END) AS filasActivas,
+    SUM(CASE WHEN MR.MRidEstatus = 0 THEN 1 ELSE 0 END) AS filasEstatusCero,
+    SUM(CASE WHEN MR.MRidEstatus <> 2 THEN 1 ELSE 0 END) AS filasConsumidasPorApi,
+    COUNT(DISTINCT CASE WHEN MR.MRidEstatus <> 2 THEN MR.MRidMenu END)
+        AS menusDistintosConsumidosPorApi,
+    SUM(CASE
+            WHEN MR.MRidEstatus <> 2
+             AND LTRIM(RTRIM(ISNULL(MR.MRImagenMenu, ''))) IN
+                 (
+                     'Botones administrador_ADMINISTRACION.png',
+                     'Botones administrador_SEGURIDAD.PNG',
+                     '369_64_logout.png'
+                 )
+            THEN 1 ELSE 0
+        END) AS rutasObservadasEnHtml
+FROM RolesAsignados RA
+LEFT JOIN dbo.ff_Rol R
+    ON R.ROIdRol = RA.IdRol
+LEFT JOIN dbo.ff_MenuRol2 MR
+    ON MR.MRidRol = RA.IdRol
+GROUP BY
+    RA.Tipo,
+    RA.IdCorporativo,
+    RA.IdEmpresa,
+    RA.IdRol,
+    R.RODescripcionCorta,
+    R.ROAdministrador,
+    R.ROIdEstatus
+ORDER BY
+    CASE WHEN RA.Tipo = 'CENTINELA' THEN 0 ELSE 1 END,
+    RA.IdEmpresa,
+    RA.IdRol;
+
+/*
+  04. Reproduce la consulta del DAO JDBCFfMenusRol.consultarMenusPorRol2.
+  Para los empates de MEOrden, el API no define un segundo criterio; por eso
+  el orden entre duplicados no esta garantizado.
+*/
+;WITH RolesCentinela AS
+(
+    SELECT DISTINCT AE.AEIdRol AS IdRol
+    FROM dbo.ff_AdministradorEmpresa AE
+    WHERE AE.AEIdEmpresa = @IdEmpresaCentinela
+      AND AE.AEIdEstatus = 1
+)
+SELECT
+    '04_RESPUESTA_QUE_PUEDE_ENTREGAR_EL_API' AS bloque,
+    RC.IdRol,
+    R.RODescripcionCorta AS rol,
+    MR.MRidMenuRol,
+    MR.MRidMenu,
+    M.MENombreMenu AS menu,
+    M.MEPadre AS esMenuPadre,
+    M.MEMenuPadre AS idMenuPadre,
+    M.MEOrden AS ordenUsadoPorApi,
+    MR.MRidEstatus,
+    MR.MRImagenMenu,
+    MR.MRRutaBanner,
+    CASE
+        WHEN LTRIM(RTRIM(ISNULL(MR.MRImagenMenu, ''))) IN
+             (
+                 'Botones administrador_ADMINISTRACION.png',
+                 'Botones administrador_SEGURIDAD.PNG',
+                 '369_64_logout.png'
+             )
+            THEN 'COINCIDE_CON_HTML_CENTINELA'
+        WHEN LTRIM(RTRIM(ISNULL(MR.MRImagenMenu, ''))) IN
+             (
+                 'Boton_ADMINISTRACION.PNG',
+                 'Boton_SEGURIDAD.PNG',
+                 'Boton_CERRAR SESION.PNG'
+             )
+            THEN 'RUTA_ESPERADA_DE_MIGRACION'
+        ELSE 'OTRA_RUTA'
+    END AS dictamenRuta,
+    COUNT(*) OVER
+    (
+        PARTITION BY RC.IdRol, MR.MRidMenu
+    ) AS filasDelMismoMenuConsumidasPorApi
+FROM RolesCentinela RC
+INNER JOIN dbo.ff_Rol R
+    ON R.ROIdRol = RC.IdRol
+INNER JOIN dbo.ff_MenuRol2 MR
+    ON MR.MRidRol = RC.IdRol
+INNER JOIN dbo.ff_Menu M
+    ON M.MEidMenu = MR.MRidMenu
+WHERE MR.MRidEstatus <> 2
+ORDER BY
+    RC.IdRol,
+    M.MEOrden;
+
+/* 05. Localiza en que empresa y rol existen las tres rutas vistas en HTML. */
+SELECT
+    '05_DUENO_DE_RUTAS_OBSERVADAS_EN_HTML' AS bloque,
+    R.ROIdEmpresa,
+    E.EMIdCorporativo,
+    E.EMNombre AS empresa,
+    R.ROIdRol,
+    R.RODescripcionCorta AS rol,
+    R.ROAdministrador,
+    R.ROIdEstatus AS estatusRol,
+    MR.MRidMenuRol,
+    MR.MRidMenu,
+    M.MENombreMenu AS menu,
+    M.MEOrden,
+    MR.MRidEstatus AS estatusMenuRol,
+    MR.MRImagenMenu
+FROM dbo.ff_MenuRol2 MR
+INNER JOIN dbo.ff_Rol R
+    ON R.ROIdRol = MR.MRidRol
+LEFT JOIN dbo.ff_Empresa E
+    ON E.EMidEmpresa = R.ROIdEmpresa
+LEFT JOIN dbo.ff_Menu M
+    ON M.MEidMenu = MR.MRidMenu
+WHERE LTRIM(RTRIM(ISNULL(MR.MRImagenMenu, ''))) IN
+      (
+          'Botones administrador_ADMINISTRACION.png',
+          'Botones administrador_SEGURIDAD.PNG',
+          '369_64_logout.png'
+      )
+ORDER BY
+    CASE WHEN R.ROIdEmpresa = @IdEmpresaCentinela THEN 0 ELSE 1 END,
+    R.ROIdEmpresa,
+    R.ROIdRol,
+    M.MEOrden,
+    MR.MRidMenuRol;
+
+/*
+  06. Dictamen automatico para CENTINELA.
+
+  Si las rutas del HTML no existen en ningun rol asignado a sus administradores,
+  la respuesta visible no puede provenir de las filas consultadas en esta base.
+  En ese caso se debe comparar SERVERPROPERTY/DB_NAME contra el datasource del
+  API de QA y capturar en Network el idRol enviado a menu/rol/2.
+*/
+SELECT
+    '06_DICTAMEN_CENTINELA' AS bloque,
+    @IdEmpresaCentinela AS idEmpresa,
+    CASE
+        WHEN EXISTS
+        (
+            SELECT 1
+            FROM dbo.ff_AdministradorEmpresa AE
+            INNER JOIN dbo.ff_Perfil P
+                ON P.PEIdPerfil = AE.AEIdPerfil
+            WHERE AE.AEIdEmpresa = @IdEmpresaCentinela
+              AND AE.AEIdEstatus = 1
+              AND ISNULL(AE.AEIdRol, -1) <> ISNULL(P.PEIdRolDefault, -1)
+        )
+            THEN 'ROL_DE_LOGIN_DISTINTO_AL_ROL_MIGRADO'
+        WHEN EXISTS
+        (
+            SELECT 1
+            FROM dbo.ff_AdministradorEmpresa AE
+            INNER JOIN dbo.ff_MenuRol2 MR
+                ON MR.MRidRol = AE.AEIdRol
+               AND MR.MRidEstatus <> 2
+            WHERE AE.AEIdEmpresa = @IdEmpresaCentinela
+              AND AE.AEIdEstatus = 1
+              AND LTRIM(RTRIM(ISNULL(MR.MRImagenMenu, ''))) IN
+                  (
+                      'Botones administrador_ADMINISTRACION.png',
+                      'Botones administrador_SEGURIDAD.PNG',
+                      '369_64_logout.png'
+                  )
+        )
+            THEN 'EL_ROL_REAL_CONSERVA_LAS_RUTAS_GRISES'
+        ELSE 'HTML_NO_COINCIDE_CON_ESTA_BD_REVISAR_DATASOURCE_O_IDROL_DEL_API'
+    END AS dictamen;
+
