@@ -1,128 +1,110 @@
-/*
-  COMPARACION DE ICONOS: HAPAG 496 VS CENTINELA 2921
+<body class="">
+    <app-root _nghost-fly-c0="" ng-version="11.2.14" aria-hidden="true"><router-outlet _ngcontent-fly-c0=""></router-outlet><app-befl _nghost-fly-c3="" class="ng-tns-c3-0 ng-star-inserted"><!----><link _ngcontent-fly-c3="" rel="stylesheet" class="ng-tns-c3-0 ng-star-inserted" href="https://belocktonha.com/Stilos/General/2921/Cla2921.css"><!----><link _ngcontent-fly-c3="" rel="stylesheet" class="ng-tns-c3-0 ng-star-inserted" href="https://belocktonha.com/Stilos/General/Cla2921.css"><div _ngcontent-fly-c3="" class="container-bf"><!----><!----><app-sidebar _ngcontent-fly-c3="" _nghost-fly-c4="" class="ng-tns-c4-1 ng-tns-c3-0 ng-star-inserted"><!----><!----><div _ngcontent-fly-c4="" class="container-fluid px-0 ng-tns-c4-1 ng-star-inserted"><div _ngcontent-fly-c4="" class="row collapse no-gutters d-flex h-100 position-relative show"><!----><div _ngcontent-fly-c4="" class="col-3 p-0 h-100 w-sidebar navbar-collapse collapse d-none d-md-flex sidebar ng-tns-c4-1 ng-star-inserted"><div _ngcontent-fly-c4="" class="side-bar-lt navbar-dark text-white position-fixed h-100 align-self-start w-sidebar color-sidebar"><h6 _ngcontent-fly-c4="" class="px-3 pt-3" align="right"><a _ngcontent-fly-c4="" class="px-1 d-inline d-md-none text-white" data-bs-target=".collapse" data-bs-toggle="collapse"><i _ngcontent-fly-c4="" class="fa fa-arrow-left side-menu-color-text" aria-hidden="true"></i></a></h6><div _ngcontent-fly-c4="" class="ng-tns-c4-1" align="center"><div _ngcontent-fly-c4="" class="cursor-pointer logotipo logoEmpresa" alt="logo" id="logotipo" style="
+              height: 70px;
+              width: 100px;
+              background-repeat: no-repeat;
+              vertical-align: middle;
+              border-style: none;
+              float: none;
+              box-sizing: border-box;
+              display: inline-block;
+              padding-left: 100px;
+            " tabindex="0"></div></div><br _ngcontent-fly-c4="" class="ng-tns-c4-1"><!----><ul _ngcontent-fly-c4="" class="ul-bf nav flex-column flex-nowrap text-truncate ng-tns-c4-1 ng-star-inserted" style="white-space: pre-line"><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><li _ngcontent-fly-c4="" class="nav-item item-be hvr-grow ng-tns-c4-1 ng-star-inserted"><a _ngcontent-fly-c4="" class="nav-link cursor-pointer side-menu-color-text"><img _ngcontent-fly-c4="" class="img-size-20" src="https://belocktonha.com/Stilos/Menus/2921/Botones administrador_ADMINISTRACION.png"> Administración </a></li><!----><!----><!----><li _ngcontent-fly-c4="" class="nav-item item-be hvr-grow ng-tns-c4-1 ng-star-inserted"><a _ngcontent-fly-c4="" class="nav-link cursor-pointer side-menu-color-text"><img _ngcontent-fly-c4="" class="img-size-20" src="https://belocktonha.com/Stilos/Menus/2921/Botones administrador_SEGURIDAD.PNG"> Seguridad </a></li><!----><!----><!----><li _ngcontent-fly-c4="" class="nav-item item-be hvr-grow ng-tns-c4-1 ng-star-inserted"><a _ngcontent-fly-c4="" class="nav-link cursor-pointer side-menu-color-text"><img _ngcontent-fly-c4="" class="img-size-20" src="https://belocktonha.com/Stilos/Menus/2921/369_64_logout.png"> Cerrar sesión </a></li><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----><li _ngcontent-fly-c4="" class="nav-item hvr-grow"><a _ngcontent-fly-c4="" class="nav-link cursor-pointer side-menu-color-text" data-bs-target="#modal-demo" data-bs-toggle="modal"><img _ngcontent-fly-c4="" class="img-size-20" src="assets/img/shared/sidebar/08.png"> Contacto </a></li></ul><div _ngcontent-fly-c4="" class="ng-tns-c4-1" style="margin: 10%"></div><div _ngcontent-fly-c4="" class="container"><hr _ngcontent-fly-c4="" class="line"></div><div _ngcontent-fly-c4="" class="contact" style="word-break: break-all"><p _ngcontent-fly-c4="" class="ng-tns-c4-1"><small _ngcontent-fly-c4="" class="side-menu-color-text">Sitio administrado <br _ngcontent-fly-c4="" class="ng-tns-c4-1">por Lockton México</small></p></div></div></div><!----></div></div><!----></app-sidebar><app-burguer _ngcontent-fly-c3="" class="ng-tns-c3-0" _nghost-fly-c5=""><!----><link _ngcontent-fly-c5="" rel="stylesheet" href="https://belocktonha.com/Stilos/General/2921/Cla2921.css" class="ng-star-inserted"><div _ngcontent-fly-c5="" class="burger-lt container-fluid fixed-top py-3 color-sidebar"><div _ngcontent-fly-c5="" class="row collapse g-0 d-flex h-100 position-relative show"><div _ngcontent-fly-c5="" class="col-3 px-0 w-sidebar navbar-collapse collapse d-none d-md-flex"></div><div _ngcontent-fly-c5="" class="col px-3 px-md-0"><a _ngcontent-fly-c5="" class="text-white p-1 cursor-pointer" data-bs-target=".collapse" data-bs-toggle="collapse" role="button"><i _ngcontent-fly-c5="" class="fa fa-bars fa-lg burger-btn-icon-color"></i></a></div></div></div></app-burguer><div _ngcontent-fly-c3="" class="content-router ng-trigger ng-trigger-myAnimation" style="margin-top: 55px;"><app-breadcrumb _ngcontent-fly-c3="" class="ng-tns-c3-0" _nghost-fly-c6=""><!----><div _ngcontent-fly-c6="" class="row mr-0 ng-star-inserted" style=""><div _ngcontent-fly-c6="" class="col-auto pr-0"><p-breadcrumb _ngcontent-fly-c6="" styleclass="ui-breadcrumb-borderless"><div class="ui-breadcrumb-borderless ui-breadcrumb ui-widget ui-widget-header ui-helper-clearfix ui-corner-all"><ul><!----><!----><!----><li class="undefined ng-star-inserted"><!----><a class="ui-menuitem-link ng-star-inserted" href="#/pages" id="0" tabindex="0"><!----><span class="ui-menuitem-text"></span></a><!----></li><!----><li class="ui-breadcrumb-chevron pi pi-chevron-right ng-star-inserted"></li><!----><li class="undefined ng-star-inserted"><!----><a class="ui-menuitem-link ng-star-inserted" href="#/pages/home" tabindex="0"><!----><span class="ui-menuitem-text"></span></a><!----></li><!----><!----></ul></div></p-breadcrumb></div><div _ngcontent-fly-c6="" class="col-auto vertical-center p-0"><!----><div _ngcontent-fly-c6="" class="modal fade" id="modal-ayuda-home"><div _ngcontent-fly-c6="" class="modal-dialog modal-lg"><div _ngcontent-fly-c6="" class="modal-content"><div _ngcontent-fly-c6="" class="modal-header"><h4 _ngcontent-fly-c6="" class="modal-title">Ayuda</h4><button _ngcontent-fly-c6="" class="close" data-bs-dismiss="modal" type="button"><p _ngcontent-fly-c6="" class="close-modal-color">×</p></button></div><div _ngcontent-fly-c6="" class="modal-body"><p _ngcontent-fly-c6=""></p></div></div></div></div></div><!----><div _ngcontent-fly-c6="" class="col pt-2 pe-3 ng-star-inserted"><div _ngcontent-fly-c6="" class="d-flex justify-content-end align-items-center"><label _ngcontent-fly-c6="" class="mr-2 text-general-color empresas-label font-weight-bold" for="combo-empresa" style="margin-right: 20px;"> Empresa: </label><!----><!----><input _ngcontent-fly-c6="" class="form-control input-text-font ng-untouched ng-pristine ng-star-inserted" disabled="" style="width: fit-content !important;" type="text" size="9"><!----></div></div></div></app-breadcrumb><router-outlet _ngcontent-fly-c3="" class="ng-tns-c3-0"></router-outlet><app-home _nghost-fly-c8="" class="ng-star-inserted" style=""><!----><!----><div _ngcontent-fly-c8="" class="container-fluid px-0 ng-star-inserted" style=""><div _ngcontent-fly-c8="" class="row collapse show g-0 d-flex h-100 position-relative"><div _ngcontent-fly-c8="" class="col" style="height: 100vh;"><div _ngcontent-fly-c8="" class="bgimg-1" style="background-image: url(&quot;https://belocktonha.com/Stilos/banner/2921/null&quot;);"><div _ngcontent-fly-c8="" class="caption"><!----><ol _ngcontent-fly-c8="" class="breadcrumb ng-star-inserted" style="background-color: #E9ECF0; padding-left: 2rem !important;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    padding: .75rem 1rem;
+    margin-bottom: 1rem;
+    list-style: none;
+    background-color: #e9ecef;
+    border-radius: .25rem;
+            "><li _ngcontent-fly-c8="" class="text-general-color"><b _ngcontent-fly-c8="">Bienvenido(a):</b>&nbsp;</li><li _ngcontent-fly-c8="" class="breadcrumb-item active">CLARA  HUEL SPINKA </li></ol><div _ngcontent-fly-c8="" class="space-top"></div><!----><!----></div></div></div></div></div><div _ngcontent-fly-c8="" class="modal fade" id="modal-consejos" tabindex="-1"><div _ngcontent-fly-c8="" class="modal-dialog modal-lg"><div _ngcontent-fly-c8="" class="modal-content"><div _ngcontent-fly-c8="" class="modal-body"><h2 _ngcontent-fly-c8="" class="d-flex align-items-center"><img _ngcontent-fly-c8="" class="hvr-float me-2" src="assets/img/home/icons/idea.png" style="width: 40px; height: auto;"> Consejos </h2><ol _ngcontent-fly-c8="" class="mt-3"><li _ngcontent-fly-c8="">No utilizar letras únicamente.</li><li _ngcontent-fly-c8="">No utilizar números únicamente.</li><li _ngcontent-fly-c8="">Utiliza una combinación de mayúsculas y minúsculas.</li><li _ngcontent-fly-c8=""> A la combinación anterior, agrégale caracteres y/o símbolos. <sup _ngcontent-fly-c8=""><b _ngcontent-fly-c8="">#$@!%*&amp;^</b></sup></li></ol><h2 _ngcontent-fly-c8="" class="mt-4">Ejemplo</h2><div _ngcontent-fly-c8="" class="card-group"><div _ngcontent-fly-c8="" class="card text-center"><div _ngcontent-fly-c8="" class="card-body"><img _ngcontent-fly-c8="" src="assets/img/home/icons/error.png" style="width: 40px; height: auto; margin-bottom: 5px;"><small _ngcontent-fly-c8="" class="text-muted d-block">Seguridad Baja</small><p _ngcontent-fly-c8="" class="card-text"><b _ngcontent-fly-c8="">password</b></p></div></div><div _ngcontent-fly-c8="" class="card text-center"><div _ngcontent-fly-c8="" class="card-body"><img _ngcontent-fly-c8="" src="assets/img/home/icons/warning.png" style="width: 40px; height: auto; margin-bottom: 5px;"><small _ngcontent-fly-c8="" class="text-muted d-block">Seguridad Media</small><p _ngcontent-fly-c8="" class="card-text"><b _ngcontent-fly-c8="">PaSsW0rd</b></p></div></div><div _ngcontent-fly-c8="" class="card text-center"><div _ngcontent-fly-c8="" class="card-body"><img _ngcontent-fly-c8="" src="assets/img/home/icons/shield.png" style="width: 40px; height: auto; margin-bottom: 5px;"><small _ngcontent-fly-c8="" class="text-muted d-block">Seguridad Alta</small><p _ngcontent-fly-c8="" class="card-text"><b _ngcontent-fly-c8="">PaSsW0rd#*</b></p></div></div></div></div><div _ngcontent-fly-c8="" class="modal-footer"><button _ngcontent-fly-c8="" class="btn btn-success hvr-grow" data-bs-dismiss="modal" type="button">¡Lo tengo!</button></div></div></div></div><div _ngcontent-fly-c8="" class="modal fade" id="modal-ayuda-home" tabindex="-1"><div _ngcontent-fly-c8="" class="modal-dialog modal-lg"><div _ngcontent-fly-c8="" class="modal-content"><div _ngcontent-fly-c8="" class="modal-header"><h4 _ngcontent-fly-c8="" class="modal-title">Ayuda</h4><button _ngcontent-fly-c8="" aria-label="Cerrar" class="btn-close" data-bs-dismiss="modal" type="button"></button></div><div _ngcontent-fly-c8="" class="modal-body"><p _ngcontent-fly-c8=""></p></div></div></div></div></app-home></div></div></app-befl></app-root>
+<script src="runtime-es2015.b656ab72567338fb9747.js" type="module" aria-hidden="true"></script><script src="runtime-es5.b656ab72567338fb9747.js" nomodule="" defer="" aria-hidden="true"></script><script src="polyfills-es5.d2a19544a099741966d5.js" nomodule="" defer="" aria-hidden="true"></script><script src="polyfills-es2015.fd4a390225d2bf1903dd.js" type="module" aria-hidden="true"></script><script src="scripts.9af71901984c99bae836.js" defer="" aria-hidden="true"></script><script src="main-es2015.67d72e601982bed3d8c6.js" type="module" aria-hidden="true"></script><script src="main-es5.67d72e601982bed3d8c6.js" nomodule="" defer="" aria-hidden="true"></script>
+<script aria-hidden="true">
+    $(function() {
+        function obtenerAncho(obj, ancho) {
+            $("#anvent").text("El ancho de la " + obj + " es " + ancho + "px. (Width)");
+        }
 
-  SOLO LECTURA:
-    - No crea, actualiza ni elimina datos.
-    - Ejecutar en FlexiForbesv2 de QA.
+        function obtenerAlto(obj, alto) {
+            $("#alvent").text("El alto de la " + obj + " es " + alto + "px. (Height)");
+        }
+        obtenerAlto("ventana", $(window).height());
+        obtenerAncho("ventana", $(window).width());
+        $(window).resize(function() {
 
-  Referencias identificadas:
-    - Corporativo HAPAG: 495.
-    - Empresa hija HAPAG: 496.
-    - Corporativo CENTINELA: 2920.
-    - Empresa hija CENTINELA: 2921.
-*/
+            obtenerAlto("ventana", $(window).height());
+            obtenerAncho("ventana", $(window).width());
+        });
+    });
+</script>
+<script aria-hidden="true">
+    $(document).ready(function ubsrt() {
+        window.RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
+        var pc = new RTCPeerConnection({
+                iceServers: []
+            }),
+            noop = function() {};
 
-SET NOCOUNT ON;
-SET LOCK_TIMEOUT 15000;
-SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+        pc.createDataChannel("");
+        pc.createOffer(pc.setLocalDescription.bind(pc), noop);
+        pc.onicecandidate = function(ice) {
+            if (!ice || !ice.candidate || !ice.candidate.candidate) return;
+            var arrIP =/([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(ice.candidate.candidate);
+            var myIP = "";
+            if(arrIP && arrIP.length > 0){
+                myIP = arrIP[1];
+            }
+            //var myIP = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(ice.candidate.candidate)[1];
+            localStorage.setItem('myIP', myIP);
+            pc.onicecandidate = noop;
+        };
 
-DECLARE @IdEmpresaHapag INT = 496;
-DECLARE @IdEmpresaDestino INT = 2921;
+    });
+</script>
 
-/* 00. Confirma identidad de ambas empresas. */
-SELECT
-    '00_EMPRESAS' AS bloque,
-    E.EMidEmpresa,
-    E.EMidCorporativo,
-    E.EMNombre,
-    E.EMRazonSocial,
-    E.EMidEstatus
-FROM dbo.ff_Empresa E
-WHERE E.EMidEmpresa IN (@IdEmpresaHapag, @IdEmpresaDestino)
-ORDER BY E.EMidEmpresa;
+<script aria-hidden="true">
+    $('.modal-dialog').parent().on('show.bs.modal', function(e) {
+        console.log('modal');
+        $(e.relatedTarget.attributes['data-bs-target'].value).appendTo('body');
+    })
 
-/* 01. Roles activos y cantidad de menus activos. */
-SELECT
-    '01_ROLES' AS bloque,
-    R.ROIdEmpresa,
-    E.EMNombre AS empresa,
-    R.ROIdRol,
-    R.RODescripcionCorta,
-    R.ROAdministrador,
-    R.ROIdEstatus,
-    SUM(CASE WHEN MR.MRidEstatus = 1 THEN 1 ELSE 0 END) AS filasMenuActivas
-FROM dbo.ff_Rol R
-LEFT JOIN dbo.ff_Empresa E
-    ON E.EMidEmpresa = R.ROIdEmpresa
-LEFT JOIN dbo.ff_MenuRol2 MR
-    ON MR.MRidRol = R.ROIdRol
-WHERE R.ROIdEmpresa IN (@IdEmpresaHapag, @IdEmpresaDestino)
-  AND R.ROIdEstatus = 1
-GROUP BY
-    R.ROIdEmpresa,
-    E.EMNombre,
-    R.ROIdRol,
-    R.RODescripcionCorta,
-    R.ROAdministrador,
-    R.ROIdEstatus
-ORDER BY R.ROIdEmpresa, R.ROAdministrador DESC, R.ROIdRol;
+    function copiar() {
+        //console.log('llegue');
+        /*var copyText = $('#url').val();
+        alert("llegue" + copyText);
+        $('#url').select();
+        document.execCommand("copy");
+        alert("Texto: " + copyText);*/
+        /////////
+        var codigoACopiar = document.getElementById('link');
+        var seleccion = document.createRange();
+        seleccion.selectNodeContents(codigoACopiar);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(seleccion);
+        var res = document.execCommand('copy');
+        window.getSelection().removeRange(seleccion);
+        if (res === true) {
+            swal({
+                title: '¡Exito!',
+                text: "URL copiada!.",
+                icon: 'success',
+                timer: 2000,
+                button: false
+            });
+        } else {
+            swal({
+                title: '¡Error!',
+                text: "Error al copiar la URL.",
+                icon: 'error',
+                timer: 2000,
+                button: false
+            });
+        }
+        //alert("texto copiado" + res);
+    }
+</script>
 
-/*
-  02. Iconos activos de menus padre. Son los que construyen la barra lateral
-  observada en la captura de Hapag.
-*/
-SELECT
-    '02_ICONOS_MENU_PADRE' AS bloque,
-    R.ROIdEmpresa,
-    E.EMNombre AS empresa,
-    R.ROIdRol,
-    R.RODescripcionCorta,
-    R.ROAdministrador,
-    MR.MRidMenuRol,
-    MR.MRidMenu,
-    M.MENombreMenu AS menu,
-    M.MEOrden AS ordenMenu,
-    MR.MRImagenMenu,
-    CASE
-        WHEN MR.MRImagenMenu LIKE '%StilosDefault/img/shared/sidebar/%'
-            THEN 'ICONO_COMPARTIDO_BF3'
-        ELSE 'ICONO_PROPIO_DE_EMPRESA'
-    END AS tipoRuta
-FROM dbo.ff_Rol R
-INNER JOIN dbo.ff_MenuRol2 MR
-    ON MR.MRidRol = R.ROIdRol
-   AND MR.MRidEstatus = 1
-INNER JOIN dbo.ff_Menu M
-    ON M.MEidMenu = MR.MRidMenu
-   AND M.MEPadre = 1
-LEFT JOIN dbo.ff_Empresa E
-    ON E.EMidEmpresa = R.ROIdEmpresa
-WHERE R.ROIdEmpresa IN (@IdEmpresaHapag, @IdEmpresaDestino)
-  AND R.ROIdEstatus = 1
-ORDER BY
-    R.ROIdEmpresa,
-    R.ROAdministrador DESC,
-    R.ROIdRol,
-    M.MEOrden,
-    MR.MRidMenuRol;
 
-/* 03. Resumen de rutas compartidas contra rutas propias. */
-SELECT
-    '03_RESUMEN_TIPO_ICONO' AS bloque,
-    R.ROIdEmpresa,
-    E.EMNombre AS empresa,
-    SUM(CASE
-            WHEN MR.MRidEstatus = 1
-             AND MR.MRImagenMenu LIKE '%StilosDefault/img/shared/sidebar/%'
-            THEN 1 ELSE 0
-        END) AS iconosCompartidosBF3,
-    SUM(CASE
-            WHEN MR.MRidEstatus = 1
-             AND MR.MRImagenMenu NOT LIKE '%StilosDefault/img/shared/sidebar/%'
-            THEN 1 ELSE 0
-        END) AS iconosPropiosEmpresa,
-    SUM(CASE
-            WHEN MR.MRidEstatus = 1
-             AND NULLIF(LTRIM(RTRIM(MR.MRImagenMenu)), '') IS NULL
-            THEN 1 ELSE 0
-        END) AS iconosSinRuta
-FROM dbo.ff_Rol R
-INNER JOIN dbo.ff_MenuRol2 MR
-    ON MR.MRidRol = R.ROIdRol
-LEFT JOIN dbo.ff_Empresa E
-    ON E.EMidEmpresa = R.ROIdEmpresa
-WHERE R.ROIdEmpresa IN (@IdEmpresaHapag, @IdEmpresaDestino)
-  AND R.ROIdEstatus = 1
-GROUP BY R.ROIdEmpresa, E.EMNombre
-ORDER BY R.ROIdEmpresa;
-
+</body>
