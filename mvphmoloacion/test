@@ -7,22 +7,25 @@
     - Puede ejecutarse varias veces en la misma sesion.
 
   CASO REPORTADO:
-    - Se menciono el corporativo 920.
+    - Corporativo confirmado: 2920.
     - Los recursos entregados corresponden a la carpeta de empresa 2921.
     - La migracion minima toma los menus del rol modelo BF3 7365.
+    - La empresa 186 se utiliza como referencia porque muestra correctamente
+      los iconos del menu lateral en QA.
 
   Ejecutar en FlexiForbesv2 del ambiente QA donde se realizo la migracion.
   Si los identificadores del caso son distintos, cambiar solamente estas
-  tres variables.
+  cuatro variables.
 */
 
 SET NOCOUNT ON;
 SET LOCK_TIMEOUT 15000;
 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
-DECLARE @IdMencionado INT = 920;
+DECLARE @IdMencionado INT = 2920;
 DECLARE @IdEmpresaConProblema INT = 2921;
 DECLARE @IdRolModeloBF3 INT = 7365;
+DECLARE @IdEmpresaReferencia INT = 186;
 DECLARE @IdCorporativoReal INT;
 
 SELECT @IdCorporativoReal = E.EMidCorporativo
@@ -38,7 +41,8 @@ SELECT
     @IdMencionado AS idMencionado,
     @IdEmpresaConProblema AS idEmpresaConProblema,
     @IdCorporativoReal AS corporativoRealSegunBD,
-    @IdRolModeloBF3 AS rolModeloBF3;
+    @IdRolModeloBF3 AS rolModeloBF3,
+    @IdEmpresaReferencia AS empresaReferenciaIconosCorrectos;
 
 /*
   01. Aclara si 920 es corporativo, empresa o si existe una confusion de IDs.
@@ -74,7 +78,7 @@ SELECT
             THEN 'EL_ID_MENCIONADO_ES_LA_EMPRESA_OBSERVADA'
         WHEN @IdMencionado = @IdCorporativoReal
             THEN 'RELACION_EMPRESA_CORPORATIVO_CORRECTA'
-        ELSE 'LOS_IDS_NO_CORRESPONDEN_REVISAR_920_VS_2920'
+        ELSE 'LOS_IDS_NO_CORRESPONDEN_REVISAR_ID_MENCIONADO'
     END AS dictamen;
 
 /* 02. Perfil administrador y rol que recibieron los menus de BF3. */
@@ -208,6 +212,209 @@ LEFT JOIN dbo.ff_Menu M
 ORDER BY D.IdRol, COALESCE(D.MRidMenu, S.MRidMenu);
 
 /*
+  04B. Jerarquia y duplicados activos del rol administrador.
+  Los menus padre suelen ser los que se presentan en la barra lateral. Si una
+  combinacion rol + menu aparece mas de una vez activa, el resultado puede
+  depender del orden en que la aplicacion recupere los renglones.
+*/
+;WITH RolesAdministrador AS
+(
+    SELECT DISTINCT P.PEIdRolDefault AS IdRol
+    FROM dbo.ff_Perfil P
+    INNER JOIN dbo.ff_Rol R
+        ON R.ROIdRol = P.PEIdRolDefault
+       AND R.ROIdEmpresa = P.PEIdEmpresa
+    WHERE P.PEIdEmpresa = @IdEmpresaConProblema
+      AND P.PEAdministrador = 1
+      AND P.PEIdEstatus = 1
+      AND R.ROIdEstatus = 1
+),
+Detalle AS
+(
+    SELECT
+        RA.IdRol,
+        MR.MRidMenuRol,
+        MR.MRidMenu,
+        MR.MRidEstatus,
+        MR.MRImagenMenu,
+        MR.MRRutaBanner,
+        MR.MRUsuarioAdd,
+        MR.MRFechaAdd,
+        MR.MRUsuarioUMod,
+        MR.MRFechaUMod,
+        M.MENombreMenu,
+        M.MEPadre,
+        M.MEMenuPadre,
+        M.MEOrden,
+        COUNT(*) OVER
+        (
+            PARTITION BY RA.IdRol, MR.MRidMenu, MR.MRidEstatus
+        ) AS filasMismoMenuYEstatus
+    FROM RolesAdministrador RA
+    INNER JOIN dbo.ff_MenuRol2 MR
+        ON MR.MRidRol = RA.IdRol
+    LEFT JOIN dbo.ff_Menu M
+        ON M.MEidMenu = MR.MRidMenu
+)
+SELECT
+    '04B_JERARQUIA_Y_DUPLICADOS' AS bloque,
+    IdRol AS rolDestino,
+    MRidMenuRol,
+    MRidMenu,
+    MENombreMenu AS menu,
+    MEPadre AS esMenuPadre,
+    MEMenuPadre AS idMenuPadre,
+    MEOrden AS ordenMenu,
+    MRidEstatus AS estatusMenuRol,
+    MRImagenMenu,
+    MRRutaBanner,
+    filasMismoMenuYEstatus,
+    CASE
+        WHEN MRidEstatus = 1 AND filasMismoMenuYEstatus > 1
+            THEN 'DUPLICADO_ACTIVO'
+        WHEN MEPadre = 1
+            THEN 'MENU_PADRE_POSIBLE_BARRA_LATERAL'
+        ELSE 'SIN_DUPLICIDAD_ACTIVA'
+    END AS dictamen,
+    MRUsuarioAdd,
+    MRFechaAdd,
+    MRUsuarioUMod,
+    MRFechaUMod
+FROM Detalle
+WHERE MRidEstatus = 1
+   OR filasMismoMenuYEstatus > 1
+ORDER BY IdRol, MEPadre DESC, MEOrden, MRidMenu, MRidMenuRol;
+
+/*
+  04C. Comparacion contra una empresa que muestra correctamente los iconos.
+  Se enumeran las filas por menu para no ocultar duplicados activos. La columna
+  dictamenImagen permite confirmar si 2921 quedo apuntando a archivos distintos
+  de los utilizados por la empresa 186 para el mismo menu.
+*/
+;WITH EmpresasComparadas AS
+(
+    SELECT 'DESTINO_2921' AS tipo, @IdEmpresaConProblema AS IdEmpresa
+    UNION ALL
+    SELECT 'REFERENCIA_186', @IdEmpresaReferencia
+),
+RolReferencia AS
+(
+    SELECT TOP (1)
+        R.ROIdRol AS IdRol
+    FROM dbo.ff_Rol R
+    LEFT JOIN dbo.ff_MenuRol2 MR
+        ON MR.MRidRol = R.ROIdRol
+       AND MR.MRidEstatus = 1
+    WHERE R.ROIdEmpresa = @IdEmpresaReferencia
+      AND R.ROAdministrador = 1
+      AND R.ROIdEstatus = 1
+    GROUP BY R.ROIdRol
+    ORDER BY COUNT(MR.MRidMenuRol) DESC, R.ROIdRol
+),
+RolesAdministrador AS
+(
+    SELECT DISTINCT
+        EC.tipo,
+        EC.IdEmpresa,
+        P.PEIdRolDefault AS IdRol
+    FROM EmpresasComparadas EC
+    INNER JOIN dbo.ff_Perfil P
+        ON P.PEIdEmpresa = EC.IdEmpresa
+       AND P.PEAdministrador = 1
+       AND P.PEIdEstatus = 1
+    INNER JOIN dbo.ff_Rol R
+        ON R.ROIdRol = P.PEIdRolDefault
+       AND R.ROIdEmpresa = P.PEIdEmpresa
+       AND R.ROIdEstatus = 1
+    WHERE EC.tipo = 'DESTINO_2921'
+
+    UNION ALL
+
+    SELECT
+        'REFERENCIA_186',
+        @IdEmpresaReferencia,
+        RR.IdRol
+    FROM RolReferencia RR
+),
+Menus AS
+(
+    SELECT
+        RA.tipo,
+        RA.IdEmpresa,
+        RA.IdRol,
+        MR.MRidMenuRol,
+        MR.MRidMenu,
+        M.MENombreMenu,
+        M.MEPadre,
+        M.MEMenuPadre,
+        M.MEOrden,
+        MR.MRImagenMenu,
+        MR.MRRutaBanner,
+        ROW_NUMBER() OVER
+        (
+            PARTITION BY RA.tipo, MR.MRidMenu
+            ORDER BY MR.MRidMenuRol
+        ) AS numeroFilaDelMenu
+    FROM RolesAdministrador RA
+    INNER JOIN dbo.ff_MenuRol2 MR
+        ON MR.MRidRol = RA.IdRol
+       AND MR.MRidEstatus = 1
+    LEFT JOIN dbo.ff_Menu M
+        ON M.MEidMenu = MR.MRidMenu
+),
+Llaves AS
+(
+    SELECT DISTINCT MRidMenu, numeroFilaDelMenu
+    FROM Menus
+)
+SELECT
+    '04C_COMPARACION_ICONOS_CON_EMPRESA_186' AS bloque,
+    L.MRidMenu AS idMenu,
+    COALESCE(D.MENombreMenu, R.MENombreMenu) AS menu,
+    COALESCE(D.MEPadre, R.MEPadre) AS esMenuPadre,
+    COALESCE(D.MEMenuPadre, R.MEMenuPadre) AS idMenuPadre,
+    COALESCE(D.MEOrden, R.MEOrden) AS ordenMenu,
+    L.numeroFilaDelMenu,
+    D.IdRol AS rolDestino,
+    D.MRidMenuRol AS idMenuRolDestino,
+    D.MRImagenMenu AS imagenDestino2921,
+    R.IdRol AS rolReferencia,
+    R.MRidMenuRol AS idMenuRolReferencia,
+    R.MRImagenMenu AS imagenCorrectaReferencia186,
+    CASE
+        WHEN D.MRidMenu IS NULL THEN 'FALTA_EN_DESTINO'
+        WHEN R.MRidMenu IS NULL THEN 'SIN_EQUIVALENTE_EN_REFERENCIA_186'
+        WHEN ISNULL(LTRIM(RTRIM(D.MRImagenMenu)), '')
+           = ISNULL(LTRIM(RTRIM(R.MRImagenMenu)), '')
+            THEN 'MISMO_ARCHIVO_QUE_REFERENCIA_186'
+        ELSE 'ARCHIVO_DISTINTO_A_REFERENCIA_186'
+    END AS dictamenImagen,
+    CASE
+        WHEN NULLIF(LTRIM(RTRIM(R.MRImagenMenu)), '') IS NULL THEN NULL
+        ELSE '/Stilos/Menus/'
+             + CONVERT(VARCHAR(20), @IdEmpresaReferencia)
+             + '/'
+             + LTRIM(RTRIM(R.MRImagenMenu))
+    END AS rutaReferencia186
+FROM Llaves L
+LEFT JOIN Menus D
+    ON D.tipo = 'DESTINO_2921'
+   AND D.MRidMenu = L.MRidMenu
+   AND D.numeroFilaDelMenu = L.numeroFilaDelMenu
+LEFT JOIN Menus R
+    ON R.tipo = 'REFERENCIA_186'
+   AND R.MRidMenu = L.MRidMenu
+   AND R.numeroFilaDelMenu = L.numeroFilaDelMenu
+WHERE COALESCE(D.MEPadre, R.MEPadre) = 1
+   OR ISNULL(LTRIM(RTRIM(D.MRImagenMenu)), '')
+    <> ISNULL(LTRIM(RTRIM(R.MRImagenMenu)), '')
+ORDER BY
+    CASE WHEN COALESCE(D.MEPadre, R.MEPadre) = 1 THEN 0 ELSE 1 END,
+    COALESCE(D.MEOrden, R.MEOrden),
+    L.MRidMenu,
+    L.numeroFilaDelMenu;
+
+/*
   05. Busca posibles rutas anteriores en otros roles de la misma empresa.
   No afirma que sean las correctas, pero permite localizar iconos personalizados
   que la migracion no haya tocado por no pertenecer al rol administrador.
@@ -296,5 +503,41 @@ SELECT
         AND P.PEAdministrador = 1
         AND P.PEIdEstatus = 1
         AND ISNULL(D.MRImagenMenu, '') = ISNULL(S.MRImagenMenu, ''))
-        AS iconosDestinoIgualesAlModelo;
+        AS filasDestinoIgualesAlModelo,
+    (SELECT COUNT(DISTINCT D.MRidMenu)
+       FROM dbo.ff_Perfil P
+       INNER JOIN dbo.ff_Rol R
+          ON R.ROIdRol = P.PEIdRolDefault
+         AND R.ROIdEmpresa = P.PEIdEmpresa
+         AND R.ROIdEstatus = 1
+       INNER JOIN dbo.ff_MenuRol2 D
+          ON D.MRidRol = R.ROIdRol
+         AND D.MRidEstatus = 1
+       INNER JOIN dbo.ff_MenuRol2 S
+          ON S.MRidRol = @IdRolModeloBF3
+         AND S.MRidMenu = D.MRidMenu
+         AND S.MRidEstatus = 1
+      WHERE P.PEIdEmpresa = @IdEmpresaConProblema
+        AND P.PEAdministrador = 1
+        AND P.PEIdEstatus = 1
+        AND ISNULL(D.MRImagenMenu, '') = ISNULL(S.MRImagenMenu, ''))
+        AS menusDistintosDestinoIgualesAlModelo,
+    (SELECT COUNT(*)
+       FROM
+       (
+           SELECT MR.MRidRol, MR.MRidMenu
+           FROM dbo.ff_Perfil P
+           INNER JOIN dbo.ff_Rol R
+              ON R.ROIdRol = P.PEIdRolDefault
+             AND R.ROIdEmpresa = P.PEIdEmpresa
+             AND R.ROIdEstatus = 1
+           INNER JOIN dbo.ff_MenuRol2 MR
+              ON MR.MRidRol = R.ROIdRol
+             AND MR.MRidEstatus = 1
+           WHERE P.PEIdEmpresa = @IdEmpresaConProblema
+             AND P.PEAdministrador = 1
+             AND P.PEIdEstatus = 1
+           GROUP BY MR.MRidRol, MR.MRidMenu
+           HAVING COUNT(*) > 1
+       ) X) AS menusConDuplicadosActivos;
 
