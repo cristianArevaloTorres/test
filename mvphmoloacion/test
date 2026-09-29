@@ -1,1 +1,300 @@
-\\lockmx-block3qa\public\Stilos\General\496
+/*
+  DIAGNOSTICO DE ICONOS DESPUES DE LA MIGRACION MINIMA BF2 -> BF3
+
+  SOLO LECTURA:
+    - No crea, actualiza ni elimina datos.
+    - No ejecuta procedimientos de negocio.
+    - Puede ejecutarse varias veces en la misma sesion.
+
+  CASO REPORTADO:
+    - Se menciono el corporativo 920.
+    - Los recursos entregados corresponden a la carpeta de empresa 2921.
+    - La migracion minima toma los menus del rol modelo BF3 7365.
+
+  Ejecutar en FlexiForbesv2 del ambiente QA donde se realizo la migracion.
+  Si los identificadores del caso son distintos, cambiar solamente estas
+  tres variables.
+*/
+
+SET NOCOUNT ON;
+SET LOCK_TIMEOUT 15000;
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+DECLARE @IdMencionado INT = 920;
+DECLARE @IdEmpresaConProblema INT = 2921;
+DECLARE @IdRolModeloBF3 INT = 7365;
+DECLARE @IdCorporativoReal INT;
+
+SELECT @IdCorporativoReal = E.EMidCorporativo
+FROM dbo.ff_Empresa E
+WHERE E.EMidEmpresa = @IdEmpresaConProblema;
+
+/* 00. Confirma servidor, base y parametros utilizados. */
+SELECT
+    '00_CONTEXTO' AS bloque,
+    CONVERT(NVARCHAR(128), SERVERPROPERTY('ServerName')) AS servidor,
+    DB_NAME() AS baseDatos,
+    GETDATE() AS fechaConsulta,
+    @IdMencionado AS idMencionado,
+    @IdEmpresaConProblema AS idEmpresaConProblema,
+    @IdCorporativoReal AS corporativoRealSegunBD,
+    @IdRolModeloBF3 AS rolModeloBF3;
+
+/*
+  01. Aclara si 920 es corporativo, empresa o si existe una confusion de IDs.
+  Tambien devuelve el corporativo real de la empresa observada.
+*/
+SELECT
+    '01_IDENTIDAD_EMPRESA_CORPORATIVO' AS bloque,
+    E.EMidEmpresa,
+    E.EMidCorporativo,
+    E.EMNombre,
+    E.EMRazonSocial,
+    E.EMidEstatus,
+    CASE
+        WHEN E.EMidEmpresa = @IdEmpresaConProblema THEN 'EMPRESA_OBSERVADA'
+        WHEN E.EMidEmpresa = @IdMencionado THEN 'ID_MENCIONADO'
+        WHEN E.EMidEmpresa = @IdCorporativoReal THEN 'CORPORATIVO_REAL_DE_EMPRESA_OBSERVADA'
+        ELSE 'EMPRESA_HIJA_RELACIONADA'
+    END AS relacionConElCaso
+FROM dbo.ff_Empresa E
+WHERE E.EMidEmpresa IN (@IdMencionado, @IdEmpresaConProblema, @IdCorporativoReal)
+   OR E.EMidCorporativo IN (@IdMencionado, @IdCorporativoReal)
+ORDER BY E.EMidCorporativo, E.EMidEmpresa;
+
+SELECT
+    '01B_DICTAMEN_IDENTIFICADORES' AS bloque,
+    @IdMencionado AS idMencionado,
+    @IdEmpresaConProblema AS empresaObservada,
+    @IdCorporativoReal AS corporativoReal,
+    CASE
+        WHEN @IdCorporativoReal IS NULL
+            THEN 'NO_EXISTE_LA_EMPRESA_OBSERVADA_EN_ESTE_AMBIENTE'
+        WHEN @IdMencionado = @IdEmpresaConProblema
+            THEN 'EL_ID_MENCIONADO_ES_LA_EMPRESA_OBSERVADA'
+        WHEN @IdMencionado = @IdCorporativoReal
+            THEN 'RELACION_EMPRESA_CORPORATIVO_CORRECTA'
+        ELSE 'LOS_IDS_NO_CORRESPONDEN_REVISAR_920_VS_2920'
+    END AS dictamen;
+
+/* 02. Perfil administrador y rol que recibieron los menus de BF3. */
+SELECT
+    '02_PERFIL_Y_ROL_ADMINISTRADOR' AS bloque,
+    P.PEIdEmpresa,
+    E.EMNombre AS empresa,
+    P.PEIdPerfil,
+    P.PENombre AS perfil,
+    P.PEAdministrador,
+    P.PEIdRolDefault AS rolAdministrador,
+    P.PEIdEstatus AS estatusPerfil,
+    R.ROIdEmpresa AS empresaDelRol,
+    R.RODescripcionCorta AS rol,
+    R.ROAdministrador,
+    R.ROIdEstatus AS estatusRol
+FROM dbo.ff_Perfil P
+LEFT JOIN dbo.ff_Empresa E
+    ON E.EMidEmpresa = P.PEIdEmpresa
+LEFT JOIN dbo.ff_Rol R
+    ON R.ROIdRol = P.PEIdRolDefault
+WHERE P.PEIdEmpresa = @IdEmpresaConProblema
+  AND P.PEAdministrador = 1
+ORDER BY P.PEIdEstatus DESC, P.PEIdPerfil;
+
+/* 03. Identifica al dueno del rol modelo fijo utilizado por la migracion. */
+SELECT
+    '03_ROL_MODELO_BF3' AS bloque,
+    R.ROIdRol,
+    R.ROIdEmpresa,
+    E.EMNombre AS empresaModelo,
+    R.RODescripcionCorta,
+    R.ROAdministrador,
+    R.ROIdEstatus,
+    COUNT(MR.MRidMenuRol) AS menusTotales,
+    SUM(CASE WHEN MR.MRidEstatus = 1 THEN 1 ELSE 0 END) AS menusActivos,
+    SUM(CASE
+            WHEN MR.MRidEstatus = 1
+             AND NULLIF(LTRIM(RTRIM(MR.MRImagenMenu)), '') IS NOT NULL
+            THEN 1 ELSE 0
+        END) AS menusActivosConImagen
+FROM dbo.ff_Rol R
+LEFT JOIN dbo.ff_Empresa E
+    ON E.EMidEmpresa = R.ROIdEmpresa
+LEFT JOIN dbo.ff_MenuRol2 MR
+    ON MR.MRidRol = R.ROIdRol
+WHERE R.ROIdRol = @IdRolModeloBF3
+GROUP BY
+    R.ROIdRol, R.ROIdEmpresa, E.EMNombre, R.RODescripcionCorta,
+    R.ROAdministrador, R.ROIdEstatus;
+
+/*
+  04. Comparacion exacta entre el rol modelo y el rol administrador destino.
+  Si imagenDestino = imagenModelo, confirma que la migracion dejo la ruta del
+  modelo. La ruta HTTP es la que normalmente intenta resolver BF3.
+*/
+;WITH RolesAdministrador AS
+(
+    SELECT DISTINCT P.PEIdRolDefault AS IdRol
+    FROM dbo.ff_Perfil P
+    INNER JOIN dbo.ff_Rol R
+        ON R.ROIdRol = P.PEIdRolDefault
+       AND R.ROIdEmpresa = P.PEIdEmpresa
+    WHERE P.PEIdEmpresa = @IdEmpresaConProblema
+      AND P.PEAdministrador = 1
+      AND P.PEIdEstatus = 1
+      AND R.ROIdEstatus = 1
+),
+MenusModelo AS
+(
+    SELECT
+        MR.MRidMenu,
+        MR.MRidEstatus,
+        MR.MRRutaBanner,
+        MR.MRImagenMenu
+    FROM dbo.ff_MenuRol2 MR
+    WHERE MR.MRidRol = @IdRolModeloBF3
+      AND MR.MRidEstatus = 1
+),
+MenusDestino AS
+(
+    SELECT
+        RA.IdRol,
+        MR.MRidMenu,
+        MR.MRidEstatus,
+        MR.MRRutaBanner,
+        MR.MRImagenMenu,
+        MR.MRUsuarioAdd,
+        MR.MRFechaAdd,
+        MR.MRUsuarioUMod,
+        MR.MRFechaUMod
+    FROM RolesAdministrador RA
+    INNER JOIN dbo.ff_MenuRol2 MR
+        ON MR.MRidRol = RA.IdRol
+)
+SELECT
+    '04_COMPARACION_MODELO_DESTINO' AS bloque,
+    D.IdRol AS rolDestino,
+    COALESCE(D.MRidMenu, S.MRidMenu) AS idMenu,
+    M.MENombreMenu AS menu,
+    S.MRidEstatus AS estatusModelo,
+    D.MRidEstatus AS estatusDestino,
+    S.MRImagenMenu AS imagenModelo,
+    D.MRImagenMenu AS imagenDestino,
+    S.MRRutaBanner AS bannerModelo,
+    D.MRRutaBanner AS bannerDestino,
+    D.MRUsuarioAdd,
+    D.MRFechaAdd,
+    D.MRUsuarioUMod,
+    D.MRFechaUMod,
+    CASE
+        WHEN D.MRidMenu IS NULL THEN 'FALTA_EN_DESTINO'
+        WHEN S.MRidMenu IS NULL THEN 'SOLO_EXISTE_EN_DESTINO'
+        WHEN ISNULL(D.MRImagenMenu, '') = ISNULL(S.MRImagenMenu, '')
+         AND ISNULL(D.MRRutaBanner, '') = ISNULL(S.MRRutaBanner, '')
+            THEN 'DESTINO_IGUAL_AL_MODELO'
+        ELSE 'DESTINO_DIFERENTE_AL_MODELO'
+    END AS dictamen,
+    CASE
+        WHEN NULLIF(LTRIM(RTRIM(D.MRImagenMenu)), '') IS NULL THEN NULL
+        ELSE '/Stilos/Menus/'
+             + CONVERT(VARCHAR(20), @IdEmpresaConProblema)
+             + '/'
+             + LTRIM(RTRIM(D.MRImagenMenu))
+    END AS rutaHttpEsperada
+FROM MenusDestino D
+FULL OUTER JOIN MenusModelo S
+    ON S.MRidMenu = D.MRidMenu
+LEFT JOIN dbo.ff_Menu M
+    ON M.MEidMenu = COALESCE(D.MRidMenu, S.MRidMenu)
+ORDER BY D.IdRol, COALESCE(D.MRidMenu, S.MRidMenu);
+
+/*
+  05. Busca posibles rutas anteriores en otros roles de la misma empresa.
+  No afirma que sean las correctas, pero permite localizar iconos personalizados
+  que la migracion no haya tocado por no pertenecer al rol administrador.
+*/
+SELECT
+    '05_ICONOS_EN_OTROS_ROLES_DE_LA_EMPRESA' AS bloque,
+    R.ROIdRol,
+    R.RODescripcionCorta AS rol,
+    R.ROAdministrador,
+    R.ROIdEstatus AS estatusRol,
+    MR.MRidMenu,
+    M.MENombreMenu AS menu,
+    MR.MRidEstatus AS estatusMenuRol,
+    MR.MRImagenMenu,
+    MR.MRRutaBanner,
+    MR.MRUsuarioAdd,
+    MR.MRFechaAdd,
+    MR.MRUsuarioUMod,
+    MR.MRFechaUMod
+FROM dbo.ff_Rol R
+INNER JOIN dbo.ff_MenuRol2 MR
+    ON MR.MRidRol = R.ROIdRol
+LEFT JOIN dbo.ff_Menu M
+    ON M.MEidMenu = MR.MRidMenu
+WHERE R.ROIdEmpresa = @IdEmpresaConProblema
+  AND NULLIF(LTRIM(RTRIM(MR.MRImagenMenu)), '') IS NOT NULL
+ORDER BY MR.MRidMenu, R.ROAdministrador DESC, R.ROIdRol;
+
+/* 06. Bitacora de la migracion o de cambios relacionados con menus/iconos. */
+SELECT
+    '06_BITACORA_EMPRESA' AS bloque,
+    B.BEId,
+    B.BEIdEmpresa,
+    B.BEIdUsuario,
+    B.BEAccion,
+    B.BEDetalle,
+    B.BEElementoAfectado,
+    B.BECantidadElementos,
+    B.BEExitoso,
+    B.BEMensajeError,
+    B.BEFechaCreacion,
+    B.BEIpOrigen
+FROM dbo.bf_BitacoraEmpresa B
+WHERE B.BEIdEmpresa = @IdEmpresaConProblema
+  AND
+  (
+       UPPER(ISNULL(B.BEAccion, '')) LIKE '%MIGR%'
+    OR UPPER(ISNULL(B.BEAccion, '')) LIKE '%MENU%'
+    OR UPPER(ISNULL(B.BEDetalle, '')) LIKE '%ICON%'
+    OR UPPER(ISNULL(B.BEDetalle, '')) LIKE '%MENUROL2%'
+  )
+ORDER BY B.BEId DESC;
+
+/* 07. Resumen final para decidir el siguiente paso sin modificar nada. */
+SELECT
+    '07_RESUMEN' AS bloque,
+    @IdEmpresaConProblema AS empresaObservada,
+    @IdCorporativoReal AS corporativoReal,
+    (SELECT COUNT(*)
+       FROM dbo.ff_Perfil P
+       INNER JOIN dbo.ff_Rol R
+          ON R.ROIdRol = P.PEIdRolDefault
+         AND R.ROIdEmpresa = P.PEIdEmpresa
+      WHERE P.PEIdEmpresa = @IdEmpresaConProblema
+        AND P.PEAdministrador = 1
+        AND P.PEIdEstatus = 1
+        AND R.ROIdEstatus = 1) AS rolesAdministradorUtilizables,
+    (SELECT COUNT(*)
+       FROM dbo.ff_MenuRol2 S
+      WHERE S.MRidRol = @IdRolModeloBF3
+        AND S.MRidEstatus = 1) AS menusActivosDelModelo,
+    (SELECT COUNT(*)
+       FROM dbo.ff_Perfil P
+       INNER JOIN dbo.ff_Rol R
+          ON R.ROIdRol = P.PEIdRolDefault
+         AND R.ROIdEmpresa = P.PEIdEmpresa
+         AND R.ROIdEstatus = 1
+       INNER JOIN dbo.ff_MenuRol2 D
+          ON D.MRidRol = R.ROIdRol
+         AND D.MRidEstatus = 1
+       INNER JOIN dbo.ff_MenuRol2 S
+          ON S.MRidRol = @IdRolModeloBF3
+         AND S.MRidMenu = D.MRidMenu
+         AND S.MRidEstatus = 1
+      WHERE P.PEIdEmpresa = @IdEmpresaConProblema
+        AND P.PEAdministrador = 1
+        AND P.PEIdEstatus = 1
+        AND ISNULL(D.MRImagenMenu, '') = ISNULL(S.MRImagenMenu, ''))
+        AS iconosDestinoIgualesAlModelo;
+
