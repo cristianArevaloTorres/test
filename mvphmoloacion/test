@@ -1,543 +1,128 @@
 /*
-  DIAGNOSTICO DE ICONOS DESPUES DE LA MIGRACION MINIMA BF2 -> BF3
+  COMPARACION DE ICONOS: HAPAG 496 VS CENTINELA 2921
 
   SOLO LECTURA:
     - No crea, actualiza ni elimina datos.
-    - No ejecuta procedimientos de negocio.
-    - Puede ejecutarse varias veces en la misma sesion.
+    - Ejecutar en FlexiForbesv2 de QA.
 
-  CASO REPORTADO:
-    - Corporativo confirmado: 2920.
-    - Los recursos entregados corresponden a la carpeta de empresa 2921.
-    - La migracion minima toma los menus del rol modelo BF3 7365.
-    - La empresa 186 se utiliza como referencia porque muestra correctamente
-      los iconos del menu lateral en QA.
-
-  Ejecutar en FlexiForbesv2 del ambiente QA donde se realizo la migracion.
-  Si los identificadores del caso son distintos, cambiar solamente estas
-  cuatro variables.
+  Referencias identificadas:
+    - Corporativo HAPAG: 495.
+    - Empresa hija HAPAG: 496.
+    - Corporativo CENTINELA: 2920.
+    - Empresa hija CENTINELA: 2921.
 */
 
 SET NOCOUNT ON;
 SET LOCK_TIMEOUT 15000;
 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
-DECLARE @IdMencionado INT = 2920;
-DECLARE @IdEmpresaConProblema INT = 2921;
-DECLARE @IdRolModeloBF3 INT = 7365;
-DECLARE @IdEmpresaReferencia INT = 186;
-DECLARE @IdCorporativoReal INT;
+DECLARE @IdEmpresaHapag INT = 496;
+DECLARE @IdEmpresaDestino INT = 2921;
 
-SELECT @IdCorporativoReal = E.EMidCorporativo
-FROM dbo.ff_Empresa E
-WHERE E.EMidEmpresa = @IdEmpresaConProblema;
-
-/* 00. Confirma servidor, base y parametros utilizados. */
+/* 00. Confirma identidad de ambas empresas. */
 SELECT
-    '00_CONTEXTO' AS bloque,
-    CONVERT(NVARCHAR(128), SERVERPROPERTY('ServerName')) AS servidor,
-    DB_NAME() AS baseDatos,
-    GETDATE() AS fechaConsulta,
-    @IdMencionado AS idMencionado,
-    @IdEmpresaConProblema AS idEmpresaConProblema,
-    @IdCorporativoReal AS corporativoRealSegunBD,
-    @IdRolModeloBF3 AS rolModeloBF3,
-    @IdEmpresaReferencia AS empresaReferenciaIconosCorrectos;
-
-/*
-  01. Aclara si 920 es corporativo, empresa o si existe una confusion de IDs.
-  Tambien devuelve el corporativo real de la empresa observada.
-*/
-SELECT
-    '01_IDENTIDAD_EMPRESA_CORPORATIVO' AS bloque,
+    '00_EMPRESAS' AS bloque,
     E.EMidEmpresa,
     E.EMidCorporativo,
     E.EMNombre,
     E.EMRazonSocial,
-    E.EMidEstatus,
-    CASE
-        WHEN E.EMidEmpresa = @IdEmpresaConProblema THEN 'EMPRESA_OBSERVADA'
-        WHEN E.EMidEmpresa = @IdMencionado THEN 'ID_MENCIONADO'
-        WHEN E.EMidEmpresa = @IdCorporativoReal THEN 'CORPORATIVO_REAL_DE_EMPRESA_OBSERVADA'
-        ELSE 'EMPRESA_HIJA_RELACIONADA'
-    END AS relacionConElCaso
+    E.EMidEstatus
 FROM dbo.ff_Empresa E
-WHERE E.EMidEmpresa IN (@IdMencionado, @IdEmpresaConProblema, @IdCorporativoReal)
-   OR E.EMidCorporativo IN (@IdMencionado, @IdCorporativoReal)
-ORDER BY E.EMidCorporativo, E.EMidEmpresa;
+WHERE E.EMidEmpresa IN (@IdEmpresaHapag, @IdEmpresaDestino)
+ORDER BY E.EMidEmpresa;
 
+/* 01. Roles activos y cantidad de menus activos. */
 SELECT
-    '01B_DICTAMEN_IDENTIFICADORES' AS bloque,
-    @IdMencionado AS idMencionado,
-    @IdEmpresaConProblema AS empresaObservada,
-    @IdCorporativoReal AS corporativoReal,
-    CASE
-        WHEN @IdCorporativoReal IS NULL
-            THEN 'NO_EXISTE_LA_EMPRESA_OBSERVADA_EN_ESTE_AMBIENTE'
-        WHEN @IdMencionado = @IdEmpresaConProblema
-            THEN 'EL_ID_MENCIONADO_ES_LA_EMPRESA_OBSERVADA'
-        WHEN @IdMencionado = @IdCorporativoReal
-            THEN 'RELACION_EMPRESA_CORPORATIVO_CORRECTA'
-        ELSE 'LOS_IDS_NO_CORRESPONDEN_REVISAR_ID_MENCIONADO'
-    END AS dictamen;
-
-/* 02. Perfil administrador y rol que recibieron los menus de BF3. */
-SELECT
-    '02_PERFIL_Y_ROL_ADMINISTRADOR' AS bloque,
-    P.PEIdEmpresa,
-    E.EMNombre AS empresa,
-    P.PEIdPerfil,
-    P.PENombre AS perfil,
-    P.PEAdministrador,
-    P.PEIdRolDefault AS rolAdministrador,
-    P.PEIdEstatus AS estatusPerfil,
-    R.ROIdEmpresa AS empresaDelRol,
-    R.RODescripcionCorta AS rol,
-    R.ROAdministrador,
-    R.ROIdEstatus AS estatusRol
-FROM dbo.ff_Perfil P
-LEFT JOIN dbo.ff_Empresa E
-    ON E.EMidEmpresa = P.PEIdEmpresa
-LEFT JOIN dbo.ff_Rol R
-    ON R.ROIdRol = P.PEIdRolDefault
-WHERE P.PEIdEmpresa = @IdEmpresaConProblema
-  AND P.PEAdministrador = 1
-ORDER BY P.PEIdEstatus DESC, P.PEIdPerfil;
-
-/* 03. Identifica al dueno del rol modelo fijo utilizado por la migracion. */
-SELECT
-    '03_ROL_MODELO_BF3' AS bloque,
-    R.ROIdRol,
+    '01_ROLES' AS bloque,
     R.ROIdEmpresa,
-    E.EMNombre AS empresaModelo,
+    E.EMNombre AS empresa,
+    R.ROIdRol,
     R.RODescripcionCorta,
     R.ROAdministrador,
     R.ROIdEstatus,
-    COUNT(MR.MRidMenuRol) AS menusTotales,
-    SUM(CASE WHEN MR.MRidEstatus = 1 THEN 1 ELSE 0 END) AS menusActivos,
-    SUM(CASE
-            WHEN MR.MRidEstatus = 1
-             AND NULLIF(LTRIM(RTRIM(MR.MRImagenMenu)), '') IS NOT NULL
-            THEN 1 ELSE 0
-        END) AS menusActivosConImagen
+    SUM(CASE WHEN MR.MRidEstatus = 1 THEN 1 ELSE 0 END) AS filasMenuActivas
 FROM dbo.ff_Rol R
 LEFT JOIN dbo.ff_Empresa E
     ON E.EMidEmpresa = R.ROIdEmpresa
 LEFT JOIN dbo.ff_MenuRol2 MR
     ON MR.MRidRol = R.ROIdRol
-WHERE R.ROIdRol = @IdRolModeloBF3
+WHERE R.ROIdEmpresa IN (@IdEmpresaHapag, @IdEmpresaDestino)
+  AND R.ROIdEstatus = 1
 GROUP BY
-    R.ROIdRol, R.ROIdEmpresa, E.EMNombre, R.RODescripcionCorta,
-    R.ROAdministrador, R.ROIdEstatus;
-
-/*
-  04. Comparacion exacta entre el rol modelo y el rol administrador destino.
-  Si imagenDestino = imagenModelo, confirma que la migracion dejo la ruta del
-  modelo. La ruta HTTP es la que normalmente intenta resolver BF3.
-*/
-;WITH RolesAdministrador AS
-(
-    SELECT DISTINCT P.PEIdRolDefault AS IdRol
-    FROM dbo.ff_Perfil P
-    INNER JOIN dbo.ff_Rol R
-        ON R.ROIdRol = P.PEIdRolDefault
-       AND R.ROIdEmpresa = P.PEIdEmpresa
-    WHERE P.PEIdEmpresa = @IdEmpresaConProblema
-      AND P.PEAdministrador = 1
-      AND P.PEIdEstatus = 1
-      AND R.ROIdEstatus = 1
-),
-MenusModelo AS
-(
-    SELECT
-        MR.MRidMenu,
-        MR.MRidEstatus,
-        MR.MRRutaBanner,
-        MR.MRImagenMenu
-    FROM dbo.ff_MenuRol2 MR
-    WHERE MR.MRidRol = @IdRolModeloBF3
-      AND MR.MRidEstatus = 1
-),
-MenusDestino AS
-(
-    SELECT
-        RA.IdRol,
-        MR.MRidMenu,
-        MR.MRidEstatus,
-        MR.MRRutaBanner,
-        MR.MRImagenMenu,
-        MR.MRUsuarioAdd,
-        MR.MRFechaAdd,
-        MR.MRUsuarioUMod,
-        MR.MRFechaUMod
-    FROM RolesAdministrador RA
-    INNER JOIN dbo.ff_MenuRol2 MR
-        ON MR.MRidRol = RA.IdRol
-)
-SELECT
-    '04_COMPARACION_MODELO_DESTINO' AS bloque,
-    D.IdRol AS rolDestino,
-    COALESCE(D.MRidMenu, S.MRidMenu) AS idMenu,
-    M.MENombreMenu AS menu,
-    S.MRidEstatus AS estatusModelo,
-    D.MRidEstatus AS estatusDestino,
-    S.MRImagenMenu AS imagenModelo,
-    D.MRImagenMenu AS imagenDestino,
-    S.MRRutaBanner AS bannerModelo,
-    D.MRRutaBanner AS bannerDestino,
-    D.MRUsuarioAdd,
-    D.MRFechaAdd,
-    D.MRUsuarioUMod,
-    D.MRFechaUMod,
-    CASE
-        WHEN D.MRidMenu IS NULL THEN 'FALTA_EN_DESTINO'
-        WHEN S.MRidMenu IS NULL THEN 'SOLO_EXISTE_EN_DESTINO'
-        WHEN ISNULL(D.MRImagenMenu, '') = ISNULL(S.MRImagenMenu, '')
-         AND ISNULL(D.MRRutaBanner, '') = ISNULL(S.MRRutaBanner, '')
-            THEN 'DESTINO_IGUAL_AL_MODELO'
-        ELSE 'DESTINO_DIFERENTE_AL_MODELO'
-    END AS dictamen,
-    CASE
-        WHEN NULLIF(LTRIM(RTRIM(D.MRImagenMenu)), '') IS NULL THEN NULL
-        ELSE '/Stilos/Menus/'
-             + CONVERT(VARCHAR(20), @IdEmpresaConProblema)
-             + '/'
-             + LTRIM(RTRIM(D.MRImagenMenu))
-    END AS rutaHttpEsperada
-FROM MenusDestino D
-FULL OUTER JOIN MenusModelo S
-    ON S.MRidMenu = D.MRidMenu
-LEFT JOIN dbo.ff_Menu M
-    ON M.MEidMenu = COALESCE(D.MRidMenu, S.MRidMenu)
-ORDER BY D.IdRol, COALESCE(D.MRidMenu, S.MRidMenu);
-
-/*
-  04B. Jerarquia y duplicados activos del rol administrador.
-  Los menus padre suelen ser los que se presentan en la barra lateral. Si una
-  combinacion rol + menu aparece mas de una vez activa, el resultado puede
-  depender del orden en que la aplicacion recupere los renglones.
-*/
-;WITH RolesAdministrador AS
-(
-    SELECT DISTINCT P.PEIdRolDefault AS IdRol
-    FROM dbo.ff_Perfil P
-    INNER JOIN dbo.ff_Rol R
-        ON R.ROIdRol = P.PEIdRolDefault
-       AND R.ROIdEmpresa = P.PEIdEmpresa
-    WHERE P.PEIdEmpresa = @IdEmpresaConProblema
-      AND P.PEAdministrador = 1
-      AND P.PEIdEstatus = 1
-      AND R.ROIdEstatus = 1
-),
-Detalle AS
-(
-    SELECT
-        RA.IdRol,
-        MR.MRidMenuRol,
-        MR.MRidMenu,
-        MR.MRidEstatus,
-        MR.MRImagenMenu,
-        MR.MRRutaBanner,
-        MR.MRUsuarioAdd,
-        MR.MRFechaAdd,
-        MR.MRUsuarioUMod,
-        MR.MRFechaUMod,
-        M.MENombreMenu,
-        M.MEPadre,
-        M.MEMenuPadre,
-        M.MEOrden,
-        COUNT(*) OVER
-        (
-            PARTITION BY RA.IdRol, MR.MRidMenu, MR.MRidEstatus
-        ) AS filasMismoMenuYEstatus
-    FROM RolesAdministrador RA
-    INNER JOIN dbo.ff_MenuRol2 MR
-        ON MR.MRidRol = RA.IdRol
-    LEFT JOIN dbo.ff_Menu M
-        ON M.MEidMenu = MR.MRidMenu
-)
-SELECT
-    '04B_JERARQUIA_Y_DUPLICADOS' AS bloque,
-    IdRol AS rolDestino,
-    MRidMenuRol,
-    MRidMenu,
-    MENombreMenu AS menu,
-    MEPadre AS esMenuPadre,
-    MEMenuPadre AS idMenuPadre,
-    MEOrden AS ordenMenu,
-    MRidEstatus AS estatusMenuRol,
-    MRImagenMenu,
-    MRRutaBanner,
-    filasMismoMenuYEstatus,
-    CASE
-        WHEN MRidEstatus = 1 AND filasMismoMenuYEstatus > 1
-            THEN 'DUPLICADO_ACTIVO'
-        WHEN MEPadre = 1
-            THEN 'MENU_PADRE_POSIBLE_BARRA_LATERAL'
-        ELSE 'SIN_DUPLICIDAD_ACTIVA'
-    END AS dictamen,
-    MRUsuarioAdd,
-    MRFechaAdd,
-    MRUsuarioUMod,
-    MRFechaUMod
-FROM Detalle
-WHERE MRidEstatus = 1
-   OR filasMismoMenuYEstatus > 1
-ORDER BY IdRol, MEPadre DESC, MEOrden, MRidMenu, MRidMenuRol;
-
-/*
-  04C. Comparacion contra una empresa que muestra correctamente los iconos.
-  Se enumeran las filas por menu para no ocultar duplicados activos. La columna
-  dictamenImagen permite confirmar si 2921 quedo apuntando a archivos distintos
-  de los utilizados por la empresa 186 para el mismo menu.
-*/
-;WITH EmpresasComparadas AS
-(
-    SELECT 'DESTINO_2921' AS tipo, @IdEmpresaConProblema AS IdEmpresa
-    UNION ALL
-    SELECT 'REFERENCIA_186', @IdEmpresaReferencia
-),
-RolReferencia AS
-(
-    SELECT TOP (1)
-        R.ROIdRol AS IdRol
-    FROM dbo.ff_Rol R
-    LEFT JOIN dbo.ff_MenuRol2 MR
-        ON MR.MRidRol = R.ROIdRol
-       AND MR.MRidEstatus = 1
-    WHERE R.ROIdEmpresa = @IdEmpresaReferencia
-      AND R.ROAdministrador = 1
-      AND R.ROIdEstatus = 1
-    GROUP BY R.ROIdRol
-    ORDER BY COUNT(MR.MRidMenuRol) DESC, R.ROIdRol
-),
-RolesAdministrador AS
-(
-    SELECT DISTINCT
-        EC.tipo,
-        EC.IdEmpresa,
-        P.PEIdRolDefault AS IdRol
-    FROM EmpresasComparadas EC
-    INNER JOIN dbo.ff_Perfil P
-        ON P.PEIdEmpresa = EC.IdEmpresa
-       AND P.PEAdministrador = 1
-       AND P.PEIdEstatus = 1
-    INNER JOIN dbo.ff_Rol R
-        ON R.ROIdRol = P.PEIdRolDefault
-       AND R.ROIdEmpresa = P.PEIdEmpresa
-       AND R.ROIdEstatus = 1
-    WHERE EC.tipo = 'DESTINO_2921'
-
-    UNION ALL
-
-    SELECT
-        'REFERENCIA_186',
-        @IdEmpresaReferencia,
-        RR.IdRol
-    FROM RolReferencia RR
-),
-Menus AS
-(
-    SELECT
-        RA.tipo,
-        RA.IdEmpresa,
-        RA.IdRol,
-        MR.MRidMenuRol,
-        MR.MRidMenu,
-        M.MENombreMenu,
-        M.MEPadre,
-        M.MEMenuPadre,
-        M.MEOrden,
-        MR.MRImagenMenu,
-        MR.MRRutaBanner,
-        ROW_NUMBER() OVER
-        (
-            PARTITION BY RA.tipo, MR.MRidMenu
-            ORDER BY MR.MRidMenuRol
-        ) AS numeroFilaDelMenu
-    FROM RolesAdministrador RA
-    INNER JOIN dbo.ff_MenuRol2 MR
-        ON MR.MRidRol = RA.IdRol
-       AND MR.MRidEstatus = 1
-    LEFT JOIN dbo.ff_Menu M
-        ON M.MEidMenu = MR.MRidMenu
-),
-Llaves AS
-(
-    SELECT DISTINCT MRidMenu, numeroFilaDelMenu
-    FROM Menus
-)
-SELECT
-    '04C_COMPARACION_ICONOS_CON_EMPRESA_186' AS bloque,
-    L.MRidMenu AS idMenu,
-    COALESCE(D.MENombreMenu, R.MENombreMenu) AS menu,
-    COALESCE(D.MEPadre, R.MEPadre) AS esMenuPadre,
-    COALESCE(D.MEMenuPadre, R.MEMenuPadre) AS idMenuPadre,
-    COALESCE(D.MEOrden, R.MEOrden) AS ordenMenu,
-    L.numeroFilaDelMenu,
-    D.IdRol AS rolDestino,
-    D.MRidMenuRol AS idMenuRolDestino,
-    D.MRImagenMenu AS imagenDestino2921,
-    R.IdRol AS rolReferencia,
-    R.MRidMenuRol AS idMenuRolReferencia,
-    R.MRImagenMenu AS imagenCorrectaReferencia186,
-    CASE
-        WHEN D.MRidMenu IS NULL THEN 'FALTA_EN_DESTINO'
-        WHEN R.MRidMenu IS NULL THEN 'SIN_EQUIVALENTE_EN_REFERENCIA_186'
-        WHEN ISNULL(LTRIM(RTRIM(D.MRImagenMenu)), '')
-           = ISNULL(LTRIM(RTRIM(R.MRImagenMenu)), '')
-            THEN 'MISMO_ARCHIVO_QUE_REFERENCIA_186'
-        ELSE 'ARCHIVO_DISTINTO_A_REFERENCIA_186'
-    END AS dictamenImagen,
-    CASE
-        WHEN NULLIF(LTRIM(RTRIM(R.MRImagenMenu)), '') IS NULL THEN NULL
-        ELSE '/Stilos/Menus/'
-             + CONVERT(VARCHAR(20), @IdEmpresaReferencia)
-             + '/'
-             + LTRIM(RTRIM(R.MRImagenMenu))
-    END AS rutaReferencia186
-FROM Llaves L
-LEFT JOIN Menus D
-    ON D.tipo = 'DESTINO_2921'
-   AND D.MRidMenu = L.MRidMenu
-   AND D.numeroFilaDelMenu = L.numeroFilaDelMenu
-LEFT JOIN Menus R
-    ON R.tipo = 'REFERENCIA_186'
-   AND R.MRidMenu = L.MRidMenu
-   AND R.numeroFilaDelMenu = L.numeroFilaDelMenu
-WHERE COALESCE(D.MEPadre, R.MEPadre) = 1
-   OR ISNULL(LTRIM(RTRIM(D.MRImagenMenu)), '')
-    <> ISNULL(LTRIM(RTRIM(R.MRImagenMenu)), '')
-ORDER BY
-    CASE WHEN COALESCE(D.MEPadre, R.MEPadre) = 1 THEN 0 ELSE 1 END,
-    COALESCE(D.MEOrden, R.MEOrden),
-    L.MRidMenu,
-    L.numeroFilaDelMenu;
-
-/*
-  05. Busca posibles rutas anteriores en otros roles de la misma empresa.
-  No afirma que sean las correctas, pero permite localizar iconos personalizados
-  que la migracion no haya tocado por no pertenecer al rol administrador.
-*/
-SELECT
-    '05_ICONOS_EN_OTROS_ROLES_DE_LA_EMPRESA' AS bloque,
+    R.ROIdEmpresa,
+    E.EMNombre,
     R.ROIdRol,
-    R.RODescripcionCorta AS rol,
+    R.RODescripcionCorta,
     R.ROAdministrador,
-    R.ROIdEstatus AS estatusRol,
+    R.ROIdEstatus
+ORDER BY R.ROIdEmpresa, R.ROAdministrador DESC, R.ROIdRol;
+
+/*
+  02. Iconos activos de menus padre. Son los que construyen la barra lateral
+  observada en la captura de Hapag.
+*/
+SELECT
+    '02_ICONOS_MENU_PADRE' AS bloque,
+    R.ROIdEmpresa,
+    E.EMNombre AS empresa,
+    R.ROIdRol,
+    R.RODescripcionCorta,
+    R.ROAdministrador,
+    MR.MRidMenuRol,
     MR.MRidMenu,
     M.MENombreMenu AS menu,
-    MR.MRidEstatus AS estatusMenuRol,
+    M.MEOrden AS ordenMenu,
     MR.MRImagenMenu,
-    MR.MRRutaBanner,
-    MR.MRUsuarioAdd,
-    MR.MRFechaAdd,
-    MR.MRUsuarioUMod,
-    MR.MRFechaUMod
+    CASE
+        WHEN MR.MRImagenMenu LIKE '%StilosDefault/img/shared/sidebar/%'
+            THEN 'ICONO_COMPARTIDO_BF3'
+        ELSE 'ICONO_PROPIO_DE_EMPRESA'
+    END AS tipoRuta
 FROM dbo.ff_Rol R
 INNER JOIN dbo.ff_MenuRol2 MR
     ON MR.MRidRol = R.ROIdRol
-LEFT JOIN dbo.ff_Menu M
+   AND MR.MRidEstatus = 1
+INNER JOIN dbo.ff_Menu M
     ON M.MEidMenu = MR.MRidMenu
-WHERE R.ROIdEmpresa = @IdEmpresaConProblema
-  AND NULLIF(LTRIM(RTRIM(MR.MRImagenMenu)), '') IS NOT NULL
-ORDER BY MR.MRidMenu, R.ROAdministrador DESC, R.ROIdRol;
+   AND M.MEPadre = 1
+LEFT JOIN dbo.ff_Empresa E
+    ON E.EMidEmpresa = R.ROIdEmpresa
+WHERE R.ROIdEmpresa IN (@IdEmpresaHapag, @IdEmpresaDestino)
+  AND R.ROIdEstatus = 1
+ORDER BY
+    R.ROIdEmpresa,
+    R.ROAdministrador DESC,
+    R.ROIdRol,
+    M.MEOrden,
+    MR.MRidMenuRol;
 
-/* 06. Bitacora de la migracion o de cambios relacionados con menus/iconos. */
+/* 03. Resumen de rutas compartidas contra rutas propias. */
 SELECT
-    '06_BITACORA_EMPRESA' AS bloque,
-    B.BEId,
-    B.BEIdEmpresa,
-    B.BEIdUsuario,
-    B.BEAccion,
-    B.BEDetalle,
-    B.BEElementoAfectado,
-    B.BECantidadElementos,
-    B.BEExitoso,
-    B.BEMensajeError,
-    B.BEFechaCreacion,
-    B.BEIpOrigen
-FROM dbo.bf_BitacoraEmpresa B
-WHERE B.BEIdEmpresa = @IdEmpresaConProblema
-  AND
-  (
-       UPPER(ISNULL(B.BEAccion, '')) LIKE '%MIGR%'
-    OR UPPER(ISNULL(B.BEAccion, '')) LIKE '%MENU%'
-    OR UPPER(ISNULL(B.BEDetalle, '')) LIKE '%ICON%'
-    OR UPPER(ISNULL(B.BEDetalle, '')) LIKE '%MENUROL2%'
-  )
-ORDER BY B.BEId DESC;
-
-/* 07. Resumen final para decidir el siguiente paso sin modificar nada. */
-SELECT
-    '07_RESUMEN' AS bloque,
-    @IdEmpresaConProblema AS empresaObservada,
-    @IdCorporativoReal AS corporativoReal,
-    (SELECT COUNT(*)
-       FROM dbo.ff_Perfil P
-       INNER JOIN dbo.ff_Rol R
-          ON R.ROIdRol = P.PEIdRolDefault
-         AND R.ROIdEmpresa = P.PEIdEmpresa
-      WHERE P.PEIdEmpresa = @IdEmpresaConProblema
-        AND P.PEAdministrador = 1
-        AND P.PEIdEstatus = 1
-        AND R.ROIdEstatus = 1) AS rolesAdministradorUtilizables,
-    (SELECT COUNT(*)
-       FROM dbo.ff_MenuRol2 S
-      WHERE S.MRidRol = @IdRolModeloBF3
-        AND S.MRidEstatus = 1) AS menusActivosDelModelo,
-    (SELECT COUNT(*)
-       FROM dbo.ff_Perfil P
-       INNER JOIN dbo.ff_Rol R
-          ON R.ROIdRol = P.PEIdRolDefault
-         AND R.ROIdEmpresa = P.PEIdEmpresa
-         AND R.ROIdEstatus = 1
-       INNER JOIN dbo.ff_MenuRol2 D
-          ON D.MRidRol = R.ROIdRol
-         AND D.MRidEstatus = 1
-       INNER JOIN dbo.ff_MenuRol2 S
-          ON S.MRidRol = @IdRolModeloBF3
-         AND S.MRidMenu = D.MRidMenu
-         AND S.MRidEstatus = 1
-      WHERE P.PEIdEmpresa = @IdEmpresaConProblema
-        AND P.PEAdministrador = 1
-        AND P.PEIdEstatus = 1
-        AND ISNULL(D.MRImagenMenu, '') = ISNULL(S.MRImagenMenu, ''))
-        AS filasDestinoIgualesAlModelo,
-    (SELECT COUNT(DISTINCT D.MRidMenu)
-       FROM dbo.ff_Perfil P
-       INNER JOIN dbo.ff_Rol R
-          ON R.ROIdRol = P.PEIdRolDefault
-         AND R.ROIdEmpresa = P.PEIdEmpresa
-         AND R.ROIdEstatus = 1
-       INNER JOIN dbo.ff_MenuRol2 D
-          ON D.MRidRol = R.ROIdRol
-         AND D.MRidEstatus = 1
-       INNER JOIN dbo.ff_MenuRol2 S
-          ON S.MRidRol = @IdRolModeloBF3
-         AND S.MRidMenu = D.MRidMenu
-         AND S.MRidEstatus = 1
-      WHERE P.PEIdEmpresa = @IdEmpresaConProblema
-        AND P.PEAdministrador = 1
-        AND P.PEIdEstatus = 1
-        AND ISNULL(D.MRImagenMenu, '') = ISNULL(S.MRImagenMenu, ''))
-        AS menusDistintosDestinoIgualesAlModelo,
-    (SELECT COUNT(*)
-       FROM
-       (
-           SELECT MR.MRidRol, MR.MRidMenu
-           FROM dbo.ff_Perfil P
-           INNER JOIN dbo.ff_Rol R
-              ON R.ROIdRol = P.PEIdRolDefault
-             AND R.ROIdEmpresa = P.PEIdEmpresa
-             AND R.ROIdEstatus = 1
-           INNER JOIN dbo.ff_MenuRol2 MR
-              ON MR.MRidRol = R.ROIdRol
-             AND MR.MRidEstatus = 1
-           WHERE P.PEIdEmpresa = @IdEmpresaConProblema
-             AND P.PEAdministrador = 1
-             AND P.PEIdEstatus = 1
-           GROUP BY MR.MRidRol, MR.MRidMenu
-           HAVING COUNT(*) > 1
-       ) X) AS menusConDuplicadosActivos;
+    '03_RESUMEN_TIPO_ICONO' AS bloque,
+    R.ROIdEmpresa,
+    E.EMNombre AS empresa,
+    SUM(CASE
+            WHEN MR.MRidEstatus = 1
+             AND MR.MRImagenMenu LIKE '%StilosDefault/img/shared/sidebar/%'
+            THEN 1 ELSE 0
+        END) AS iconosCompartidosBF3,
+    SUM(CASE
+            WHEN MR.MRidEstatus = 1
+             AND MR.MRImagenMenu NOT LIKE '%StilosDefault/img/shared/sidebar/%'
+            THEN 1 ELSE 0
+        END) AS iconosPropiosEmpresa,
+    SUM(CASE
+            WHEN MR.MRidEstatus = 1
+             AND NULLIF(LTRIM(RTRIM(MR.MRImagenMenu)), '') IS NULL
+            THEN 1 ELSE 0
+        END) AS iconosSinRuta
+FROM dbo.ff_Rol R
+INNER JOIN dbo.ff_MenuRol2 MR
+    ON MR.MRidRol = R.ROIdRol
+LEFT JOIN dbo.ff_Empresa E
+    ON E.EMidEmpresa = R.ROIdEmpresa
+WHERE R.ROIdEmpresa IN (@IdEmpresaHapag, @IdEmpresaDestino)
+  AND R.ROIdEstatus = 1
+GROUP BY R.ROIdEmpresa, E.EMNombre
+ORDER BY R.ROIdEmpresa;
 
