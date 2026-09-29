@@ -1,1 +1,8 @@
 
+
+@afermin@qualitas.com.mx solicito de su apoyo para revisar el siguiente caso.
+Al momento de emitir una póliza se presenta el siguiente error:
+"0204 - El Municipio no corresponde con el Código Postal".
+Sin embargo, al validar la información en SEPOMEX, identificamos que el municipio sí corresponde al Código Postal capturado.
+¿Nos podrían apoyar con su revisión para identificar si existe alguna validación adicional que debamos considerar o, en su caso, si es necesario realizar alguna corrección de su lado?
+Adjunto evidencia de la validación realizada en SEPOMEX, así mismo, adjunto xmls para su validación.
