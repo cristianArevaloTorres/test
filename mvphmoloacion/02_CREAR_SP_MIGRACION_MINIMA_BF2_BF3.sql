@@ -632,7 +632,7 @@ BEGIN
              + ', asignaciones admin corregidas=' + CONVERT(VARCHAR(12), @AsignacionesAdministradorCorregidas)
              + ', iconos de roles asignados corregidos=' + CONVERT(VARCHAR(12), @IconosRolesAsignadosActualizados)
              + ', Interfabrica=' + @EstadoPlantilla + '.',
-            'ff_accesoBeflex+ff_AdministradorEmpresa+ff_MenuRol2+Interfabrica',
+            'acceso+adminEmpresa+menuRol2+Interfabrica',
             @MenusInsertados + @MenusActualizados
              + @IconosRolesAsignadosActualizados
              + @AsignacionesAdministradorCorregidas
