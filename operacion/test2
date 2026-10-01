@@ -1,3 +1,44 @@
+Error de servidor en la aplicación '/'.
+No se puede encontrar una parte de la ruta de acceso 'C:\Users\consultor.ti40\Source\Repos\LocktonOneWeb\LocktonOneWeb\bin\roslyn\csc.exe'.
+Descripción: Excepción no controlada al ejecutar la solicitud Web actual. Revise el seguimiento de la pila para obtener más información acerca del error y dónde se originó en el código.
+
+Detalles de la excepción: System.IO.DirectoryNotFoundException: No se puede encontrar una parte de la ruta de acceso 'C:\Users\consultor.ti40\Source\Repos\LocktonOneWeb\LocktonOneWeb\bin\roslyn\csc.exe'.
+
+Error de código fuente:
+
+Se ha generado una excepción no controlada durante la ejecución de la solicitud Web actual. La información sobre el origen y la ubicación de la excepción pueden identificarse utilizando la excepción del seguimiento de la pila siguiente.
+
+Seguimiento de la pila:
+
+
+[DirectoryNotFoundException: No se puede encontrar una parte de la ruta de acceso 'C:\Users\consultor.ti40\Source\Repos\LocktonOneWeb\LocktonOneWeb\bin\roslyn\csc.exe'.]
+   System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath) +373
+   System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost) +734
+   System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share) +68
+   Microsoft.CodeDom.Providers.DotNetCompilerPlatform.Compiler.get_CompilerName() +91
+   Microsoft.CodeDom.Providers.DotNetCompilerPlatform.Compiler.FromFileBatch(CompilerParameters options, String[] fileNames) +674
+   Microsoft.CodeDom.Providers.DotNetCompilerPlatform.Compiler.CompileAssemblyFromFileBatch(CompilerParameters options, String[] fileNames) +186
+   System.CodeDom.Compiler.CodeDomProvider.CompileAssemblyFromFile(CompilerParameters options, String[] fileNames) +23
+   System.Web.Compilation.AssemblyBuilder.Compile() +953
+   System.Web.Compilation.BuildProvidersCompiler.PerformBuild() +307
+   System.Web.Compilation.ApplicationBuildProvider.GetGlobalAsaxBuildResult(Boolean isPrecompiledApp) +272
+   System.Web.Compilation.BuildManager.CompileGlobalAsax() +44
+   System.Web.Compilation.BuildManager.EnsureTopLevelFilesCompiled() +312
+
+[HttpException (0x80004005): No se puede encontrar una parte de la ruta de acceso 'C:\Users\consultor.ti40\Source\Repos\LocktonOneWeb\LocktonOneWeb\bin\roslyn\csc.exe'.]
+   System.Web.Compilation.BuildManager.ReportTopLevelCompilationException() +63
+   System.Web.Compilation.BuildManager.EnsureTopLevelFilesCompiled() +437
+   System.Web.Compilation.BuildManager.CallAppInitializeMethod() +31
+   System.Web.Hosting.HostingEnvironment.Initialize(ApplicationManager appManager, IApplicationHost appHost, IConfigMapPathFactory configMapPathFactory, HostingEnvironmentParameters hostingParameters, PolicyLevel policyLevel, Exception appDomainCreationException) +710
+
+[HttpException (0x80004005): No se puede encontrar una parte de la ruta de acceso 'C:\Users\consultor.ti40\Source\Repos\LocktonOneWeb\LocktonOneWeb\bin\roslyn\csc.exe'.]
+   System.Web.HttpRuntime.FirstRequestInit(HttpContext context) +659
+   System.Web.HttpRuntime.EnsureFirstRequestInit(HttpContext context) +89
+   System.Web.HttpRuntime.ProcessRequestNotificationPrivate(IIS7WorkerRequest wr, HttpContext context) +189
+
+Información de versión: Versión de Microsoft .NET Framework:4.0.30319; Versión ASP.NET:4.8.9344.0
+
+
 
 Buen día, [Nombre].
 
