@@ -1,3 +1,33 @@
+Después de ejecutar el UPDATE, con la siguiente consulta comprobamos que ConstruirObjetoEmision ya obtendría los datos correctos que ArmarXMLEmision colocará en el XML:
+SELECT Id, Codigo, Asentamiento, Municipio,
+       IdCiudadCotizacion AS TipoRegla7,
+       LTRIM(RTRIM(REPLACE(REPLACE(IdMunicipioCotizacion, CHAR(13), ''), CHAR(10), ''))) AS TipoRegla8,
+       CASE
+           WHEN IdCiudadCotizacion = '084'
+            AND LTRIM(RTRIM(REPLACE(REPLACE(IdMunicipioCotizacion, CHAR(13), ''), CHAR(10), ''))) = '8892'
+           THEN 'CORRECTO: el XML enviara Regla 7 = 084 y Regla 8 = 8892'
+           ELSE 'REVISAR: los valores aun no son los esperados'
+       END AS ResultadoValidacion
+FROM dbo.CodigoPostal
+WHERE Id = 70097;
+
+-- Vista exacta de los valores que se asignaran al XML
+SELECT V.TipoRegla, V.ValorRegla
+FROM dbo.CodigoPostal CP
+CROSS APPLY (VALUES ('7', CP.IdCiudadCotizacion),
+                    ('8', LTRIM(RTRIM(REPLACE(REPLACE(CP.IdMunicipioCotizacion, CHAR(13), ''), CHAR(10), ''))))) V(TipoRegla, ValorRegla)
+WHERE CP.Id = 70097;
+
+Resultado esperado: ResultadoValidacion = CORRECTO, TipoRegla 7 = 084 y TipoRegla 8 = 8892.
+[PEGAR PANTALLAZO 4: registro corregido o XML de prueba con 084/8892]
+
+
+
+--------
+
+
+
+
 SELECT
     Id,
     Codigo,
