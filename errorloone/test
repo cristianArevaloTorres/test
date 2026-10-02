@@ -12,3 +12,44 @@ Esto envian
 imagen2 y imagen3
 
 
+
+
+SELECT
+    @@SERVERNAME AS Servidor,
+    DB_NAME() AS BaseDatos;
+
+SELECT
+    Id,
+    Codigo,
+    Asentamiento,
+    Municipio,
+    Ciudad,
+    CodigoPostalZona,
+    IdEstadoCotizacion,
+    IdCiudadCotizacion AS ValorEnviado_Regla7,
+    IdMunicipioCotizacion AS ValorEnviado_Regla8,
+    IdEstado
+FROM dbo.CodigoPostal
+WHERE Codigo = '55980'
+ORDER BY Asentamiento, Id;
+
+SELECT
+    @@SERVERNAME AS Servidor,
+    DB_NAME() AS BaseDatos;
+
+SELECT
+    Id,
+    Codigo,
+    Asentamiento,
+    Municipio,
+    Ciudad,
+    CodigoPostalZona,
+    IdEstadoCotizacion,
+    IdCiudadCotizacion AS ValorEnviado_Regla7,
+    IdMunicipioCotizacion AS ValorEnviado_Regla8,
+    IdEstado
+FROM dbo.CodigoPostal
+WHERE Codigo = '55980'
+ORDER BY Asentamiento, Id;
+
+
