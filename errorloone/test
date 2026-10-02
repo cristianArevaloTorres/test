@@ -1,3 +1,19 @@
+SELECT
+    Id,
+    Codigo,
+    Asentamiento,
+    Municipio,
+    IdEstadoCotizacion,
+    IdCiudadCotizacion,
+    IdMunicipioCotizacion
+FROM dbo.CodigoPostal
+WHERE IdEstadoCotizacion = '15'
+  AND (
+       Asentamiento LIKE N'San Jos%'
+       OR IdMunicipioCotizacion IN ('7806', '8892')
+  )
+ORDER BY Asentamiento, Codigo, Id;
+
 
 correo 1
 solicito de su apoyo para revisar el siguiente caso.
