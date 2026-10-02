@@ -1,0 +1,10 @@
+﻿1,Id,int,NULL,10,0,NO
+2,Codigo,varchar,6,NULL,NULL,NO
+3,Asentamiento,varchar,60,NULL,NULL,NO
+4,Municipio,varchar,60,NULL,NULL,NO
+5,IdEstado,int,NULL,10,0,NO
+6,Ciudad,varchar,60,NULL,NULL,NO
+7,CodigoPostalZona,varchar,6,NULL,NULL,NO
+8,IdEstadoCotizacion,varchar,4,NULL,NULL,YES
+9,IdCiudadCotizacion,varchar,4,NULL,NULL,YES
+10,IdMunicipioCotizacion,varchar,8,NULL,NULL,YES
