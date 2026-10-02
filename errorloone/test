@@ -11,7 +11,20 @@ El problema se debe a que estan enviando erroneamente los datos de las Considera
 Esto envian
 imagen2 y imagen3
 
-
+SELECT
+    Id,
+    Codigo,
+    Asentamiento,
+    Municipio,
+    IdCiudadCotizacion,
+    IdMunicipioCotizacion
+FROM dbo.CodigoPostal
+WHERE IdMunicipioCotizacion IN ('7806', '8892')
+   OR (
+        IdCiudadCotizacion = '099'
+        AND IdMunicipioCotizacion = '7806'
+   )
+ORDER BY Codigo, Asentamiento;
 
 
 SELECT
