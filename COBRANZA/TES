@@ -1,67 +1,111 @@
-$ErrorActionPreference = 'Stop'
+USE [FlexiForbesv2];
+GO
 
-$RepoFront = 'C:\repo\reportes\FRONT'
-$TargetBranch = 'issue-reportesabanaQA'
-$Commit = '5400e776'
-$StashName = 'temporal-antes-de-subir-5400e776'
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
 
-Set-Location -LiteralPath $RepoFront
+/*
+    HOMOLOGACION DE COLORES - COBRANZA B3 (catReportesNum = 11)
 
-git rev-parse --is-inside-work-tree | Out-Null
-if ($LASTEXITCODE -ne 0) { throw "No es un repositorio Git: $RepoFront" }
+    Referencia verificada en archivos B2:
+      Portada "Informacion":       #007FFF (Azure Color Wheel)
+      Encabezados de datos:         #6699CC (Blue Gray)
 
-git cat-file -e "$Commit`^{commit}"
-if ($LASTEXITCODE -ne 0) { throw "No existe localmente el commit $Commit." }
+    B3 utilizaba Gray/#808080. Este script actualiza solamente la
+    configuracion visual del reporte de Cobranza. No modifica hojas,
+    columnas, registros, filtros, importes ni procedimientos almacenados.
 
-$OriginalBranch = (git branch --show-current).Trim()
-if ([string]::IsNullOrWhiteSpace($OriginalBranch)) {
-    throw 'No fue posible determinar la rama local actual.'
-}
+    IMPORTANTE:
+    El generador vigente de Cobranza tambien tenia el color codificado en
+    JDBCCobranza.java. Por eso este SQL debe desplegarse junto con el archivo
+    Java incluido en la entrega.
 
-$HadLocalChanges = -not [string]::IsNullOrWhiteSpace((git status --porcelain | Out-String))
-if ($HadLocalChanges) {
-    # Guarda de forma temporal .vs, package-lock.json, global.ts y cualquier
-    # otro cambio no confirmado. El commit 5400e776 no se modifica.
-    git stash push -u -m $StashName
-    if ($LASTEXITCODE -ne 0) { throw 'No fue posible guardar temporalmente los cambios locales.' }
-}
+    NOTA SOBRE EL IDENTIFICADOR:
+    Cobranza se identifica en dbo.bf_CatReportes mediante catReportesNum=11.
+    Por convencion heredada, las tablas dbo.bf_RepConf_* guardan ese numero
+    logico en su columna llamada catReportesId. Por eso los UPDATE de este
+    archivo filtran bf_RepConf_Tabla.catReportesId=11; no deben usar el
+    catReportesId fisico del catalogo.
+*/
 
-git fetch origin
-if ($LASTEXITCODE -ne 0) { throw 'Fallo git fetch.' }
+DECLARE @CatReportesNum int = 11,
+        @FilasActualizadas int = 0;
 
-git show-ref --verify --quiet "refs/remotes/origin/$TargetBranch"
-if ($LASTEXITCODE -ne 0) { throw "No existe origin/$TargetBranch." }
+BEGIN TRY
+    IF OBJECT_ID(N'dbo.bf_RepConf_Tabla', N'U') IS NULL
+        THROW 52201, 'No existe dbo.bf_RepConf_Tabla en FlexiForbesv2.', 1;
 
-# Se parte exactamente de la rama remota para conservar el trabajo que ya contiene.
-# Se usa una rama temporal para no alterar ni mezclar la rama QA local.
-$TempBranch = "entrega-5400e776-$([DateTime]::Now.ToString('yyyyMMddHHmmss'))"
-git switch -c $TempBranch "origin/$TargetBranch"
-if ($LASTEXITCODE -ne 0) { throw "No fue posible crear la rama temporal desde origin/$TargetBranch." }
+    IF OBJECT_ID(N'dbo.bf_CatReportes', N'U') IS NOT NULL
+       AND NOT EXISTS
+       (
+           SELECT 1
+           FROM dbo.bf_CatReportes
+           WHERE catReportesNum = @CatReportesNum
+             AND UPPER(LTRIM(RTRIM(catReportesNombre))) COLLATE Latin1_General_100_BIN2 = N'COBRANZA'
+       )
+        THROW 52202, 'El catReportesNum 11 no corresponde al reporte de Cobranza.', 1;
 
-git cherry-pick $Commit
-if ($LASTEXITCODE -ne 0) {
-    Write-Host ''
-    Write-Host 'El cherry-pick encontro conflictos. No se hizo push.' -ForegroundColor Red
-    Write-Host 'Resuelva los archivos, ejecute git add sobre ellos y despues: git cherry-pick --continue' -ForegroundColor Yellow
-    Write-Host 'Para cancelar y volver al estado anterior: git cherry-pick --abort' -ForegroundColor Yellow
-    throw "No fue posible aplicar el commit $Commit automaticamente."
-}
+    BEGIN TRANSACTION;
 
-git push origin "HEAD:$TargetBranch"
-if ($LASTEXITCODE -ne 0) { throw "No fue posible enviar el commit a $TargetBranch." }
+    /* Portada, tanto global como especifica por empresa. */
+    UPDATE dbo.bf_RepConf_Tabla
+       SET colorFondo = N'#007FFF'
+     WHERE catReportesId = @CatReportesNum
+       AND UPPER(LTRIM(RTRIM(grupo))) COLLATE Latin1_General_100_BIN2 = N'INFORMACION'
+       AND UPPER(LTRIM(RTRIM(ISNULL(colorFondo,N'')))) COLLATE Latin1_General_100_BIN2
+           IN (N'GRAY',N'GREY',N'#808080',N'#6699CC');
 
-git switch $OriginalBranch
-if ($LASTEXITCODE -ne 0) { throw "El push termino, pero no fue posible volver a $OriginalBranch." }
+    SET @FilasActualizadas = @FilasActualizadas + @@ROWCOUNT;
 
-git branch -D $TempBranch | Out-Null
+    /* Encabezados de todas las hojas y bloques de datos. */
+    UPDATE dbo.bf_RepConf_Tabla
+       SET colorFondo = N'#6699CC'
+     WHERE catReportesId = @CatReportesNum
+       AND UPPER(LTRIM(RTRIM(grupo))) COLLATE Latin1_General_100_BIN2 <> N'INFORMACION'
+       AND UPPER(LTRIM(RTRIM(ISNULL(colorFondo,N'')))) COLLATE Latin1_General_100_BIN2
+           IN (N'GRAY',N'GREY',N'#808080');
 
-if ($HadLocalChanges) {
-    git stash pop
-    if ($LASTEXITCODE -ne 0) {
-        throw 'El push termino, pero revise el stash: los cambios locales no pudieron restaurarse automaticamente.'
-    }
-}
+    SET @FilasActualizadas = @FilasActualizadas + @@ROWCOUNT;
 
-Write-Host ''
-Write-Host "Commit $Commit enviado correctamente a origin/$TargetBranch." -ForegroundColor Green
-git status --short
+    IF (
+        SELECT COUNT(*)
+        FROM dbo.bf_RepConf_Tabla
+        WHERE idEmpresa = 0
+          AND catReportesId = @CatReportesNum
+          AND UPPER(LTRIM(RTRIM(grupo))) COLLATE Latin1_General_100_BIN2 = N'INFORMACION'
+          AND colorFondo COLLATE Latin1_General_100_BIN2 = N'#007FFF'
+    ) <> 1
+        THROW 52203, 'La configuracion global de Informacion no quedo con #007FFF.', 1;
+
+    IF (
+        SELECT COUNT(*)
+        FROM dbo.bf_RepConf_Tabla
+        WHERE idEmpresa = 0
+          AND catReportesId = @CatReportesNum
+          AND UPPER(LTRIM(RTRIM(grupo))) COLLATE Latin1_General_100_BIN2 <> N'INFORMACION'
+          AND colorFondo COLLATE Latin1_General_100_BIN2 = N'#6699CC'
+    ) <> 11
+        THROW 52204, 'No se encontraron los once bloques globales de Cobranza con #6699CC.', 1;
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM dbo.bf_RepConf_Tabla
+        WHERE catReportesId = @CatReportesNum
+          AND UPPER(LTRIM(RTRIM(ISNULL(colorFondo,N'')))) COLLATE Latin1_General_100_BIN2
+              IN (N'GRAY',N'GREY',N'#808080')
+    )
+        THROW 52205, 'Aun existen configuraciones de Cobranza B3 con el gris anterior.', 1;
+
+    COMMIT TRANSACTION;
+
+    SELECT @FilasActualizadas AS FilasActualizadas,
+           N'#007FFF' AS ColorPortada,
+           N'#6699CC' AS ColorEncabezados,
+           N'Generar una cobranza nueva despues de desplegar API Reports.' AS SiguientePaso;
+END TRY
+BEGIN CATCH
+    IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH;
+GO
