@@ -12,6 +12,8 @@
       el perfil y rol administrador ya existentes en la empresa destino.
     - Sincroniza los nombres de icono en todos los roles administrativos locales
       que realmente esten asignados a administradores activos de la empresa.
+    - Garantiza en el corporativo los parametros 1, 2, 5, 12, 71 y 128,
+      copiando solamente los faltantes desde el corporativo modelo 2493.
     - Crea/reutiliza UNICAMENTE Interfabrica desde la plantilla 689.
     - No recibe IdUsuario: resuelve un administrador activo real para auditoria.
 */
@@ -38,6 +40,7 @@ BEGIN
 
     DECLARE @RolModeloBF3 INT = 7365;
     DECLARE @PlantillaInterfabricaOrigen INT = 689;
+    DECLARE @CorporativoModeloParametros INT = 2493;
     DECLARE @IdCorporativo INT;
     DECLARE @IdPerfilAdministrador INT;
     DECLARE @IdRolAdministrador INT;
@@ -55,6 +58,15 @@ BEGIN
     DECLARE @AccesosInsertados INT = 0, @AccesosActualizados INT = 0;
     DECLARE @AsignacionesPlantillaInsertadas INT = 0;
     DECLARE @MarcadoresMvpInsertados INT = 0;
+    DECLARE @ParametrosCorporativoInsertados INT = 0;
+
+    DECLARE @ParametrosRequeridos TABLE
+    (
+        IdParametro INT NOT NULL PRIMARY KEY
+    );
+
+    INSERT INTO @ParametrosRequeridos (IdParametro)
+    VALUES (1), (2), (5), (12), (71), (128);
 
     DECLARE @PlantillasCreadas TABLE
     (
@@ -104,6 +116,17 @@ BEGIN
           AND PLIdEstatus = 1
     )
         THROW 51000, 'No existe la plantilla Interfabrica origen 689 activa.', 1;
+
+    IF
+    (
+        SELECT COUNT(*)
+        FROM @ParametrosRequeridos PR
+        INNER JOIN dbo.ff_Parametro P
+            ON P.paId = PR.IdParametro
+           AND P.paIdEmpresa = @CorporativoModeloParametros
+           AND P.paidEstatus = 1
+    ) <> (SELECT COUNT(*) FROM @ParametrosRequeridos)
+        THROW 51000, 'El corporativo modelo 2493 no contiene activos todos los parametros requeridos: 1, 2, 5, 12, 71 y 128.', 1;
 
     /* No se recibe IdUsuario. Se usa un administrador real asociado al destino. */
     SELECT TOP (1)
@@ -172,6 +195,18 @@ BEGIN
            SELECT 1 FROM dbo.bf_EmpresaMVP
            WHERE IdEmpresa = @IdEmpresa
              AND ISNULL(IdEstatus, 1) = 1
+       )
+       AND NOT EXISTS
+       (
+           SELECT 1
+           FROM @ParametrosRequeridos PR
+           WHERE NOT EXISTS
+           (
+               SELECT 1
+               FROM dbo.ff_Parametro P
+               WHERE P.paIdEmpresa = @IdCorporativo
+                 AND P.paId = PR.IdParametro
+           )
        )
        AND NOT EXISTS
        (
@@ -249,6 +284,7 @@ BEGIN
             0 AS PerfilesCreados,
             0 AS AsignacionesAdministradorCorregidas,
             0 AS IconosRolesAsignadosActualizados,
+            0 AS ParametrosCorporativoInsertados,
             0 AS CambiosRealizados;
         RETURN;
     END;
@@ -337,6 +373,49 @@ BEGIN
             WHERE A.idempresa = V.Id
         );
         SET @AccesosInsertados = @@ROWCOUNT;
+
+        /*
+          Parametros base requeridos por el corporativo.
+          Se conservan sin cambios los registros existentes y se copian
+          unicamente los faltantes desde el corporativo modelo 2493.
+        */
+        INSERT INTO dbo.ff_Parametro
+        (
+            paId, paIdEmpresa, paClase, paValor, paDescripcion,
+            paidEstatus, paUsuarioAdd, paFechaAdd,
+            paUsuarioUmod, paFechaUmod, paUsuarioPerfil
+        )
+        SELECT
+            S.paId, @IdCorporativo, S.paClase, S.paValor, S.paDescripcion,
+            S.paidEstatus, @IdUsuarioTecnico, GETDATE(),
+            @IdUsuarioTecnico, GETDATE(), S.paUsuarioPerfil
+        FROM @ParametrosRequeridos PR
+        INNER JOIN dbo.ff_Parametro S
+            ON S.paId = PR.IdParametro
+           AND S.paIdEmpresa = @CorporativoModeloParametros
+           AND S.paidEstatus = 1
+        WHERE NOT EXISTS
+        (
+            SELECT 1
+            FROM dbo.ff_Parametro D WITH (UPDLOCK, HOLDLOCK)
+            WHERE D.paIdEmpresa = @IdCorporativo
+              AND D.paId = PR.IdParametro
+        );
+        SET @ParametrosCorporativoInsertados = @@ROWCOUNT;
+
+        IF EXISTS
+        (
+            SELECT 1
+            FROM @ParametrosRequeridos PR
+            WHERE NOT EXISTS
+            (
+                SELECT 1
+                FROM dbo.ff_Parametro P
+                WHERE P.paIdEmpresa = @IdCorporativo
+                  AND P.paId = PR.IdParametro
+            )
+        )
+            THROW 51000, 'Validacion fallida: no quedaron completos los parametros 1, 2, 5, 12, 71 y 128 en el corporativo.', 1;
 
         /* Actualiza menus existentes para evitar conservar rutas/estatus obsoletos. */
         UPDATE D
@@ -631,12 +710,14 @@ BEGIN
              + ', actualizados=' + CONVERT(VARCHAR(12), @MenusActualizados)
              + ', asignaciones admin corregidas=' + CONVERT(VARCHAR(12), @AsignacionesAdministradorCorregidas)
              + ', iconos de roles asignados corregidos=' + CONVERT(VARCHAR(12), @IconosRolesAsignadosActualizados)
+             + ', parametros corporativo insertados=' + CONVERT(VARCHAR(12), @ParametrosCorporativoInsertados)
              + ', Interfabrica=' + @EstadoPlantilla + '.',
-            'acceso+adminEmpresa+menuRol2+Interfabrica',
+            'acceso+admin+menuRol2+params+Interfabrica',
             @MenusInsertados + @MenusActualizados
              + @IconosRolesAsignadosActualizados
              + @AsignacionesAdministradorCorregidas
-             + @AsignacionesPlantillaInsertadas,
+             + @AsignacionesPlantillaInsertadas
+             + @ParametrosCorporativoInsertados,
             1, GETDATE()
         );
 
@@ -667,6 +748,7 @@ BEGIN
             0 AS OtrasPlantillasCreadas,
             @AccesosInsertados AS AccesosBF3Insertados,
             @AccesosActualizados AS AccesosBF3Actualizados,
+            @ParametrosCorporativoInsertados AS ParametrosCorporativoInsertados,
             @MarcadoresMvpInsertados AS MarcadoresMvpInsertados;
     END TRY
     BEGIN CATCH
