@@ -1,0 +1,143 @@
+﻿COMMIT: 23437799caaaced20fa34baa8d33210dacaa5478
+FECHA: 2026-08-18 14:59:09
+AUTOR: CristianLockton <consultor.ti40@lockton.com>
+COMMITTER: GitHub <noreply@github.com>
+PADRES: 1f7a918130f5a9c6174f1ec03e718509690ef435
+T├ìTULO: Update sabana-beneficios.component.ts
+DESCRIPCI├ôN:
+
+ARCHIVOS:
+M	src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
+
+COMMIT: c9f0bf923ad9117e76088633c05d4c7ff28b48c5
+FECHA: 2026-08-18 14:59:37
+AUTOR: CristianLockton <consultor.ti40@lockton.com>
+COMMITTER: GitHub <noreply@github.com>
+PADRES: 23437799caaaced20fa34baa8d33210dacaa5478
+T├ìTULO: Update sabana-beneficios.component.html
+DESCRIPCI├ôN:
+
+ARCHIVOS:
+M	src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
+
+COMMIT: d714c5d9be8ecf4f4bca61dabc1748bdc271483c
+FECHA: 2026-08-24 11:06:16
+AUTOR: CristianLockton <consultor.ti40@lockton.com>
+COMMITTER: GitHub <noreply@github.com>
+PADRES: c9f0bf923ad9117e76088633c05d4c7ff28b48c5
+T├ìTULO: Update cobranza.component.ts
+DESCRIPCI├ôN:
+
+ARCHIVOS:
+M	src/app/beflex/adm-reportes/cobranza/cobranza.component.ts
+
+COMMIT: 03586c8b640f62c961d917c4c18247353f7823d4
+FECHA: 2026-08-24 11:07:23
+AUTOR: CristianLockton <consultor.ti40@lockton.com>
+COMMITTER: GitHub <noreply@github.com>
+PADRES: d714c5d9be8ecf4f4bca61dabc1748bdc271483c
+T├ìTULO: Update cobranza.component.html
+DESCRIPCI├ôN:
+
+ARCHIVOS:
+M	src/app/beflex/adm-reportes/cobranza/cobranza.component.html
+
+COMMIT: df7009df60ed4c3aa202facd36b44301a496d58e
+FECHA: 2026-08-24 11:08:05
+AUTOR: CristianLockton <consultor.ti40@lockton.com>
+COMMITTER: GitHub <noreply@github.com>
+PADRES: 03586c8b640f62c961d917c4c18247353f7823d4
+T├ìTULO: Update sabana-beneficios.component.ts
+DESCRIPCI├ôN:
+
+ARCHIVOS:
+COMMIT: 487391e05df39d2d93e8427a4bcf82d25afbdd14
+FECHA: 2026-08-24 11:08:51
+AUTOR: CristianLockton <consultor.ti40@lockton.com>
+COMMITTER: GitHub <noreply@github.com>
+PADRES: df7009df60ed4c3aa202facd36b44301a496d58e
+T├ìTULO: Update sabana-beneficios.component.html
+DESCRIPCI├ôN:
+
+ARCHIVOS:
+COMMIT: 22fb7323bded92f5e007c29576eec9192c5b7815
+FECHA: 2026-08-24 11:10:23
+AUTOR: CristianLockton <consultor.ti40@lockton.com>
+COMMITTER: GitHub <noreply@github.com>
+PADRES: 487391e05df39d2d93e8427a4bcf82d25afbdd14
+T├ìTULO: Update sabana-beneficios.component.html
+DESCRIPCI├ôN:
+
+ARCHIVOS:
+COMMIT: 6bf349be0de3d5d1250069faab40df3be53fe132
+FECHA: 2026-08-24 11:12:38
+AUTOR: CristianLockton <consultor.ti40@lockton.com>
+COMMITTER: GitHub <noreply@github.com>
+PADRES: 22fb7323bded92f5e007c29576eec9192c5b7815
+T├ìTULO: Update cobranza.component.html
+DESCRIPCI├ôN:
+
+ARCHIVOS:
+M	src/app/beflex/adm-reportes/cobranza/cobranza.component.html
+
+COMMIT: 01aa164b8a63975e28f29dc3a61064f9f7d4e309
+FECHA: 2026-08-24 11:14:11
+AUTOR: CristianLockton <consultor.ti40@lockton.com>
+COMMITTER: GitHub <noreply@github.com>
+PADRES: 6bf349be0de3d5d1250069faab40df3be53fe132
+T├ìTULO: Update cobranza.component.ts
+DESCRIPCI├ôN:
+
+ARCHIVOS:
+M	src/app/beflex/adm-reportes/cobranza/cobranza.component.ts
+
+COMMIT: 32509fec8fdbbbbd226d01e4233bfad198cdb216
+FECHA: 2026-08-24 11:15:03
+AUTOR: CristianLockton <consultor.ti40@lockton.com>
+COMMITTER: GitHub <noreply@github.com>
+PADRES: 01aa164b8a63975e28f29dc3a61064f9f7d4e309
+T├ìTULO: Update cobranza.component.html
+DESCRIPCI├ôN:
+
+ARCHIVOS:
+M	src/app/beflex/adm-reportes/cobranza/cobranza.component.html
+
+COMMIT: f5411c2918a94b07eeabef046fffd6b9e0203647
+FECHA: 2026-09-21 10:53:03
+AUTOR: CristianLockton <consultor.ti40@lockton.com>
+COMMITTER: CristianLockton <consultor.ti40@lockton.com>
+PADRES: 32509fec8fdbbbbd226d01e4233bfad198cdb216
+T├ìTULO: observaciones issues cobranza sabana
+DESCRIPCI├ôN:
+
+ARCHIVOS:
+M	src/app/beflex/adm-reportes/cobranza/cobranza.component.html
+M	src/app/beflex/adm-reportes/cobranza/cobranza.component.ts
+M	src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
+M	src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
+M	src/app/services/cobranza/reporte-cobranza.service.ts
+
+COMMIT: 7cd081ea54c4ce6ac10b2ebc2330e56a47f4ec01
+FECHA: 2026-09-21 14:20:10
+AUTOR: CristianLockton <consultor.ti40@lockton.com>
+COMMITTER: GitHub <noreply@github.com>
+PADRES: f5411c2918a94b07eeabef046fffd6b9e0203647
+T├ìTULO: Update sabana-beneficios.component.html
+DESCRIPCI├ôN:
+
+ARCHIVOS:
+M	src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
+
+COMMIT: f213401d9c1ad51160ad0b504bdfc708e6f97028
+FECHA: 2026-09-23 10:50:46
+AUTOR: CristianLockton <consultor.ti40@lockton.com>
+COMMITTER: CristianLockton <consultor.ti40@lockton.com>
+PADRES: 7cd081ea54c4ce6ac10b2ebc2330e56a47f4ec01
+T├ìTULO: observaciones issues cobranza sabana
+DESCRIPCI├ôN:
+
+ARCHIVOS:
+M	src/app/beflex/adm-reportes/cobranza/cobranza.component.html
+M	src/app/beflex/adm-reportes/cobranza/cobranza.component.ts
+M	src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
+M	src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
