@@ -1,3 +1,139 @@
+$ErrorActionPreference = 'Stop'
+
+Set-Location 'C:\repo\reportes\APIREPORTS'
+
+$CommitEsperado = '4d47ff7ee90b37d3610536aed629e308d89e8960'
+$ArchivoRelativo = 'src/main/java/com/lockton/rpt/RptApplication.java'
+$ArchivoCompleto = Join-Path (Get-Location) $ArchivoRelativo
+
+$CommitActivo = (git rev-parse CHERRY_PICK_HEAD).Trim()
+
+if ($CommitActivo -ne $CommitEsperado) {
+    throw "El commit activo es $CommitActivo y se esperaba $CommitEsperado."
+}
+
+# Partir de la versión actual de PRE-MAIN, que ya contiene dao y repe.
+git checkout --ours -- $ArchivoRelativo
+
+if ($LASTEXITCODE -ne 0) {
+    throw 'No fue posible recuperar RptApplication.java de PRE-MAIN.'
+}
+
+$Contenido = [System.IO.File]::ReadAllText($ArchivoCompleto)
+$Salto = [Environment]::NewLine
+
+# Agregar import de EnableScheduling.
+$ImportConfiguration = 'import org.springframework.context.annotation.Configuration;'
+$ImportScheduling = 'import org.springframework.scheduling.annotation.EnableScheduling;'
+
+if (-not $Contenido.Contains($ImportScheduling)) {
+    if (-not $Contenido.Contains($ImportConfiguration)) {
+        throw 'No se encontró el import Configuration.'
+    }
+
+    $Contenido = $Contenido.Replace(
+        $ImportConfiguration,
+        $ImportConfiguration + $Salto + $ImportScheduling
+    )
+}
+
+# Agregar anotación.
+if (-not $Contenido.Contains('@EnableScheduling')) {
+    if (-not $Contenido.Contains('@ServletComponentScan')) {
+        throw 'No se encontró @ServletComponentScan.'
+    }
+
+    $Contenido = $Contenido.Replace(
+        '@ServletComponentScan',
+        '@EnableScheduling' + $Salto + '@ServletComponentScan'
+    )
+}
+
+# Agregar paquete jobs sin perder dao ni repe.
+$PaqueteDao = '"com.lockton.rpt.dao",'
+$PaqueteJobs = '"com.lockton.rpt.jobs",'
+
+if (-not $Contenido.Contains($PaqueteJobs)) {
+    if (-not $Contenido.Contains($PaqueteDao)) {
+        throw 'No se encontró el paquete dao.'
+    }
+
+    $Contenido = $Contenido.Replace(
+        $PaqueteDao,
+        $PaqueteDao + $Salto + '    ' + $PaqueteJobs
+    )
+}
+
+$Utf8SinBom = [System.Text.UTF8Encoding]::new($false)
+
+[System.IO.File]::WriteAllText(
+    $ArchivoCompleto,
+    $Contenido,
+    $Utf8SinBom
+)
+
+$ContenidoFinal = [System.IO.File]::ReadAllText($ArchivoCompleto)
+
+$ElementosRequeridos = @(
+    'import org.springframework.scheduling.annotation.EnableScheduling;',
+    '@EnableScheduling',
+    '"com.lockton.rpt.dao",',
+    '"com.lockton.rpt.jobs",',
+    '"com.lockton.rpt.repe"'
+)
+
+foreach ($Elemento in $ElementosRequeridos) {
+    if (-not $ContenidoFinal.Contains($Elemento)) {
+        throw "Falta este elemento en RptApplication.java: $Elemento"
+    }
+}
+
+git add -- $ArchivoRelativo
+
+if ($LASTEXITCODE -ne 0) {
+    throw 'No fue posible marcar RptApplication.java como resuelto.'
+}
+
+$Conflictos = @(git diff --name-only --diff-filter=U)
+
+if ($Conflictos.Count -gt 0) {
+    Write-Host 'Todavía existen conflictos:' -ForegroundColor Red
+    $Conflictos
+    throw 'No se continuará.'
+}
+
+Write-Host ''
+Write-Host 'Elementos conservados y agregados:' -ForegroundColor Cyan
+
+Select-String `
+    -LiteralPath $ArchivoCompleto `
+    -Pattern 'EnableScheduling|com.lockton.rpt.dao|com.lockton.rpt.jobs|com.lockton.rpt.repe'
+
+Write-Host ''
+Write-Host 'Archivos preparados:' -ForegroundColor Cyan
+git diff --cached --name-status
+
+git diff --cached --check
+
+if ($LASTEXITCODE -ne 0) {
+    throw 'Git encontró problemas de formato.'
+}
+
+git -c core.editor=true cherry-pick --continue
+
+if ($LASTEXITCODE -ne 0) {
+    throw 'No fue posible finalizar el cherry-pick.'
+}
+
+Write-Host ''
+Write-Host 'Commit 4d47ff7 aplicado correctamente.' -ForegroundColor Green
+git status
+
+
+---------------
+
+
+
 CONFLICTO EN: 4d47ff7ee90b37d3610536aed629e308d89e8960
 UU src/main/java/com/lockton/rpt/RptApplication.java
 M  src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
