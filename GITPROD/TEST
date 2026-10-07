@@ -1,3 +1,187 @@
+ 
+PS C:\repo\reportes\FRONT> $ErrorActionPreference = 'Stop'
+>> 
+>> $Repo = 'C:\repo\reportes\APIREPORTS'
+>> $RamaOrigen = 'ReporteSabanaHomologacionOK-clean'
+>> $RamaDestino = 'PRE-MAIN-REPORTS'
+>> 
+>> $Commits = @(
+>>     'e41c82df1e7ed160052cda16de18e63e0c820306',
+>>     '91e7fcacd787a4801b383cb2e5c8ab44f4174927',
+>>     '01e4f91e67bd883a461220e91574d762fd8e12b2',
+>>     '90485a2d454d76323b216333baab2d4880ed9583',
+>>     'd52ae59425c6b53928a57266e5e3d7bec07e3535',
+>>     'ab2f9f0eea6026ebe457900e04926a5f27995626',
+>>     'dd342683132df69a39e77d696345ff74a868904f',
+>>     '3bc204d2eaa8e79ba3706f2aef5f9696c2f32311',
+>>     '81813e08deb93f2b0398bc0ca5ad48ffd6612101',
+>>     '7f95507e1c5989e2958cf57fc1ba2f17457c2765',
+>>     'eee9625b6495b24990cf88b745a886b694fb4eb8',
+>>     'ed7373e9219dee294d4f0ba40045ab339f43e29c',
+>>     '657809e3ac259b758713772b56872e5b01faa086',
+>>     'c1ced5f804c24fa648915c3de4d65b46c161969e',
+>>     '4d47ff7ee90b37d3610536aed629e308d89e8960',
+>>     'e2fea4173447a2eb0bfe01d8cf88180af7aea673',
+>>     '20a20defa0954d617f304b8a1d0efb72d5c7541e',
+>>     '9f75db1d6b072906b222056ae5722dccf648b007',
+>>     '07804c9deaa6c4325ee3b5b10669e65cb817ecda',
+>>     'd2605e23b93236abe4cb6b3b7bd039209391fe6c',
+>>     '956c3669f459dc2bba620df905eeaf95038c7c04',
+>>     '6586aab8ad82ad29a15b87f85440883b0061609e',
+>>     'c902c38d1600625bd53319bac2409de095bc58d6',
+>>     'ef3716c502dbd6b01b24b346c347a2075c70a5ea',
+>>     '22f437eb62cc338429e479a3d571447eeb1d0d63',
+>>     'aa07c52c7bbb3759ed54ccce614064cf3d495d00',
+>>     '02d7f3850ceac219110079132bc69001c63293df',
+>>     'fa5da3c393d2d7a06e5638dfe9b2521ba041106f',
+>>     '7e82654871a659da6b993664016cb73d01c4d625',
+>>     '5631dfcc687b003d7f490d0c5ff26d4e8d393667',
+>>     '63e1d4893c86174efb0e76ab2611153601f8b45e'
+>> )
+>> 
+>> Set-Location -LiteralPath $Repo
+>> 
+>> # El repositorio debe estar limpio.
+>> $Cambios = git status --porcelain
+>> 
+>> if (-not [string]::IsNullOrWhiteSpace(($Cambios | Out-String))) {
+>>     Write-Host 'API Reports contiene cambios locales:' -ForegroundColor Red
+>>     git status --short
+>>     throw 'No se continuará hasta que el repositorio esté limpio.'
+>> }
+>> 
+>> git fetch origin --prune
+>> if ($LASTEXITCODE -ne 0) {
+>>     throw 'Falló git fetch.'
+>> }
+>> 
+>> $OrigenRemoto = "origin/$RamaOrigen"
+>> $DestinoRemoto = "origin/$RamaDestino"
+>> 
+>> git show-ref --verify --quiet "refs/remotes/$OrigenRemoto"
+>> if ($LASTEXITCODE -ne 0) {
+>>     throw "No existe $OrigenRemoto."
+>> }
+>> 
+>> git show-ref --verify --quiet "refs/remotes/$DestinoRemoto"
+>> if ($LASTEXITCODE -ne 0) {
+>>     throw "No existe $DestinoRemoto. La rama destino debe crearse primero en GitHub."
+>> }
+>> 
+>> # Crear localmente PRE-MAIN-REPORTS desde su correspondiente rama remota.
+>> git show-ref --verify --quiet "refs/heads/$RamaDestino"
+>> 
+>> if ($LASTEXITCODE -eq 0) {
+>>     git switch $RamaDestino
+>> }
+>> else {
+>>     git switch --track -c $RamaDestino $DestinoRemoto
+>> }
+>> 
+>> if ($LASTEXITCODE -ne 0) {
+>>     throw "No fue posible posicionarse en $RamaDestino."
+>> }
+>> 
+>> git pull --ff-only origin $RamaDestino
+>> if ($LASTEXITCODE -ne 0) {
+>>     throw "No fue posible actualizar $RamaDestino."
+>> }
+>> 
+>> Write-Host ''
+>> Write-Host "Se aplicarán $($Commits.Count) commits de API Reports." -ForegroundColor Cyan
+>> 
+>> foreach ($Commit in $Commits) {
+>>     git cat-file -e "${Commit}^{commit}"
+>> 
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "No existe el commit $Commit."
+>>     }
+>> 
+>>     git merge-base --is-ancestor $Commit $OrigenRemoto
+>> 
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "El commit $Commit no pertenece a $OrigenRemoto."
+>>     }
+>> 
+>>     $Padres = @(
+>>         (git rev-list --parents -n 1 $Commit) -split '\s+'
+>>     )
+>> 
+>>     if ($Padres.Count -ne 2) {
+>>         throw "El commit $Commit es un merge y no será aplicado."
+>>     }
+>> 
+>>     git --no-pager show `
+>>         --no-patch `
+>>         --format='%h | %an | %s' `
+>>         $Commit
+>> }
+>> 
+>> $Confirmacion = Read-Host "`nEscribe APLICAR API REPORTS"
+>> 
+>> if ($Confirmacion -ne 'APLICAR API REPORTS') {
+>>     throw 'Proceso cancelado.'
+>> }
+>> 
+>> foreach ($Commit in $Commits) {
+>>     Write-Host "Aplicando $Commit..." -ForegroundColor Cyan
+>> 
+>>     git cherry-pick --allow-empty $Commit
+>> 
+>>     if ($LASTEXITCODE -ne 0) {
+>>         Write-Host ''
+>>         Write-Host "Conflicto en $Commit. No se hizo push." -ForegroundColor Red
+>>         git status --short
+>>         throw "Se detuvo el cherry-pick en $Commit."
+>>     }
+>> }
+>> 
+>> $EstadoFinal = git status --porcelain
+>> 
+>> if (-not [string]::IsNullOrWhiteSpace(($EstadoFinal | Out-String))) {
+>>     throw 'API Reports terminó con cambios pendientes; no se hará push.'
+>> }
+>> 
+>> Write-Host ''
+>> Write-Host 'Commits pendientes de publicación:' -ForegroundColor Cyan
+>> git --no-pager log --oneline "$DestinoRemoto..$RamaDestino"
+>> 
+>> $ConfirmarPush = Read-Host 'Escribe PUBLICAR API REPORTS'
+>> 
+>> if ($ConfirmarPush -ne 'PUBLICAR API REPORTS') {
+>>     throw 'Los commits quedaron locales, pero no se hizo push.'
+>> }
+>> 
+>> git push -u origin "$RamaDestino`:$RamaDestino"
+>> 
+>> if ($LASTEXITCODE -ne 0) {
+>>     throw 'Falló el push de API Reports.'
+>> }
+>> 
+>> Write-Host ''
+>> Write-Host 'API REPORTS publicado correctamente.' -ForegroundColor Green
+>> git status
+API Reports contiene cambios locales:
+ M .gitignore
+ M .vs/VSWorkspaceState.json
+?? .vs/APIREPORTS.slnx/
+?? .vs/APIREPORTS/
+?? null/
+?? reporteactualisseus.code-workspace
+No se continuará hasta que el repositorio esté limpio.
+En línea: 49 Carácter: 5
++     throw 'No se continuará hasta que el repositorio esté limpio.'
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (No se continuar...io esté limpio.:String) [], RuntimeException
+    + FullyQualifiedErrorId : No se continuará hasta que el repositorio esté limpio.
+ 
+PS C:\repo\reportes\APIREPORTS> 
+
+
+
+
+-------------------------
+
 Escribe PUBLICAR FRONT: PUBLICAR FRONT
 Enumerating objects: 155, done.
 Counting objects: 100% (155/155), done.
