@@ -1,134 +1,96 @@
-$ErrorActionPreference = 'Stop'
+Escribe CONTINUAR API REPORTS: CONTINUAR API REPORTS
 
-Set-Location 'C:\repo\reportes\APIREPORTS'
+Aplicando e2fea4173447a2eb0bfe01d8cf88180af7aea673...
+[PRE-MAIN-REPORTS 39c1b05] fix(sabana): homologa columnas y planes opcionales con legacy
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Tue Aug 18 14:55:20 2026 -0600
+ 4 files changed, 164 insertions(+), 9 deletions(-)
 
-$RamaDestino = 'PRE-MAIN-REPORTS'
+Aplicando 20a20defa0954d617f304b8a1d0efb72d5c7541e...
+[PRE-MAIN-REPORTS 46553df] Actualiza generación y validación de reportes B3
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Mon Aug 24 11:39:41 2026 -0600
+ 5 files changed, 580 insertions(+), 37 deletions(-)
+ create mode 100644 src/test/java/com/lockton/rpt/dao/CobranzaWorkbookInspectorTest.java
+ create mode 100644 src/test/java/com/lockton/rpt/dao/JDBCCobranzaTest.java
 
-$CommitsRestantes = @(
-    'e2fea4173447a2eb0bfe01d8cf88180af7aea673',
-    '20a20defa0954d617f304b8a1d0efb72d5c7541e',
-    '9f75db1d6b072906b222056ae5722dccf648b007',
-    '07804c9deaa6c4325ee3b5b10669e65cb817ecda',
-    'd2605e23b93236abe4cb6b3b7bd039209391fe6c',
-    '956c3669f459dc2bba620df905eeaf95038c7c04',
-    '6586aab8ad82ad29a15b87f85440883b0061609e',
-    'c902c38d1600625bd53319bac2409de095bc58d6',
-    'ef3716c502dbd6b01b24b346c347a2075c70a5ea',
-    '22f437eb62cc338429e479a3d571447eeb1d0d63',
-    'aa07c52c7bbb3759ed54ccce614064cf3d495d00',
-    '02d7f3850ceac219110079132bc69001c63293df',
-    'fa5da3c393d2d7a06e5638dfe9b2521ba041106f',
-    '7e82654871a659da6b993664016cb73d01c4d625',
-    '5631dfcc687b003d7f490d0c5ff26d4e8d393667',
-    '63e1d4893c86174efb0e76ab2611153601f8b45e'
-)
+Aplicando 9f75db1d6b072906b222056ae5722dccf648b007...
+[PRE-MAIN-REPORTS 47b5abd] Update GeneradorReportesService.java
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Tue Aug 25 00:24:45 2026 -0600
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-$RamaActual = (git branch --show-current).Trim()
+Aplicando 07804c9deaa6c4325ee3b5b10669e65cb817ecda...
+[PRE-MAIN-REPORTS 2e41e3d] Actualiza generación y validación de reportes B3
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Fri Sep 4 12:55:16 2026 -0600
+ 6 files changed, 628 insertions(+), 90 deletions(-)
+ create mode 100644 src/main/java/com/lockton/rpt/jobs/CobranzaCacheWorker.java
+ create mode 100644 src/test/java/com/lockton/rpt/jobs/CobranzaCacheWorkerTest.java
+ create mode 100644 src/test/java/com/lockton/rpt/services/impl/CobranzaServiceImplTest.java
 
-if ($RamaActual -ne $RamaDestino) {
-    throw "Estás en $RamaActual y se esperaba $RamaDestino."
-}
+Aplicando d2605e23b93236abe4cb6b3b7bd039209391fe6c...
+[PRE-MAIN-REPORTS 83157c4] Actualiza generación y validación de reportes B3
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Tue Sep 8 00:07:59 2026 -0600
+ 9 files changed, 639 insertions(+), 58 deletions(-)
+ create mode 100644 src/test/java/com/lockton/rpt/util/SabanaWorkbookInspectorTest.java
 
-$GitDir = (git rev-parse --absolute-git-dir).Trim()
+Aplicando 956c3669f459dc2bba620df905eeaf95038c7c04...
+[PRE-MAIN-REPORTS 8e24f99] Actualiza generación y validación de reportes B3
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Tue Sep 8 15:44:35 2026 -0600
+ 3 files changed, 14 insertions(+), 3 deletions(-)
 
-if (Test-Path -LiteralPath (Join-Path $GitDir 'CHERRY_PICK_HEAD')) {
-    throw 'Todavía existe un cherry-pick pendiente.'
-}
+Aplicando 6586aab8ad82ad29a15b87f85440883b0061609e...
+[PRE-MAIN-REPORTS ff827d5] Actualiza generación y validación de reportes B3
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Tue Sep 8 17:50:20 2026 -0600
+ 1 file changed, 17 insertions(+), 6 deletions(-)
 
-$Estado = git status --porcelain
+Aplicando c902c38d1600625bd53319bac2409de095bc58d6...
+[PRE-MAIN-REPORTS cf22ff0] Actualiza generación y validación de reportes B3
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Wed Sep 9 10:36:51 2026 -0600
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-if (-not [string]::IsNullOrWhiteSpace(($Estado | Out-String))) {
-    git status --short
-    throw 'El repositorio no está limpio.'
-}
+Aplicando ef3716c502dbd6b01b24b346c347a2075c70a5ea...
+[PRE-MAIN-REPORTS 483a73c] Actualiza generación y validación de reportes B3
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Wed Sep 9 17:47:51 2026 -0600
+ 1 file changed, 78 insertions(+), 4 deletions(-)
 
-Write-Host 'COMMITS RESTANTES:' -ForegroundColor Cyan
+Aplicando 22f437eb62cc338429e479a3d571447eeb1d0d63...
+Auto-merging src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java
+CONFLICT (content): Merge conflict in src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java
+Auto-merging src/main/resources/application.properties
+CONFLICT (content): Merge conflict in src/main/resources/application.properties
+error: could not apply 22f437e... Agrega soporte de consulta histórica de defaulteo
+hint: After resolving the conflicts, mark them with
+hint: "git add/rm <pathspec>", then run
+hint: "git cherry-pick --continue".
+hint: You can instead skip this commit with "git cherry-pick --skip".
+hint: To abort and get back to the state before "git cherry-pick",
+hint: run "git cherry-pick --abort".
+hint: Disable this message with "git config set advice.mergeConflict false"
 
-foreach ($Commit in $CommitsRestantes) {
-    git cat-file -e "${Commit}^{commit}"
-
-    if ($LASTEXITCODE -ne 0) {
-        throw "No existe localmente el commit $Commit."
-    }
-
-    $Registro = @(
-        (git rev-list --parents -n 1 $Commit) -split '\s+'
-    )
-
-    if ($Registro.Count -ne 2) {
-        throw "El commit $Commit es un merge."
-    }
-
-    git --no-pager show `
-        --no-patch `
-        --format='%h | %an | %s' `
-        $Commit
-}
-
-$Confirmacion = Read-Host "`nEscribe CONTINUAR API REPORTS"
-
-if ($Confirmacion -ne 'CONTINUAR API REPORTS') {
-    throw 'Proceso cancelado.'
-}
-
-$Aplicados = 0
-$Omitidos = 0
-
-foreach ($Commit in $CommitsRestantes) {
-    $Comparacion = (
-        git cherry HEAD $Commit "$Commit^" | Out-String
-    ).Trim()
-
-    if ($Comparacion.StartsWith('-')) {
-        Write-Host "Ya existe un cambio equivalente; se omite: $Commit" -ForegroundColor DarkYellow
-        $Omitidos++
-        continue
-    }
-
-    Write-Host ''
-    Write-Host "Aplicando $Commit..." -ForegroundColor Cyan
-
-    git cherry-pick --allow-empty $Commit
-
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host ''
-        Write-Host "CONFLICTO EN: $Commit" -ForegroundColor Red
-        git status --short
-        Write-Host 'No se hizo push.' -ForegroundColor Yellow
-        throw "El proceso se detuvo en $Commit."
-    }
-
-    $Aplicados++
-}
-
-$EstadoFinal = git status --porcelain
-
-if (-not [string]::IsNullOrWhiteSpace(($EstadoFinal | Out-String))) {
-    git status --short
-    throw 'Existen cambios pendientes; no se realizará el push.'
-}
-
-Write-Host ''
-Write-Host 'API REPORTS TERMINADO' -ForegroundColor Green
-Write-Host "Commits aplicados ahora: $Aplicados"
-Write-Host "Cambios equivalentes omitidos: $Omitidos"
-
-Write-Host ''
-Write-Host 'Commits que se publicarán:' -ForegroundColor Cyan
-git --no-pager log --oneline "origin/$RamaDestino..$RamaDestino"
-
-$ConfirmarPush = Read-Host 'Escribe PUBLICAR API REPORTS'
-
-if ($ConfirmarPush -ne 'PUBLICAR API REPORTS') {
-    throw 'Los commits quedaron locales, pero no se hizo push.'
-}
-
-git push -u origin "$RamaDestino`:$RamaDestino"
-
-if ($LASTEXITCODE -ne 0) {
-    throw 'Falló el push de API Reports.'
-}
-
-Write-Host ''
-Write-Host 'API REPORTS publicado correctamente.' -ForegroundColor Green
-git status
+CONFLICTO EN: 22f437eb62cc338429e479a3d571447eeb1d0d63
+M  src/main/java/com/lockton/rpt/config/AsyncConfig.java
+M  src/main/java/com/lockton/rpt/controllers/WSCobranzaController.java
+M  src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
+M  src/main/java/com/lockton/rpt/enumeradores/EstatusReporte.java
+M  src/main/java/com/lockton/rpt/jobs/CobranzaCacheWorker.java
+UU src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java
+A  src/main/java/com/lockton/rpt/services/impl/CobranzaExecutionGate.java
+M  src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
+UU src/main/resources/application.properties
+M  src/test/java/com/lockton/rpt/services/impl/CobranzaServiceImplTest.java
+No se hizo push.
+El proceso se detuvo en 22f437eb62cc338429e479a3d571447eeb1d0d63.
+En línea: 98 Carácter: 9
++         throw "El proceso se detuvo en $Commit."
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (El proceso se d...71447eeb1d0d63.:String) [], RuntimeException
+    + FullyQualifiedErrorId : El proceso se detuvo en 22f437eb62cc338429e479a3d571447eeb1d0d63.
+ 
+PS C:\repo\reportes\APIREPORTS> 
