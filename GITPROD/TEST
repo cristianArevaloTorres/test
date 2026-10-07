@@ -1,3 +1,108 @@
+$ErrorActionPreference = 'Stop'
+
+Set-Location 'C:\repo\reportes\APIREPORTS'
+
+$CommitEsperado = 'ed7373e9219dee294d4f0ba40045ab339f43e29c'
+$ArchivoRelativo = 'src/main/java/com/lockton/rpt/RptApplication.java'
+$ArchivoCompleto = Join-Path (Get-Location) $ArchivoRelativo
+
+$CommitActivo = (git rev-parse CHERRY_PICK_HEAD).Trim()
+
+if ($CommitActivo -ne $CommitEsperado) {
+    throw "El commit activo es $CommitActivo y se esperaba $CommitEsperado."
+}
+
+# Partir de la versión de PRE-MAIN-REPORTS.
+git checkout --ours -- $ArchivoRelativo
+
+if ($LASTEXITCODE -ne 0) {
+    throw 'No fue posible recuperar RptApplication.java de PRE-MAIN.'
+}
+
+$Contenido = [System.IO.File]::ReadAllText($ArchivoCompleto)
+$LineaControladores = '"com.lockton.rpt.controllers",'
+
+if (-not $Contenido.Contains($LineaControladores)) {
+    throw 'No se encontró la sección de paquetes en RptApplication.java.'
+}
+
+if (-not $Contenido.Contains('"com.lockton.rpt.dao",')) {
+    $NuevaSeccion = $LineaControladores +
+        [Environment]::NewLine +
+        '    "com.lockton.rpt.dao",'
+
+    $Contenido = $Contenido.Replace(
+        $LineaControladores,
+        $NuevaSeccion
+    )
+
+    # Guardar como UTF-8 sin BOM.
+    $Utf8SinBom = [System.Text.UTF8Encoding]::new($false)
+
+    [System.IO.File]::WriteAllText(
+        $ArchivoCompleto,
+        $Contenido,
+        $Utf8SinBom
+    )
+}
+
+$ContenidoFinal = [System.IO.File]::ReadAllText($ArchivoCompleto)
+
+if (-not $ContenidoFinal.Contains('"com.lockton.rpt.dao",')) {
+    throw 'No quedó agregado com.lockton.rpt.dao.'
+}
+
+if (-not $ContenidoFinal.Contains('"com.lockton.rpt.repe"')) {
+    throw 'Se perdió com.lockton.rpt.repe; no se continuará.'
+}
+
+git add -- $ArchivoRelativo
+
+if ($LASTEXITCODE -ne 0) {
+    throw 'No fue posible marcar RptApplication.java como resuelto.'
+}
+
+$Conflictos = @(git diff --name-only --diff-filter=U)
+
+if ($Conflictos.Count -gt 0) {
+    Write-Host 'Todavía existen conflictos:' -ForegroundColor Red
+    $Conflictos
+    throw 'No se continuará el cherry-pick.'
+}
+
+Write-Host ''
+Write-Host 'Archivos preparados para el commit:' -ForegroundColor Cyan
+git diff --cached --name-status
+
+Write-Host ''
+Write-Host 'Validando que se conservaron DAO y REPE:' -ForegroundColor Cyan
+Select-String `
+    -LiteralPath $ArchivoCompleto `
+    -Pattern 'com.lockton.rpt.dao|com.lockton.rpt.repe'
+
+Write-Host ''
+Write-Host 'Propiedad agregada para Cobranza:' -ForegroundColor Cyan
+git diff --cached -- src/main/resources/application.properties
+
+git diff --cached --check
+
+if ($LASTEXITCODE -ne 0) {
+    throw 'Git detectó errores de espacios o formato.'
+}
+
+git -c core.editor=true cherry-pick --continue
+
+if ($LASTEXITCODE -ne 0) {
+    throw 'No fue posible finalizar el cherry-pick.'
+}
+
+Write-Host ''
+Write-Host 'Commit de Cobranza aplicado correctamente.' -ForegroundColor Green
+git status
+------------------------------------------------------
+
+
+
 PS C:\repo\reportes\APIREPORTS> Set-Location 'C:\repo\reportes\APIREPORTS'
 >> 
 >> $ArchivoJava = 'src/main/java/com/lockton/rpt/RptApplication.java'
