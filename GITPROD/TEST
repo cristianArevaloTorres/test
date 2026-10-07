@@ -1,3 +1,29 @@
+Set-Location 'C:\repo\reportes\APIREPORTS'
+
+$Archivo = 'src/main/java/com/lockton/rpt/RptApplication.java'
+
+Write-Host "`n===== VERSIÓN ACTUAL PRE-MAIN (OURS) =====" -ForegroundColor Cyan
+git show ":2:$Archivo"
+
+Write-Host "`n===== VERSIÓN DEL COMMIT 4d47ff7 (THEIRS) =====" -ForegroundColor Yellow
+git show ":3:$Archivo"
+
+Write-Host "`n===== CAMBIO ORIGINAL DEL COMMIT =====" -ForegroundColor Magenta
+git show `
+    --format=fuller `
+    4d47ff7ee90b37d3610536aed629e308d89e8960 `
+    -- $Archivo
+
+Write-Host "`n===== ESTADO =====" -ForegroundColor Cyan
+git status --short
+
+
+-----------------------------------
+
+
+
+
+
 Escribe CONTINUAR API REPORTS: CONTINUAR API REPORTS
 
 Aplicando 657809e3ac259b758713772b56872e5b01faa086...
