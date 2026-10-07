@@ -1,3 +1,31 @@
+Escribe PUBLICAR FRONT: PUBLICAR FRONT
+Enumerating objects: 155, done.
+Counting objects: 100% (155/155), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (120/120), done.
+Writing objects: 100% (137/137), 21.28 KiB | 1.06 MiB/s, done.
+Total 137 (delta 116), reused 21 (delta 17), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (116/116), completed with 15 local objects.
+To https://github.com/LcktnMX/BeFlex3-EmpAdm.git
+   a4e0c1ec..8c857d3b  PRE-MAIN-REPORTS -> PRE-MAIN-REPORTS
+branch 'PRE-MAIN-REPORTS' set up to track 'origin/PRE-MAIN-REPORTS'.
+FRONT publicado correctamente.
+
+REPOSITORIO: API REPORTS
+No existe localmente PRE-MAIN-REPORTS en API REPORTS.
+En línea: 281 Carácter: 13
++             throw "No existe localmente $RamaDestino en $($Publicacio ...
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (No existe local...en API REPORTS.:String) [], RuntimeException
+    + FullyQualifiedErrorId : No existe localmente PRE-MAIN-REPORTS en API REPORTS.
+ 
+PS C:\repo\reportes\FRONT> 
+
+
+
+-------
+
+
 $ErrorActionPreference = 'Stop'
 
 $RepoFront = 'C:\repo\reportes\FRONT'
