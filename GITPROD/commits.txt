@@ -1,3 +1,43 @@
+Escribe APLICAR FRONT para continuar: APLICAR FRONT
+branch 'PRE-MAIN-REPORTS' set up to track 'origin/PRE-MAIN-REPORTS'.
+Switched to a new branch 'PRE-MAIN-REPORTS'
+From https://github.com/LcktnMX/BeFlex3-EmpAdm
+ * branch              PRE-MAIN-REPORTS -> FETCH_HEAD
+Already up to date.
+
+Aplicando 282f2338c0a2b018a1e8d199407b4c73f7e02ea6...
+Auto-merging src/app/services/global.ts
+CONFLICT (content): Merge conflict in src/app/services/global.ts
+error: could not apply 282f2338... feature to qa
+hint: After resolving the conflicts, mark them with
+hint: "git add/rm <pathspec>", then run
+hint: "git cherry-pick --continue".
+hint: You can instead skip this commit with "git cherry-pick --skip".
+hint: To abort and get back to the state before "git cherry-pick",
+hint: run "git cherry-pick --abort".
+hint: Disable this message with "git config set advice.mergeConflict false"
+
+EL PROCESO SE DETUVO EN: 282f2338c0a2b018a1e8d199407b4c73f7e02ea6
+Después de resolver los conflictos:
+  git add -- <archivos-resueltos>
+  git cherry-pick --continue
+
+Para cancelar el cherry-pick actual:
+  git cherry-pick --abort
+Conflicto durante el cherry-pick de 282f2338c0a2b018a1e8d199407b4c73f7e02ea6.
+En línea: 245 Carácter: 17
++                 throw "Conflicto durante el cherry-pick de $Commit."
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Conflicto duran...7b4c73f7e02ea6.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Conflicto durante el cherry-pick de 282f2338c0a2b018a1e8d199407b4c73f7e02ea6.
+
+
+
+
+---------------------------------------
+
+
+
 $ErrorActionPreference = 'Stop'
 
 $RepoFront = 'C:\repo\reportes\FRONT'
