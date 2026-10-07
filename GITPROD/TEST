@@ -1,71 +1,58 @@
 -----git branch --show-current
-$AutorGit = 'consultor.ti40@lockton.com'
-$RamaDestino = 'master'
+# =========================
+# PARÁMETROS
+# =========================
+$RutaRepo   = 'C:\repo\reportes\FRONT'
+$RamaOrigen = 'origin/issue-reportesabanaQA'
+$RamaQA     = 'origin/QA'
+$RamaProd   = 'origin/master'
+$AutorGit   = 'consultor.ti40@lockton.com'
 
-$Repositorios = @(
-    @{
-        Nombre = 'FRONT'
-        Ruta   = 'C:\repo\reportes\FRONT'
-        Origen = 'issue-reportesabanaQA'
-    },
-    @{
-        Nombre = 'API REPORTS'
-        Ruta   = 'C:\repo\reportes\APIREPORTS'
-        Origen = 'COLOCA_AQUI_LA_RAMA_DE_API_REPORTS'
+Set-Location -LiteralPath $RutaRepo
+
+Write-Host "`nMERGES EXISTENTES EN LA RAMA" -ForegroundColor Cyan
+
+$Merges = @(git rev-list --first-parent --merges $RamaOrigen)
+
+foreach ($Merge in $Merges) {
+    $Datos = (git show -s --format='%H|%ad|%an <%ae>|%s|%P' --date=iso $Merge) -split '\|', 5
+    $Padres = @($Datos[4] -split ' ')
+
+    # En un merge normal, el segundo padre corresponde a la rama incorporada.
+    $SegundoPadre = if ($Padres.Count -gt 1) { $Padres[1] } else { $null }
+    $PosibleMergeQA = $false
+
+    if ($SegundoPadre) {
+        git merge-base --is-ancestor $SegundoPadre $RamaQA
+        $PosibleMergeQA = ($LASTEXITCODE -eq 0)
     }
-)
 
-foreach ($Repo in $Repositorios) {
-    Write-Host "`n========================================" -ForegroundColor Cyan
-    Write-Host $Repo.Nombre -ForegroundColor Cyan
-    Write-Host "Repositorio: $($Repo.Ruta)"
-    Write-Host "Rama origen: $($Repo.Origen)"
-    Write-Host "Comparación: origin/$RamaDestino..origin/$($Repo.Origen)"
-    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host "`nMERGE: $($Datos[0])" -ForegroundColor Yellow
+    Write-Host "Fecha: $($Datos[1])"
+    Write-Host "Autor: $($Datos[2])"
+    Write-Host "Título: $($Datos[3])"
+    Write-Host "Padres: $($Datos[4])"
+    Write-Host "Posible origen QA: $PosibleMergeQA"
 
-    Push-Location -LiteralPath $Repo.Ruta
-
-    try {
-        git rev-parse --is-inside-work-tree | Out-Null
-        if ($LASTEXITCODE -ne 0) {
-            throw "No es un repositorio Git: $($Repo.Ruta)"
-        }
-
-        # Solo actualiza referencias remotas; no modifica archivos ni ramas.
-        git fetch origin --prune
-        if ($LASTEXITCODE -ne 0) {
-            throw "No se pudo consultar origin en $($Repo.Nombre)."
-        }
-
-        git show-ref --verify --quiet "refs/remotes/origin/$($Repo.Origen)"
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host 'La rama indicada no existe. Ramas disponibles:' -ForegroundColor Yellow
-            git branch -r
-            continue
-        }
-
-        git show-ref --verify --quiet "refs/remotes/origin/$RamaDestino"
-        if ($LASTEXITCODE -ne 0) {
-            throw "No existe origin/$RamaDestino."
-        }
-
-        Write-Host "`nRama local actual:" -ForegroundColor Yellow
-        git branch --show-current
-
-        Write-Host "`nCommits del usuario pendientes de master:" -ForegroundColor Green
+    if ($SegundoPadre) {
+        Write-Host 'Commits introducidos por este merge:' -ForegroundColor DarkCyan
 
         git log `
-            "origin/$RamaDestino..origin/$($Repo.Origen)" `
-            --author="$AutorGit" `
+            "$($Padres[0])..$SegundoPadre" `
             --reverse `
             --date=format:'%Y-%m-%d %H:%M:%S' `
-            --pretty=format:'COMMIT: %H%nFECHA: %ad%nAUTOR: %an <%ae>%nTÍTULO: %s%nDESCRIPCIÓN:%n%b%nARCHIVOS:' `
-            --name-status
-
-        Write-Host "`n`nEstado del repositorio:" -ForegroundColor Yellow
-        git status --short
-    }
-    finally {
-        Pop-Location
+            --pretty=format:'  %H | %ad | %an <%ae> | %s'
     }
 }
+
+Write-Host "`n`nCANDIDATOS DE NUESTRO DESARROLLO" -ForegroundColor Green
+Write-Host '(Excluye merges y commits heredados dentro de esos merges)'
+
+git log `
+    "$RamaProd..$RamaOrigen" `
+    --first-parent `
+    --no-merges `
+    --author="$AutorGit" `
+    --reverse `
+    --date=format:'%Y-%m-%d %H:%M:%S' `
+    --pretty=format:'%H | %ad | %an <%ae> | %s'
