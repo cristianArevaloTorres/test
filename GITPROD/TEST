@@ -1,3 +1,53 @@
+Aplicando a944ff6423d30f88721a8ff4871ccbf955e35171...
+Auto-merging src/app/services/calculadora-retiro.service.ts
+CONFLICT (content): Merge conflict in src/app/services/calculadora-retiro.service.ts
+Auto-merging src/app/services/global.ts
+CONFLICT (content): Merge conflict in src/app/services/global.ts
+error: could not apply a944ff64... feat: add confidencial filter to sabana-beneficios; refactor global.ts URLs to use environment
+hint: After resolving the conflicts, mark them with
+hint: "git add/rm <pathspec>", then run
+hint: "git cherry-pick --continue".
+hint: You can instead skip this commit with "git cherry-pick --skip".
+hint: To abort and get back to the state before "git cherry-pick",
+hint: run "git cherry-pick --abort".
+hint: Disable this message with "git config set advice.mergeConflict false"
+
+EL PROCESO SE DETUVO EN: a944ff6423d30f88721a8ff4871ccbf955e35171
+Conflictos pendientes:
+M  src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
+M  src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
+UU src/app/services/calculadora-retiro.service.ts
+UU src/app/services/global.ts
+M  src/environments/environment.prod.ts
+M  src/environments/environment.ts
+
+Para cancelar únicamente el commit actual:
+  git cherry-pick --abort
+Conflicto manual durante el cherry-pick de a944ff6423d30f88721a8ff4871ccbf955e35171.
+En línea: 252 Carácter: 5
++     throw "Conflicto manual durante el cherry-pick de $Commit."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Conflicto manua...1ccbf955e35171.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Conflicto manual durante el cherry-pick de a944ff6423d30f88721a8ff4871ccbf955e35171.
+ 
+PS C:\repo\reportes\FRONT> 
+
+
+---------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 $ErrorActionPreference = 'Stop'
 
 # ============================================================
