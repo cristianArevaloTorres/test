@@ -1,3 +1,119 @@
+PS C:\repo\reportes\FRONT> $ErrorActionPreference = 'Stop'
+>> 
+>> Set-Location 'C:\repo\reportes\FRONT'
+>> 
+>> $CommitEsperado = 'a944ff6423d30f88721a8ff4871ccbf955e35171'
+>> 
+>> $CommitActivo = (git rev-parse CHERRY_PICK_HEAD).Trim()
+>> 
+>> if ($CommitActivo -ne $CommitEsperado) {
+>>     throw "El commit activo es $CommitActivo y se esperaba $CommitEsperado."
+>> }
+>> 
+>> $ArchivosQueConservanDestino = @(
+>>     'src/app/services/calculadora-retiro.service.ts',
+>>     'src/app/services/global.ts',
+>>     'src/environments/environment.prod.ts',
+>>     'src/environments/environment.ts'
+>> )
+>> 
+>> # Conservar estos cuatro archivos exactamente como estaban
+>> # en PRE-MAIN-REPORTS antes del cherry-pick.
+>> git restore `
+>>     --source=HEAD `
+>>     --staged `
+>>     --worktree `
+>>     -- $ArchivosQueConservanDestino
+>> 
+>> if ($LASTEXITCODE -ne 0) {
+>>     throw 'No fue posible restaurar los archivos de configuración.'
+>> }
+>> 
+>> $ConflictosPendientes = @(
+>>     git diff --name-only --diff-filter=U
+>> )
+>> 
+>> if ($ConflictosPendientes.Count -gt 0) {
+>>     Write-Host 'Todavía existen conflictos:' -ForegroundColor Red
+>>     $ConflictosPendientes
+>>     throw 'No se continuará el cherry-pick.'
+>> }
+>> 
+>> $ArchivosEsperados = @(
+>>     'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html',
+>>     'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts'
+>> )
+>> 
+>> $ArchivosPreparados = @(
+>>     git diff --cached --name-only
+>> )
+>> 
+>> $ArchivosInesperados = @(
+>>     $ArchivosPreparados | Where-Object {
+>>         $_ -notin $ArchivosEsperados
+>>     }
+>> )
+>> 
+>> if ($ArchivosInesperados.Count -gt 0) {
+>>     Write-Host 'Se detectaron archivos inesperados:' -ForegroundColor Red
+>>     $ArchivosInesperados
+>>     throw 'No se continuará el cherry-pick.'
+>> }
+>> 
+>> $ArchivosFaltantes = @(
+>>     $ArchivosEsperados | Where-Object {
+>>         $_ -notin $ArchivosPreparados
+>>     }
+>> )
+>> 
+>> if ($ArchivosFaltantes.Count -gt 0) {
+>>     Write-Host 'No quedaron preparados estos archivos esperados:' -ForegroundColor Red
+>>     $ArchivosFaltantes
+>>     throw 'No se continuará el cherry-pick.'
+>> }
+>> 
+>> Write-Host 'Cambios que se conservarán:' -ForegroundColor Cyan
+>> git diff --cached --stat
+>> git diff --cached --name-only
+>> 
+>> # Continúa sin abrir nuevamente Vim.
+>> git -c core.editor=true cherry-pick --continue
+>> 
+>> if ($LASTEXITCODE -ne 0) {
+>>     throw 'No fue posible finalizar el cherry-pick.'
+>> }
+>> 
+>> Write-Host ''
+>> Write-Host 'Commit de Confidencial aplicado correctamente.' -ForegroundColor Green
+>> git status
+>> 
+Cambios que se conservarán:
+ .../sabana-beneficios/sabana-beneficios.component.html           | 9 +++++++++
+ .../sabana-beneficios/sabana-beneficios.component.ts             | 3 ++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
+src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
+[PRE-MAIN-REPORTS 2ca357b3] feat: add confidencial filter to sabana-beneficios; refactor global.ts URLs to use environment
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Mon Aug 3 18:13:27 2026 -0600
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+Commit de Confidencial aplicado correctamente.
+On branch PRE-MAIN-REPORTS
+Your branch is ahead of 'origin/PRE-MAIN-REPORTS' by 2 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+PS C:\repo\reportes\FRONT> 
+
+
+
+------------------
+
+
+
+
+
 $ErrorActionPreference = 'Stop'
 
 Set-Location 'C:\repo\reportes\FRONT'
