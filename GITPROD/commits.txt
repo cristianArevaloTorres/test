@@ -1,4 +1,89 @@
-﻿COMMIT: 23437799caaaced20fa34baa8d33210dacaa5478
+$ErrorActionPreference = 'Stop'
+
+$Repositorios = @(
+    @{
+        Nombre     = 'FRONT'
+        Ruta       = 'C:\repo\reportes\FRONT'
+        RamaOrigen = 'issue-reportesabanaQA'
+    },
+    @{
+        Nombre     = 'API REPORTS'
+        Ruta       = 'C:\repo\reportes\APIREPORTS'
+        RamaOrigen = 'ReporteSabanaHomologacionOK-clean'
+    }
+)
+
+foreach ($Repo in $Repositorios) {
+    Write-Host ''
+    Write-Host '============================================================' -ForegroundColor Cyan
+    Write-Host "ACTUALIZANDO: $($Repo.Nombre)" -ForegroundColor Cyan
+    Write-Host '============================================================' -ForegroundColor Cyan
+
+    if (-not (Test-Path -LiteralPath $Repo.Ruta -PathType Container)) {
+        throw "No existe la ruta: $($Repo.Ruta)"
+    }
+
+    Push-Location -LiteralPath $Repo.Ruta
+
+    try {
+        git rev-parse --is-inside-work-tree | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "No es un repositorio Git: $($Repo.Ruta)"
+        }
+
+        $RamaAntes = (git branch --show-current).Trim()
+
+        Write-Host "Rama local actual: $RamaAntes" -ForegroundColor Yellow
+        Write-Host "Descargando origin/$($Repo.RamaOrigen)..." -ForegroundColor Cyan
+
+        # Descarga la rama remota y todos sus commits, incluyendo los
+        # creados directamente desde la página de GitHub.
+        git fetch origin `
+            "+refs/heads/$($Repo.RamaOrigen):refs/remotes/origin/$($Repo.RamaOrigen)"
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "Falló el fetch de origin/$($Repo.RamaOrigen)."
+        }
+
+        git show-ref --verify --quiet "refs/remotes/origin/$($Repo.RamaOrigen)"
+        if ($LASTEXITCODE -ne 0) {
+            throw "No se encontró origin/$($Repo.RamaOrigen) después del fetch."
+        }
+
+        $RamaDespues = (git branch --show-current).Trim()
+
+        if ($RamaAntes -ne $RamaDespues) {
+            throw "La rama local cambió inesperadamente de $RamaAntes a $RamaDespues."
+        }
+
+        Write-Host ''
+        Write-Host "Últimos commits descargados de origin/$($Repo.RamaOrigen):" -ForegroundColor Green
+
+        git log `
+            "origin/$($Repo.RamaOrigen)" `
+            --first-parent `
+            --no-merges `
+            -15 `
+            --date='format:%Y-%m-%d %H:%M' `
+            --pretty=format:'%h | %an | %ad | %s'
+
+        Write-Host ''
+        Write-Host ''
+        Write-Host "$($Repo.Nombre) quedó actualizado para el cherry-pick." -ForegroundColor Green
+        Write-Host "Continúas en la rama local: $RamaDespues" -ForegroundColor Green
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+Write-Host ''
+Write-Host 'FRONT y API REPORTS quedaron descargados y listos.' -ForegroundColor Green
+Write-Host 'Todavía NO se ejecutó ningún cherry-pick, pull, switch, commit ni push.' -ForegroundColor Yellow
+
+------------
+
+COMMIT: 23437799caaaced20fa34baa8d33210dacaa5478
 FECHA: 2026-08-18 14:59:09
 AUTOR: CristianLockton <consultor.ti40@lockton.com>
 COMMITTER: GitHub <noreply@github.com>
