@@ -1,1 +1,75 @@
 
+$UsuarioGit = 'CristianLockton'
+$CorreoGit  = 'consultor.ti40@lockton.com'
+
+$Repositorios = @(
+    @{
+        Nombre = 'FRONT'
+        Ruta   = 'C:\repo\reportes\FRONT'
+        Branch = 'issue-reportesabanaQA'
+    },
+    @{
+        Nombre = 'BACKEND'
+        Ruta   = 'C:\repo\reportes\BACKEND'
+        Branch = 'NOMBRE_BRANCH_BACKEND'
+    },
+    @{
+        Nombre = 'API_REPORTS'
+        Ruta   = 'C:\repo\reportes\API_REPORTS'
+        Branch = 'NOMBRE_BRANCH_API_REPORTS'
+    }
+)
+
+$PatronAutor = (
+    [regex]::Escape($UsuarioGit),
+    [regex]::Escape($CorreoGit)
+) -join '|'
+
+foreach ($Repositorio in $Repositorios) {
+    Write-Host ''
+    Write-Host '============================================================' -ForegroundColor Cyan
+    Write-Host "REPOSITORIO: $($Repositorio.Nombre)" -ForegroundColor Cyan
+    Write-Host "RAMA:        $($Repositorio.Branch)"
+    Write-Host '============================================================' -ForegroundColor Cyan
+
+    git -C $Repositorio.Ruta rev-parse --is-inside-work-tree 2>$null |
+        Out-Null
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "No existe o no es un repositorio: $($Repositorio.Ruta)"
+        continue
+    }
+
+    git -C $Repositorio.Ruta show-ref `
+        --verify `
+        --quiet `
+        "refs/remotes/origin/$($Repositorio.Branch)"
+
+    if ($LASTEXITCODE -eq 0) {
+        $Referencia = "origin/$($Repositorio.Branch)"
+    }
+    else {
+        git -C $Repositorio.Ruta show-ref `
+            --verify `
+            --quiet `
+            "refs/heads/$($Repositorio.Branch)"
+
+        if ($LASTEXITCODE -eq 0) {
+            $Referencia = $Repositorio.Branch
+        }
+        else {
+            Write-Warning "No se encontró la rama $($Repositorio.Branch)."
+            continue
+        }
+    }
+
+    git -C $Repositorio.Ruta log `
+        $Referencia `
+        --extended-regexp `
+        "--author=$PatronAutor" `
+        --no-merges `
+        --date=format:'%Y-%m-%d %H:%M:%S' `
+        --pretty=format:'COMMIT:      %H%nHASH CORTO:  %h%nFECHA:       %ad%nAUTOR:       %an <%ae>%nTITULO:      %s%nDESCRIPCION:%n%b%n------------------------------------------------------------%n'
+
+    Write-Host ''
+}
