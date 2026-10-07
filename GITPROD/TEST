@@ -1,50 +1,25 @@
-PS C:\repo\reportes\APIREPORTS> Set-Location 'C:\repo\reportes\APIREPORTS'
->> 
->> $Repositorio = 'src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java'
->> $Properties = 'src/main/resources/application.properties'
->> $Commit = '22f437eb62cc338429e479a3d571447eeb1d0d63'
->> 
->> Write-Host "`n===== REPOSITORY ACTUAL PRE-MAIN (OURS) =====" -ForegroundColor Cyan
->> git show ":2:$Repositorio"
->> 
->> Write-Host "`n===== REPOSITORY DEL COMMIT (THEIRS) =====" -ForegroundColor Yellow
->> git show ":3:$Repositorio"
->> 
->> Write-Host "`n===== PROPERTIES ACTUAL PRE-MAIN (OURS) =====" -ForegroundColor Cyan
->> git show ":2:$Properties"
->> 
->> Write-Host "`n===== PROPERTIES DEL COMMIT (THEIRS) =====" -ForegroundColor Yellow
->> git show ":3:$Properties"
->> 
->> Write-Host "`n===== CAMBIO ORIGINAL EN AMBOS ARCHIVOS =====" -ForegroundColor Magenta
->> git show `
->>     --format=fuller `
->>     $Commit `
->>     -- $Repositorio $Properties
->> 
->> Write-Host "`n===== ESTADO =====" -ForegroundColor Cyan
->> git status --short
+$ErrorActionPreference = 'Stop'
 
-===== REPOSITORY ACTUAL PRE-MAIN (OURS) =====
-package com.lockton.rpt.repositories;
+Set-Location 'C:\repo\reportes\APIREPORTS'
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+$CommitEsperado = '22f437eb62cc338429e479a3d571447eeb1d0d63'
+$Repositorio = 'src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java'
+$Properties = 'src/main/resources/application.properties'
+$Utf8SinBom = [System.Text.UTF8Encoding]::new($false)
 
-import com.lockton.rpt.models.entities.ControlReporteGen;
-
-@Repository
-public interface CtlRptGenRepository extends JpaRepository<ControlReporteGen, Long> {
-    boolean existsByCRptIdUsuarioSolicitudAndCRptIdReporteAndCRptIdEmpresaAndCRptParamsAndCRptIdEstatus(
-        Integer cRptIdUsuarioSolicitud,
-        Integer cRptIdReporte,
-        Integer cRptIdEmpresa,
-        String cRptParams,
-        Integer cRptIdEstatus
-    );
+$RamaActual = (git branch --show-current).Trim()
+if ($RamaActual -ne 'PRE-MAIN-REPORTS') {
+    throw "La rama actual es $RamaActual; se esperaba PRE-MAIN-REPORTS."
 }
 
-===== REPOSITORY DEL COMMIT (THEIRS) =====
+$CommitActivo = (git rev-parse CHERRY_PICK_HEAD).Trim()
+if ($CommitActivo -ne $CommitEsperado) {
+    throw "El cherry-pick activo es $CommitActivo; se esperaba $CommitEsperado."
+}
+
+# Combinar ambas versiones del repositorio:
+# conserva el método existente y agrega los dos métodos nuevos.
+$ContenidoRepositorio = @'
 package com.lockton.rpt.repositories;
 
 import java.util.List;
@@ -58,13 +33,13 @@ import com.lockton.rpt.models.entities.ControlReporteGen;
 
 @Repository
 public interface CtlRptGenRepository extends JpaRepository<ControlReporteGen, Long> {
-//    boolean existsByCRptIdUsuarioSolicitudAndCRptIdReporteAndCRptIdEmpresaAndCRptParamsAndCRptIdEstatus(
-//        Integer cRptIdUsuarioSolicitud,
-//        Integer cRptIdReporte,
-//        Integer cRptIdEmpresa,
-//        String cRptParams,
-//        Integer cRptIdEstatus
-//    );
+    boolean existsByCRptIdUsuarioSolicitudAndCRptIdReporteAndCRptIdEmpresaAndCRptParamsAndCRptIdEstatus(
+            Integer cRptIdUsuarioSolicitud,
+            Integer cRptIdReporte,
+            Integer cRptIdEmpresa,
+            String cRptParams,
+            Integer cRptIdEstatus
+    );
 
     @Query(
             "SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END " +
@@ -97,178 +72,129 @@ public interface CtlRptGenRepository extends JpaRepository<ControlReporteGen, Lo
             @Param("idReporte") Integer idReporte,
             @Param("idEmpresa") Integer idEmpresa,
             @Param("params") String params,
+            @Param("estatus") List<Integer> estatus
+    );
+}
+'@
 
-===== PROPERTIES ACTUAL PRE-MAIN (OURS) =====
-application.title=API de reportes en segundo plano
-application.version=1.0
-#spring.main.banner-mode=off
+$RutaRepositorio = Join-Path (Get-Location) $Repositorio
 
-spring.profiles.active=dev
-spring.application.name=rpt
-server.port=8182
+[System.IO.File]::WriteAllText(
+    $RutaRepositorio,
+    $ContenidoRepositorio + [Environment]::NewLine,
+    $Utf8SinBom
+)
 
-spring.task.poolsize=5
-spring.task.maxpoolsize=10
-spring.task.queuecapacity=50
+# Conservar application.properties de PRE-MAIN-REPORTS.
+git checkout --ours -- $Properties
 
-spring.mail.host=${HOST_MAIL}
-spring.mail.port=${PORT_MAIL:587}
-spring.mail.username=${USER_MAIL}
-spring.mail.password=${PASS_MAIL}
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=false
+if ($LASTEXITCODE -ne 0) {
+    throw 'No se pudo recuperar application.properties de PRE-MAIN-REPORTS.'
+}
 
-#server.ssl.key-store=classpath:ssl-server.jks
-#server.ssl.key-store-password: changeit
-#server.ssl.keyStoreType: JKS
-#server.ssl.keyAlias: selfsigned_localhost_sslserver
+$RutaProperties = Join-Path (Get-Location) $Properties
+$ContenidoProperties = [System.IO.File]::ReadAllText($RutaProperties)
+$Ancla = 'spring.task.queuecapacity=50'
 
-spring.datasourcerpt.url=jdbc:sqlserver://${BD_SERVER}
-spring.datasourcerpt.username=${BD_USER}
-spring.datasourcerpt.password=${BD_PASSWORD}
-spring.datasourcerpt.hikari.idle-timeout=180000
-spring.datasourcerpt.hikari.connectionTimeout=180000
-spring.datasourcerpt.hikari.maxLifetime=180000
-spring.datasourcerpt.hikari.minimumIdle=10
-spring.datasourcerpt.hikari.maximumPoolSize=5000
-#spring.datasource.name="ReportesDataSourse"
-#spring.datasource.hikari.pool-name="ReportesPool"
-#spring.jmx.default-domain="WSBeflexReportes"
-spring.datasourcerpt.driverClassName=com.microsoft.sqlserver.jdbc.SQLServerDriver
+if (-not $ContenidoProperties.Contains($Ancla)) {
+    throw "No se encontró la línea '$Ancla' en application.properties."
+}
 
-spring.jmx.enabled=false
-spring.datasourcerpt.hikari.register-mbeans=false
-spring.datasourcerpt.hikari.pool-name=RPTPool-QA
+$SaltoLinea = if ($ContenidoProperties.Contains("`r`n")) {
+    "`r`n"
+}
+else {
+    "`n"
+}
 
-#logging.level.com.microsoft.sqlserver=DEBUG
+$LineasCobranza = @(
+    '# Cobranza se procesa de forma serial para no competir por memoria/conexiones.'
+    '# Las solicitudes adicionales permanecen EN_ESPERA en una cola acotada.'
+    'cobranza.queue.capacity=5'
+    'cobranza.queue.lock-timeout-ms=30000'
+    ''
+    '# La precarga automatica queda deshabilitada. Solo se habilita de forma'
+    '# explicita despues de una prueba de carga controlada.'
+    'cobranza.cache.worker.enabled=false'
+)
 
-odessa.administrador=${ODESSA_ADMINISTRADOR}
-odessa.nip=${ODESSA_NIP}
-odessa.empresa=${ODESSA_EMPRESA}
+$BloqueCobranza = $LineasCobranza -join $SaltoLinea
 
-spring.servlet.multipart.max-file-size=65MB 
-#spring.datasource.tomcat.max-wait=20000
-#spring.datasource.tomcat.max-active=50
-#spring.datasource.tomcat.initial-size=10
-#spring.datasource.tomcat.min-idle=10
+$ContenidoProperties = $ContenidoProperties.Replace(
+    $Ancla,
+    $Ancla + $SaltoLinea + $SaltoLinea + $BloqueCobranza
+)
 
-===== PROPERTIES DEL COMMIT (THEIRS) =====
-application.title=API de reportes en segundo plano
-application.version=1.0
-#spring.main.banner-mode=off
+[System.IO.File]::WriteAllText(
+    $RutaProperties,
+    $ContenidoProperties,
+    $Utf8SinBom
+)
 
-spring.profiles.active=dev
-spring.application.name=rpt
-server.port=8182
+git add -- $Repositorio $Properties
 
-spring.task.poolsize=5
-spring.task.maxpoolsize=10
-spring.task.queuecapacity=50
+if ($LASTEXITCODE -ne 0) {
+    throw 'No fue posible preparar los dos archivos resueltos.'
+}
 
-# Cobranza se procesa de forma serial para no competir por memoria/conexiones.
-# Las solicitudes adicionales permanecen EN_ESPERA en una cola acotada.
-cobranza.queue.capacity=5
-cobranza.queue.lock-timeout-ms=30000
+$ConflictosPendientes = @(git diff --name-only --diff-filter=U)
 
-# La precarga automatica queda deshabilitada. Solo se habilita de forma
-# explicita despues de una prueba de carga controlada.
-cobranza.cache.worker.enabled=false
+if ($ConflictosPendientes.Count -gt 0) {
+    Write-Host 'Todavía existen conflictos:' -ForegroundColor Red
+    $ConflictosPendientes
+    throw 'No se continuará el cherry-pick.'
+}
 
-spring.mail.host=${HOST_MAIL}
-spring.mail.port=${PORT_MAIL:587}
-spring.mail.username=${USER_MAIL}
-spring.mail.password=${PASS_MAIL}
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=false
+$RepositorioFinal = [System.IO.File]::ReadAllText($RutaRepositorio)
+$PropertiesFinal = [System.IO.File]::ReadAllText($RutaProperties)
 
-#server.ssl.key-store=classpath:ssl-server.jks
-#server.ssl.key-store-password: changeit
-#server.ssl.keyStoreType: JKS
-#server.ssl.keyAlias: selfsigned_localhost_sslserver
+$MetodosRequeridos = @(
+    'existsByCRptIdUsuarioSolicitudAndCRptIdReporteAndCRptIdEmpresaAndCRptParamsAndCRptIdEstatus'
+    'existsControlReporteGen'
+    'findSolicitudesActivas'
+)
 
-spring.datasourcerpt.url=jdbc:sqlserver://${BD_SERVER};encrypt=true;trustServerCertificate=true
-spring.datasourcerpt.username=${BD_USER}
-spring.datasourcerpt.password=${BD_PASSWORD}
-spring.datasourcerpt.hikari.idle-timeout=180000
-spring.datasourcerpt.hikari.connectionTimeout=180000
-spring.datasourcerpt.hikari.maxLifetime=180000
-spring.datasourcerpt.hikari.minimumIdle=10
-spring.datasourcerpt.hikari.maximumPoolSize=5000
-#spring.datasource.name="ReportesDataSourse"
-#spring.datasource.hikari.pool-name="ReportesPool"
-#spring.jmx.default-domain="WSBeflexReportes"
-spring.datasourcerpt.driverClassName=com.microsoft.sqlserver.jdbc.SQLServerDriver
+foreach ($Metodo in $MetodosRequeridos) {
+    if (-not $RepositorioFinal.Contains($Metodo)) {
+        throw "Falta el método requerido: $Metodo"
+    }
+}
 
-spring.jmx.enabled=false
-spring.datasourcerpt.hikari.register-mbeans=false
-spring.datasourcerpt.hikari.pool-name=RPTPool-QA
+$PropiedadesRequeridas = @(
+    'cobranza.queue.capacity=5'
+    'cobranza.queue.lock-timeout-ms=30000'
+    'cobranza.cache.worker.enabled=false'
+    'odessa.administrador=${ODESSA_ADMINISTRADOR}'
+)
 
-#logging.level.com.microsoft.sqlserver=DEBUG
+foreach ($Propiedad in $PropiedadesRequeridas) {
+    if (-not $PropertiesFinal.Contains($Propiedad)) {
+        throw "Falta la propiedad requerida: $Propiedad"
+    }
+}
 
+$Marcadores = @(
+    Select-String `
+        -LiteralPath $RutaRepositorio, $RutaProperties `
+        -Pattern '^(<<<<<<<|=======|>>>>>>>)'
+)
 
-===== CAMBIO ORIGINAL EN AMBOS ARCHIVOS =====
-commit 22f437eb62cc338429e479a3d571447eeb1d0d63
-Author:     CristianLockton <consultor.ti40@lockton.com>
-AuthorDate: Thu Sep 10 14:14:59 2026 -0600
-Commit:     CristianLockton <consultor.ti40@lockton.com>
-CommitDate: Thu Sep 10 14:14:59 2026 -0600
+if ($Marcadores.Count -gt 0) {
+    $Marcadores
+    throw 'Todavía existen marcadores de conflicto.'
+}
 
-    Agrega soporte de consulta histórica de defaulteo
+Write-Host ''
+Write-Host 'Archivos preparados:' -ForegroundColor Cyan
+git status --short
+git --no-pager diff --cached --stat
 
-diff --git a/src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java b/src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java
-index 4901423..6c91738 100644
---- a/src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java
-+++ b/src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java
-@@ -1,5 +1,7 @@
- package com.lockton.rpt.repositories;
- 
-+import java.util.List;
-+
- import org.springframework.data.jpa.repository.JpaRepository;
- import org.springframework.data.jpa.repository.Query;
- import org.springframework.data.repository.query.Param;
-@@ -33,5 +35,21 @@ public interface CtlRptGenRepository extends JpaRepository<ControlReporteGen, Lo
-             @Param("cRptParams") String cRptParams,
-             @Param("cRptIdEstatus") Integer cRptIdEstatus
-     );
--}
- 
-+    @Query(
-+            "SELECT c FROM ControlReporteGen c " +
-+                    "WHERE c.cRptIdUsuarioSolicitud = :idUsuario " +
-+                    "AND c.cRptIdReporte = :idReporte " +
-+                    "AND c.cRptIdEmpresa = :idEmpresa " +
-+                    "AND c.cRptParams = :params " +
-+                    "AND c.cRptIdEstatus IN (:estatus) " +
-+                    "ORDER BY c.cRptId ASC"
-+    )
-+    List<ControlReporteGen> findSolicitudesActivas(
-+            @Param("idUsuario") Integer idUsuario,
-+            @Param("idReporte") Integer idReporte,
-+            @Param("idEmpresa") Integer idEmpresa,
-+            @Param("params") String params,
-+            @Param("estatus") List<Integer> estatus
-+    );
-+}
-diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
-index f41c6e3..ddaf25e 100644
---- a/src/main/resources/application.properties
-+++ b/src/main/resources/application.properties
-@@ -10,6 +10,15 @@ spring.task.poolsize=5
- spring.task.maxpoolsize=10
- spring.task.queuecapacity=50
- 
-+# Cobranza se procesa de forma serial para no competir por memoria/conexiones.
+git -c core.editor=true cherry-pick --continue
 
-===== ESTADO =====
-M  src/main/java/com/lockton/rpt/config/AsyncConfig.java
-M  src/main/java/com/lockton/rpt/controllers/WSCobranzaController.java
-M  src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
-M  src/main/java/com/lockton/rpt/enumeradores/EstatusReporte.java
-M  src/main/java/com/lockton/rpt/jobs/CobranzaCacheWorker.java
-UU src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java
-A  src/main/java/com/lockton/rpt/services/impl/CobranzaExecutionGate.java
-M  src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
-UU src/main/resources/application.properties
-M  src/test/java/com/lockton/rpt/services/impl/CobranzaServiceImplTest.java
-PS C:\repo\reportes\APIREPORTS> 
+if ($LASTEXITCODE -ne 0) {
+    throw 'No fue posible terminar el cherry-pick de 22f437e.'
+}
+
+Write-Host ''
+Write-Host 'Commit 22f437e aplicado correctamente.' -ForegroundColor Green
+git status
