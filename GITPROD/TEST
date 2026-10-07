@@ -1,286 +1,10 @@
-PS C:\repo\reportes\FRONT> $ErrorActionPreference = 'Stop'
->> 
->> Set-Location 'C:\repo\reportes\FRONT'
->> 
->> $CommitEsperado = 'a944ff6423d30f88721a8ff4871ccbf955e35171'
->> 
->> $CommitActivo = (git rev-parse CHERRY_PICK_HEAD).Trim()
->> 
->> if ($CommitActivo -ne $CommitEsperado) {
->>     throw "El commit activo es $CommitActivo y se esperaba $CommitEsperado."
->> }
->> 
->> $ArchivosQueConservanDestino = @(
->>     'src/app/services/calculadora-retiro.service.ts',
->>     'src/app/services/global.ts',
->>     'src/environments/environment.prod.ts',
->>     'src/environments/environment.ts'
->> )
->> 
->> # Conservar estos cuatro archivos exactamente como estaban
->> # en PRE-MAIN-REPORTS antes del cherry-pick.
->> git restore `
->>     --source=HEAD `
->>     --staged `
->>     --worktree `
->>     -- $ArchivosQueConservanDestino
->> 
->> if ($LASTEXITCODE -ne 0) {
->>     throw 'No fue posible restaurar los archivos de configuración.'
->> }
->> 
->> $ConflictosPendientes = @(
->>     git diff --name-only --diff-filter=U
->> )
->> 
->> if ($ConflictosPendientes.Count -gt 0) {
->>     Write-Host 'Todavía existen conflictos:' -ForegroundColor Red
->>     $ConflictosPendientes
->>     throw 'No se continuará el cherry-pick.'
->> }
->> 
->> $ArchivosEsperados = @(
->>     'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html',
->>     'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts'
->> )
->> 
->> $ArchivosPreparados = @(
->>     git diff --cached --name-only
->> )
->> 
->> $ArchivosInesperados = @(
->>     $ArchivosPreparados | Where-Object {
->>         $_ -notin $ArchivosEsperados
->>     }
->> )
->> 
->> if ($ArchivosInesperados.Count -gt 0) {
->>     Write-Host 'Se detectaron archivos inesperados:' -ForegroundColor Red
->>     $ArchivosInesperados
->>     throw 'No se continuará el cherry-pick.'
->> }
->> 
->> $ArchivosFaltantes = @(
->>     $ArchivosEsperados | Where-Object {
->>         $_ -notin $ArchivosPreparados
->>     }
->> )
->> 
->> if ($ArchivosFaltantes.Count -gt 0) {
->>     Write-Host 'No quedaron preparados estos archivos esperados:' -ForegroundColor Red
->>     $ArchivosFaltantes
->>     throw 'No se continuará el cherry-pick.'
->> }
->> 
->> Write-Host 'Cambios que se conservarán:' -ForegroundColor Cyan
->> git diff --cached --stat
->> git diff --cached --name-only
->> 
->> # Continúa sin abrir nuevamente Vim.
->> git -c core.editor=true cherry-pick --continue
->> 
->> if ($LASTEXITCODE -ne 0) {
->>     throw 'No fue posible finalizar el cherry-pick.'
->> }
->> 
->> Write-Host ''
->> Write-Host 'Commit de Confidencial aplicado correctamente.' -ForegroundColor Green
->> git status
->> 
-Cambios que se conservarán:
- .../sabana-beneficios/sabana-beneficios.component.html           | 9 +++++++++
- .../sabana-beneficios/sabana-beneficios.component.ts             | 3 ++-
- 2 files changed, 11 insertions(+), 1 deletion(-)
-src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
-src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
-[PRE-MAIN-REPORTS 2ca357b3] feat: add confidencial filter to sabana-beneficios; refactor global.ts URLs to use environment
- Author: CristianLockton <consultor.ti40@lockton.com>
- Date: Mon Aug 3 18:13:27 2026 -0600
- 2 files changed, 11 insertions(+), 1 deletion(-)
-
-Commit de Confidencial aplicado correctamente.
-On branch PRE-MAIN-REPORTS
-Your branch is ahead of 'origin/PRE-MAIN-REPORTS' by 2 commits.
-  (use "git push" to publish your local commits)
-
-nothing to commit, working tree clean
-PS C:\repo\reportes\FRONT> 
-
-
-
-------------------
-
-
-
-
-
 $ErrorActionPreference = 'Stop'
-
-Set-Location 'C:\repo\reportes\FRONT'
-
-$CommitEsperado = 'a944ff6423d30f88721a8ff4871ccbf955e35171'
-
-$CommitActivo = (git rev-parse CHERRY_PICK_HEAD).Trim()
-
-if ($CommitActivo -ne $CommitEsperado) {
-    throw "El commit activo es $CommitActivo y se esperaba $CommitEsperado."
-}
-
-$ArchivosQueConservanDestino = @(
-    'src/app/services/calculadora-retiro.service.ts',
-    'src/app/services/global.ts',
-    'src/environments/environment.prod.ts',
-    'src/environments/environment.ts'
-)
-
-# Conservar estos cuatro archivos exactamente como estaban
-# en PRE-MAIN-REPORTS antes del cherry-pick.
-git restore `
-    --source=HEAD `
-    --staged `
-    --worktree `
-    -- $ArchivosQueConservanDestino
-
-if ($LASTEXITCODE -ne 0) {
-    throw 'No fue posible restaurar los archivos de configuración.'
-}
-
-$ConflictosPendientes = @(
-    git diff --name-only --diff-filter=U
-)
-
-if ($ConflictosPendientes.Count -gt 0) {
-    Write-Host 'Todavía existen conflictos:' -ForegroundColor Red
-    $ConflictosPendientes
-    throw 'No se continuará el cherry-pick.'
-}
-
-$ArchivosEsperados = @(
-    'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html',
-    'src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts'
-)
-
-$ArchivosPreparados = @(
-    git diff --cached --name-only
-)
-
-$ArchivosInesperados = @(
-    $ArchivosPreparados | Where-Object {
-        $_ -notin $ArchivosEsperados
-    }
-)
-
-if ($ArchivosInesperados.Count -gt 0) {
-    Write-Host 'Se detectaron archivos inesperados:' -ForegroundColor Red
-    $ArchivosInesperados
-    throw 'No se continuará el cherry-pick.'
-}
-
-$ArchivosFaltantes = @(
-    $ArchivosEsperados | Where-Object {
-        $_ -notin $ArchivosPreparados
-    }
-)
-
-if ($ArchivosFaltantes.Count -gt 0) {
-    Write-Host 'No quedaron preparados estos archivos esperados:' -ForegroundColor Red
-    $ArchivosFaltantes
-    throw 'No se continuará el cherry-pick.'
-}
-
-Write-Host 'Cambios que se conservarán:' -ForegroundColor Cyan
-git diff --cached --stat
-git diff --cached --name-only
-
-# Continúa sin abrir nuevamente Vim.
-git -c core.editor=true cherry-pick --continue
-
-if ($LASTEXITCODE -ne 0) {
-    throw 'No fue posible finalizar el cherry-pick.'
-}
-
-Write-Host ''
-Write-Host 'Commit de Confidencial aplicado correctamente.' -ForegroundColor Green
-git status
-
-
-
---------------------
-
-
-
-Aplicando a944ff6423d30f88721a8ff4871ccbf955e35171...
-Auto-merging src/app/services/calculadora-retiro.service.ts
-CONFLICT (content): Merge conflict in src/app/services/calculadora-retiro.service.ts
-Auto-merging src/app/services/global.ts
-CONFLICT (content): Merge conflict in src/app/services/global.ts
-error: could not apply a944ff64... feat: add confidencial filter to sabana-beneficios; refactor global.ts URLs to use environment
-hint: After resolving the conflicts, mark them with
-hint: "git add/rm <pathspec>", then run
-hint: "git cherry-pick --continue".
-hint: You can instead skip this commit with "git cherry-pick --skip".
-hint: To abort and get back to the state before "git cherry-pick",
-hint: run "git cherry-pick --abort".
-hint: Disable this message with "git config set advice.mergeConflict false"
-
-EL PROCESO SE DETUVO EN: a944ff6423d30f88721a8ff4871ccbf955e35171
-Conflictos pendientes:
-M  src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
-M  src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.ts
-UU src/app/services/calculadora-retiro.service.ts
-UU src/app/services/global.ts
-M  src/environments/environment.prod.ts
-M  src/environments/environment.ts
-
-Para cancelar únicamente el commit actual:
-  git cherry-pick --abort
-Conflicto manual durante el cherry-pick de a944ff6423d30f88721a8ff4871ccbf955e35171.
-En línea: 252 Carácter: 5
-+     throw "Conflicto manual durante el cherry-pick de $Commit."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Conflicto manua...1ccbf955e35171.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Conflicto manual durante el cherry-pick de a944ff6423d30f88721a8ff4871ccbf955e35171.
- 
-PS C:\repo\reportes\FRONT> 
-
-
----------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-$ErrorActionPreference = 'Stop'
-
-# ============================================================
-# CONFIGURACIÓN
-# ============================================================
 
 $RepoFront = 'C:\repo\reportes\FRONT'
 $RepoApiReports = 'C:\repo\reportes\APIREPORTS'
-
-$RamaOrigenFront = 'origin/issue-reportesabanaQA'
 $RamaDestino = 'PRE-MAIN-REPORTS'
 
-$CommitEnConflicto = '282f2338c0a2b018a1e8d199407b4c73f7e02ea6'
-$ArchivoGlobal = 'src/app/services/global.ts'
-
-# API Reports ya está preparado localmente.
-# Al terminar Front se publicarán ambos repositorios.
-$HacerPushDeAmbos = $true
-
-# Estos son únicamente los commits posteriores a 282f2338.
-$CommitsRestantesFront = @(
-    'a944ff6423d30f88721a8ff4871ccbf955e35171',
+$CommitsRestantes = @(
     '45c6def3018306d4ee2ee878c77c3823289ab889',
     'eff155abc8af8d7bec2c9c9b2cb1355c41426a9e',
     '7f7aad48a9423ff54fd50c03739958e798b4052d',
@@ -301,146 +25,44 @@ $CommitsRestantesFront = @(
     'f213401d9c1ad51160ad0b504bdfc708e6f97028'
 )
 
-# ============================================================
-# FUNCIÓN PARA RESOLVER ÚNICAMENTE GLOBAL.TS
-# ============================================================
-
-function Resolver-GlobalTsConVersionDestino {
-    param(
-        [Parameter(Mandatory)]
-        [string]$Commit
-    )
-
-    $Conflictos = @(
-        git diff --name-only --diff-filter=U
-    )
-
-    $OtrosConflictos = @(
-        $Conflictos | Where-Object { $_ -ne $ArchivoGlobal }
-    )
-
-    if ($OtrosConflictos.Count -gt 0) {
-        Write-Host ''
-        Write-Host "El commit $Commit tiene conflictos que requieren revisión manual:" -ForegroundColor Red
-
-        $OtrosConflictos | ForEach-Object {
-            Write-Host "  $_" -ForegroundColor Red
-        }
-
-        throw 'El proceso se detuvo para no resolver incorrectamente otros archivos.'
-    }
-
-    if ($ArchivoGlobal -notin $Conflictos) {
-        Write-Host ''
-        Write-Host 'El error no corresponde al conflicto esperado en global.ts.' -ForegroundColor Red
-        git status
-        throw "No se pudo resolver automáticamente el commit $Commit."
-    }
-
-    Write-Host ''
-    Write-Host "Resolviendo $ArchivoGlobal..." -ForegroundColor Cyan
-    Write-Host 'Se conservará la versión de PRE-MAIN-REPORTS.' -ForegroundColor Cyan
-
-    # ours = versión de PRE-MAIN-REPORTS.
-    # Evita introducir la configuración de QA.
-    git checkout --ours -- $ArchivoGlobal
-    if ($LASTEXITCODE -ne 0) {
-        throw "No fue posible conservar la versión destino de $ArchivoGlobal."
-    }
-
-    git add -- $ArchivoGlobal
-    if ($LASTEXITCODE -ne 0) {
-        throw "No fue posible marcar $ArchivoGlobal como resuelto."
-    }
-
-    git diff --cached --quiet
-    $ResultadoDiff = $LASTEXITCODE
-
-    if ($ResultadoDiff -eq 0) {
-        Write-Host "El commit $Commit quedó vacío y será omitido." -ForegroundColor Yellow
-
-        git cherry-pick --skip
-        if ($LASTEXITCODE -ne 0) {
-            throw "No fue posible omitir el commit $Commit."
-        }
-    }
-    elseif ($ResultadoDiff -eq 1) {
-        Write-Host "Continuando el commit $Commit con los demás cambios..." -ForegroundColor Cyan
-
-        git cherry-pick --continue
-        if ($LASTEXITCODE -ne 0) {
-            throw "No fue posible continuar el commit $Commit."
-        }
-    }
-    else {
-        throw 'No fue posible revisar los cambios preparados.'
-    }
-}
-
-# ============================================================
-# CONTINUAR FRONT DESDE EL CONFLICTO ACTUAL
-# ============================================================
+$ArchivosProtegidos = @(
+    'src/app/services/calculadora-retiro.service.ts',
+    'src/app/services/global.ts',
+    'src/environments/environment.prod.ts',
+    'src/environments/environment.ts'
+)
 
 Set-Location -LiteralPath $RepoFront
 
-git rev-parse --is-inside-work-tree | Out-Null
-if ($LASTEXITCODE -ne 0) {
-    throw "No es un repositorio Git: $RepoFront"
-}
+# ============================================================
+# VALIDACIONES INICIALES
+# ============================================================
 
 $RamaActual = (git branch --show-current).Trim()
 
 if ($RamaActual -ne $RamaDestino) {
-    throw "Front está en $RamaActual. Se esperaba la rama $RamaDestino."
+    throw "Estás en $RamaActual. Se esperaba $RamaDestino."
 }
 
 $GitDir = (git rev-parse --absolute-git-dir).Trim()
-$CherryPickHead = Join-Path $GitDir 'CHERRY_PICK_HEAD'
 
-if (-not (Test-Path -LiteralPath $CherryPickHead)) {
-    throw 'No existe el cherry-pick pendiente esperado. No se modificó nada.'
+if (Test-Path -LiteralPath (Join-Path $GitDir 'CHERRY_PICK_HEAD')) {
+    throw 'Todavía existe un cherry-pick pendiente.'
 }
 
-$CommitActivo = (git rev-parse CHERRY_PICK_HEAD).Trim()
+$EstadoInicial = git status --porcelain
 
-if ($CommitActivo -ne $CommitEnConflicto) {
-    throw "El commit activo es $CommitActivo y se esperaba $CommitEnConflicto."
-}
-
-Write-Host ''
-Write-Host "Continuando Front desde $CommitActivo..." -ForegroundColor Cyan
-
-Resolver-GlobalTsConVersionDestino -Commit $CommitActivo
-
-# Confirmar que terminó el cherry-pick actual.
-if (Test-Path -LiteralPath $CherryPickHead) {
-    throw 'El primer cherry-pick continúa pendiente.'
-}
-
-$Pendientes = git status --porcelain
-
-if (-not [string]::IsNullOrWhiteSpace(($Pendientes | Out-String))) {
-    Write-Host 'Front todavía contiene cambios inesperados:' -ForegroundColor Red
+if (-not [string]::IsNullOrWhiteSpace(($EstadoInicial | Out-String))) {
+    Write-Host 'Front contiene cambios locales:' -ForegroundColor Red
     git status --short
-    throw 'No se continuarán los demás commits.'
+    throw 'El repositorio debe estar limpio.'
 }
 
-# ============================================================
-# VALIDAR COMMITS RESTANTES
-# ============================================================
-
-Write-Host ''
-Write-Host "Validando $($CommitsRestantesFront.Count) commits restantes de Front..." -ForegroundColor Cyan
-
-foreach ($Commit in $CommitsRestantesFront) {
+foreach ($Commit in $CommitsRestantes) {
     git cat-file -e "${Commit}^{commit}"
+
     if ($LASTEXITCODE -ne 0) {
         throw "No existe localmente el commit $Commit."
-    }
-
-    git merge-base --is-ancestor $Commit $RamaOrigenFront
-    if ($LASTEXITCODE -ne 0) {
-        throw "El commit $Commit no pertenece a $RamaOrigenFront."
     }
 
     $Registro = @(
@@ -448,78 +70,180 @@ foreach ($Commit in $CommitsRestantesFront) {
     )
 
     if ($Registro.Count -ne 2) {
-        throw "El commit $Commit es un merge y no será aplicado."
+        throw "El commit $Commit es un merge."
     }
 }
 
 Write-Host ''
-Write-Host 'COMMITS RESTANTES QUE SE APLICARÁN:' -ForegroundColor Green
+Write-Host 'COMMITS RESTANTES DE FRONT:' -ForegroundColor Cyan
 
-foreach ($Commit in $CommitsRestantesFront) {
+foreach ($Commit in $CommitsRestantes) {
     git --no-pager show `
         --no-patch `
         --date=format:'%Y-%m-%d %H:%M:%S' `
-        --format='%H | %ad | %an <%ae> | %s' `
+        --format='%h | %ad | %s' `
         $Commit
 }
 
-$Confirmacion = Read-Host "`nEscribe CONTINUAR FRONT para aplicarlos"
+$Confirmacion = Read-Host "`nEscribe APLICAR RESTO FRONT"
 
-if ($Confirmacion -ne 'CONTINUAR FRONT') {
-    throw 'Proceso cancelado. El primer conflicto sí quedó resuelto, pero no se aplicaron los restantes.'
+if ($Confirmacion -ne 'APLICAR RESTO FRONT') {
+    throw 'Proceso cancelado.'
 }
 
 # ============================================================
-# APLICAR LOS 19 COMMITS RESTANTES
+# APLICAR COMMITS
 # ============================================================
 
-$Aplicados = 0
-
-foreach ($Commit in $CommitsRestantesFront) {
+foreach ($Commit in $CommitsRestantes) {
     Write-Host ''
     Write-Host "Aplicando $Commit..." -ForegroundColor Cyan
 
-    git cherry-pick --allow-empty $Commit
+    $HeadAnterior = (git rev-parse HEAD).Trim()
 
-    if ($LASTEXITCODE -eq 0) {
-        $Aplicados++
+    $ArchivosDelCommit = @(
+        git diff-tree `
+            --no-commit-id `
+            --name-only `
+            -r `
+            $Commit
+    )
+
+    $ProtegidosEnCommit = @(
+        $ArchivosDelCommit | Where-Object {
+            $_ -in $ArchivosProtegidos
+        }
+    )
+
+    git cherry-pick --allow-empty $Commit
+    $ResultadoCherryPick = $LASTEXITCODE
+
+    if ($ResultadoCherryPick -eq 0) {
+        # El commit se aplicó, pero puede contener cambios limpios
+        # en archivos de configuración que no deben pasar a PRE-MAIN.
+        if ($ProtegidosEnCommit.Count -gt 0) {
+            Write-Host 'Restaurando archivos protegidos de PRE-MAIN-REPORTS:' -ForegroundColor Yellow
+            $ProtegidosEnCommit | ForEach-Object {
+                Write-Host "  $_" -ForegroundColor Yellow
+            }
+
+            git restore `
+                --source=$HeadAnterior `
+                --staged `
+                --worktree `
+                -- $ProtegidosEnCommit
+
+            if ($LASTEXITCODE -ne 0) {
+                throw "No fue posible proteger la configuración después de $Commit."
+            }
+
+            git diff --cached --quiet
+            $ResultadoAjuste = $LASTEXITCODE
+
+            if ($ResultadoAjuste -eq 1) {
+                git -c core.editor=true commit --amend --no-edit --allow-empty
+
+                if ($LASTEXITCODE -ne 0) {
+                    throw "No fue posible ajustar el commit $Commit."
+                }
+            }
+            elseif ($ResultadoAjuste -ne 0) {
+                throw "No fue posible validar el ajuste del commit $Commit."
+            }
+        }
+
         continue
     }
+
+    # ========================================================
+    # TRATAMIENTO DE CONFLICTOS
+    # ========================================================
 
     $Conflictos = @(
         git diff --name-only --diff-filter=U
     )
 
-    # Si el único conflicto vuelve a ser global.ts,
-    # se conserva automáticamente la configuración destino.
-    if (
-        $Conflictos.Count -eq 1 -and
-        $Conflictos[0] -eq $ArchivoGlobal
-    ) {
-        Resolver-GlobalTsConVersionDestino -Commit $Commit
-        $Aplicados++
+    if ($Conflictos.Count -eq 0) {
+        Write-Host 'El commit no produjo cambios nuevos; será omitido.' -ForegroundColor Yellow
+
+        git cherry-pick --skip
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "No fue posible omitir $Commit."
+        }
+
         continue
     }
 
-    Write-Host ''
-    Write-Host "EL PROCESO SE DETUVO EN: $Commit" -ForegroundColor Red
-    Write-Host 'Conflictos pendientes:' -ForegroundColor Yellow
-    git status --short
+    $ConflictosProtegidos = @(
+        $Conflictos | Where-Object {
+            $_ -in $ArchivosProtegidos
+        }
+    )
 
-    Write-Host ''
-    Write-Host 'Para cancelar únicamente el commit actual:' -ForegroundColor Yellow
-    Write-Host '  git cherry-pick --abort'
+    if ($ConflictosProtegidos.Count -gt 0) {
+        Write-Host 'Conservando la versión PRE-MAIN de archivos protegidos:' -ForegroundColor Yellow
 
-    throw "Conflicto manual durante el cherry-pick de $Commit."
+        $ConflictosProtegidos | ForEach-Object {
+            Write-Host "  $_" -ForegroundColor Yellow
+        }
+
+        git restore `
+            --source=HEAD `
+            --staged `
+            --worktree `
+            -- $ConflictosProtegidos
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "No fue posible resolver los archivos protegidos de $Commit."
+        }
+    }
+
+    $ConflictosRestantes = @(
+        git diff --name-only --diff-filter=U
+    )
+
+    if ($ConflictosRestantes.Count -gt 0) {
+        Write-Host ''
+        Write-Host "El proceso se detuvo en $Commit." -ForegroundColor Red
+        Write-Host 'Estos conflictos sí requieren revisión:' -ForegroundColor Red
+
+        $ConflictosRestantes | ForEach-Object {
+            Write-Host "  $_" -ForegroundColor Red
+        }
+
+        throw "Conflicto manual en $Commit."
+    }
+
+    git diff --cached --quiet
+    $ResultadoPreparado = $LASTEXITCODE
+
+    if ($ResultadoPreparado -eq 0) {
+        git cherry-pick --skip
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "No fue posible omitir el commit vacío $Commit."
+        }
+    }
+    elseif ($ResultadoPreparado -eq 1) {
+        git -c core.editor=true cherry-pick --continue
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "No fue posible continuar el commit $Commit."
+        }
+    }
+    else {
+        throw "No fue posible validar el commit $Commit."
+    }
 }
 
 # ============================================================
-# VALIDAR FRONT
+# VALIDACIÓN FINAL DE FRONT
 # ============================================================
 
-$EstadoFinalFront = git status --porcelain
+$EstadoFinal = git status --porcelain
 
-if (-not [string]::IsNullOrWhiteSpace(($EstadoFinalFront | Out-String))) {
+if (-not [string]::IsNullOrWhiteSpace(($EstadoFinal | Out-String))) {
     Write-Host 'Front terminó con cambios pendientes:' -ForegroundColor Red
     git status --short
     throw 'No se realizará ningún push.'
@@ -527,61 +251,54 @@ if (-not [string]::IsNullOrWhiteSpace(($EstadoFinalFront | Out-String))) {
 
 Write-Host ''
 Write-Host 'FRONT TERMINADO CORRECTAMENTE' -ForegroundColor Green
-Write-Host "Commits restantes aplicados: $Aplicados" -ForegroundColor Green
-
 git --no-pager log --oneline -20
 
 # ============================================================
-# PUSH DE FRONT Y API REPORTS
+# PUBLICAR FRONT Y API REPORTS
 # ============================================================
 
-if ($HacerPushDeAmbos) {
-    $Publicaciones = @(
-        @{
-            Nombre = 'FRONT'
-            Ruta   = $RepoFront
-        },
-        @{
-            Nombre = 'API REPORTS'
-            Ruta   = $RepoApiReports
-        }
-    )
-
-    foreach ($Publicacion in $Publicaciones) {
-        Write-Host ''
-        Write-Host "Preparando push de $($Publicacion.Nombre)..." -ForegroundColor Cyan
-
-        Push-Location -LiteralPath $Publicacion.Ruta
-
-        try {
-            git show-ref --verify --quiet "refs/heads/$RamaDestino"
-            if ($LASTEXITCODE -ne 0) {
-                throw "No existe localmente $RamaDestino en $($Publicacion.Nombre)."
-            }
-
-            Write-Host "Commits locales pendientes de push:" -ForegroundColor Cyan
-            git --no-pager log --oneline "origin/$RamaDestino..$RamaDestino"
-
-            $ConfirmarPush = Read-Host "Escribe PUBLICAR $($Publicacion.Nombre)"
-
-            if ($ConfirmarPush -ne "PUBLICAR $($Publicacion.Nombre)") {
-                throw "No se autorizó el push de $($Publicacion.Nombre)."
-            }
-
-            git push -u origin "$RamaDestino`:$RamaDestino"
-
-            if ($LASTEXITCODE -ne 0) {
-                throw "Falló el push de $($Publicacion.Nombre)."
-            }
-
-            Write-Host "$($Publicacion.Nombre) publicado correctamente." -ForegroundColor Green
-        }
-        finally {
-            Pop-Location
-        }
+$Publicaciones = @(
+    @{
+        Nombre = 'FRONT'
+        Ruta   = $RepoFront
+    },
+    @{
+        Nombre = 'API REPORTS'
+        Ruta   = $RepoApiReports
     }
-}
-else {
-    Write-Host ''
-    Write-Host 'No se realizó push porque $HacerPushDeAmbos está en $false.' -ForegroundColor Yellow
+)
+
+foreach ($Publicacion in $Publicaciones) {
+    Push-Location -LiteralPath $Publicacion.Ruta
+
+    try {
+        Write-Host ''
+        Write-Host "REPOSITORIO: $($Publicacion.Nombre)" -ForegroundColor Cyan
+
+        git show-ref --verify --quiet "refs/heads/$RamaDestino"
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "No existe localmente $RamaDestino en $($Publicacion.Nombre)."
+        }
+
+        Write-Host 'Commits locales pendientes de publicación:' -ForegroundColor Cyan
+        git --no-pager log --oneline "origin/$RamaDestino..$RamaDestino"
+
+        $ConfirmarPush = Read-Host "Escribe PUBLICAR $($Publicacion.Nombre)"
+
+        if ($ConfirmarPush -ne "PUBLICAR $($Publicacion.Nombre)") {
+            throw "No se autorizó el push de $($Publicacion.Nombre)."
+        }
+
+        git push -u origin "$RamaDestino`:$RamaDestino"
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "Falló el push de $($Publicacion.Nombre)."
+        }
+
+        Write-Host "$($Publicacion.Nombre) publicado correctamente." -ForegroundColor Green
+    }
+    finally {
+        Pop-Location
+    }
 }
