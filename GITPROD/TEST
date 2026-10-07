@@ -1,3 +1,51 @@
+Escribe CONTINUAR API REPORTS: CONTINUAR API REPORTS
+
+Aplicando 657809e3ac259b758713772b56872e5b01faa086...
+[PRE-MAIN-REPORTS d8bfbe4] fix: add missing LinkedHashMap import in JDBCCobranza
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Mon Aug 10 18:09:53 2026 -0600
+ 1 file changed, 1 insertion(+)
+
+Aplicando c1ced5f804c24fa648915c3de4d65b46c161969e...
+[PRE-MAIN-REPORTS ebd29ff] fix: migrate test files from JUnit 4 to JUnit 5 imports
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Mon Aug 10 18:25:50 2026 -0600
+ 3 files changed, 10 insertions(+), 10 deletions(-)
+
+Aplicando 4d47ff7ee90b37d3610536aed629e308d89e8960...
+Auto-merging src/main/java/com/lockton/rpt/RptApplication.java
+CONFLICT (content): Merge conflict in src/main/java/com/lockton/rpt/RptApplication.java
+error: could not apply 4d47ff7... feat: reporte sabana homologacion - actualizacion servicios y utilidades
+hint: After resolving the conflicts, mark them with
+hint: "git add/rm <pathspec>", then run
+hint: "git cherry-pick --continue".
+hint: You can instead skip this commit with "git cherry-pick --skip".
+hint: To abort and get back to the state before "git cherry-pick",
+hint: run "git cherry-pick --abort".
+hint: Disable this message with "git config set advice.mergeConflict false"
+
+CONFLICTO EN: 4d47ff7ee90b37d3610536aed629e308d89e8960
+UU src/main/java/com/lockton/rpt/RptApplication.java
+M  src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
+M  src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
+M  src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
+M  src/main/java/com/lockton/rpt/util/Excel_Columna_Multiple.java
+
+No se hizo push.
+El proceso se detuvo en 4d47ff7ee90b37d3610536aed629e308d89e8960.
+En línea: 103 Carácter: 9
++         throw "El proceso se detuvo en $Commit."
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (El proceso se d...29e308d89e8960.:String) [], RuntimeException
+    + FullyQualifiedErrorId : El proceso se detuvo en 4d47ff7ee90b37d3610536aed629e308d89e8960.
+ 
+PS C:\repo\reportes\APIREPORTS> 
+
+
+-----------------------------------------
+
+
+
 $ErrorActionPreference = 'Stop'
 
 Set-Location 'C:\repo\reportes\APIREPORTS'
