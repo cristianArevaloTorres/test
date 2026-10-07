@@ -1,4 +1,4 @@
-
+-----git branch --show-current
 $UsuarioGit = 'CristianLockton'
 $CorreoGit  = 'consultor.ti40@lockton.com'
 
