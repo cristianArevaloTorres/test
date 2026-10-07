@@ -1,4 +1,42 @@
- 
+$ErrorActionPreference = 'Stop'
+
+Set-Location 'C:\repo\reportes\APIREPORTS'
+
+$GitDir = (git rev-parse --absolute-git-dir).Trim()
+
+if (Test-Path -LiteralPath (Join-Path $GitDir 'CHERRY_PICK_HEAD')) {
+    throw 'Existe un cherry-pick pendiente. No se creó el stash.'
+}
+
+Write-Host 'Cambios que se respaldarán:' -ForegroundColor Cyan
+git status --short
+
+$StashName = "respaldo-api-reports-antes-pre-main-$([DateTime]::Now.ToString('yyyyMMddHHmmss'))"
+
+git stash push -u -m $StashName
+
+if ($LASTEXITCODE -ne 0) {
+    throw 'No fue posible guardar los cambios locales.'
+}
+
+$Estado = git status --porcelain
+
+if (-not [string]::IsNullOrWhiteSpace(($Estado | Out-String))) {
+    Write-Host 'Todavía existen cambios:' -ForegroundColor Red
+    git status --short
+    throw 'API Reports todavía no está limpio.'
+}
+
+Write-Host ''
+Write-Host "Respaldo creado: $StashName" -ForegroundColor Green
+Write-Host 'API Reports quedó limpio.' -ForegroundColor Green
+git stash list | Select-Object -First 3
+
+
+
+
+
+---------------------------------
 PS C:\repo\reportes\FRONT> $ErrorActionPreference = 'Stop'
 >> 
 >> $Repo = 'C:\repo\reportes\APIREPORTS'
