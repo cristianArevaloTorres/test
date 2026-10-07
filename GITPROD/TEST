@@ -1,3 +1,189 @@
+CONFLICTO EN: 4d47ff7ee90b37d3610536aed629e308d89e8960
+UU src/main/java/com/lockton/rpt/RptApplication.java
+M  src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
+M  src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
+M  src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
+M  src/main/java/com/lockton/rpt/util/Excel_Columna_Multiple.java
+
+No se hizo push.
+El proceso se detuvo en 4d47ff7ee90b37d3610536aed629e308d89e8960.
+En línea: 103 Carácter: 9
++         throw "El proceso se detuvo en $Commit."
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (El proceso se d...29e308d89e8960.:String) [], RuntimeException
+    + FullyQualifiedErrorId : El proceso se detuvo en 4d47ff7ee90b37d3610536aed629e308d89e8960.
+ 
+PS C:\repo\reportes\APIREPORTS> Set-Location 'C:\repo\reportes\APIREPORTS'
+>> 
+>> $Archivo = 'src/main/java/com/lockton/rpt/RptApplication.java'
+>> 
+>> Write-Host "`n===== VERSIÓN ACTUAL PRE-MAIN (OURS) =====" -ForegroundColor Cyan
+>> git show ":2:$Archivo"
+>> 
+>> Write-Host "`n===== VERSIÓN DEL COMMIT 4d47ff7 (THEIRS) =====" -ForegroundColor Yellow
+>> git show ":3:$Archivo"
+>> 
+>> Write-Host "`n===== CAMBIO ORIGINAL DEL COMMIT =====" -ForegroundColor Magenta
+>> git show `
+>>     --format=fuller `
+>>     4d47ff7ee90b37d3610536aed629e308d89e8960 `
+>>     -- $Archivo
+>> 
+>> Write-Host "`n===== ESTADO =====" -ForegroundColor Cyan
+>> git status --short
+
+===== VERSIÓN ACTUAL PRE-MAIN (OURS) =====
+package com.lockton.rpt;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.annotation.Configuration;
+
+
+/**
+* <p>La clase WsBeFlexApplication extiende de SpringBootServletInitializer que nos permite
+* implementar de una manera tradicional la aplicación empaquetada como WAR.</p>
+* 
+* @author  DTI
+* @since 1.0
+*/
+@ServletComponentScan
+@Configuration
+@EnableAutoConfiguration
+@SpringBootApplication(scanBasePackages = {
+    "com.lockton.rpt.config",
+    "com.lockton.rpt.controllers",
+    "com.lockton.rpt.dao",
+    "com.lockton.rpt.models.entities",
+    "com.lockton.rpt.repositories",
+    "com.lockton.rpt.services",
+    "com.lockton.rpt.services.impl",
+    "com.lockton.rpt.util",
+    "com.lockton.rpt.repe"
+})
+
+public class RptApplication extends SpringBootServletInitializer {
+        private static final Logger LOGGER = LoggerFactory.getLogger(RptApplication.class);
+
+        @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+        return builder.sources(RptApplication.class);
+    }
+
+        public static void main(String[] args) {
+                LOGGER.info("Inicializando API de reportes en segundo plano...");
+                SpringApplication.run(RptApplication.class, args);
+        }
+}
+
+===== VERSIÓN DEL COMMIT 4d47ff7 (THEIRS) =====
+package com.lockton.rpt;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+
+/**
+* <p>La clase WsBeFlexApplication extiende de SpringBootServletInitializer que nos permite
+* implementar de una manera tradicional la aplicación empaquetada como WAR.</p>
+* 
+* @author  DTI
+* @since 1.0
+*/
+@EnableScheduling
+@ServletComponentScan
+@Configuration
+@EnableAutoConfiguration
+@SpringBootApplication(scanBasePackages = {
+        "com.lockton.rpt.config",
+        "com.lockton.rpt.controllers",
+        "com.lockton.rpt.dao",
+        "com.lockton.rpt.jobs",
+        "com.lockton.rpt.models.entities",
+        "com.lockton.rpt.repositories",
+        "com.lockton.rpt.services",
+        "com.lockton.rpt.services.impl",
+        "com.lockton.rpt.util"
+})
+public class RptApplication extends SpringBootServletInitializer {
+        private static final Logger LOGGER = LoggerFactory.getLogger(RptApplication.class);
+
+        @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+        return builder.sources(RptApplication.class);
+    }
+
+        public static void main(String[] args) {
+                LOGGER.info("Inicializando API de reportes en segundo plano...");
+                SpringApplication.run(RptApplication.class, args);
+        }
+}
+
+===== CAMBIO ORIGINAL DEL COMMIT =====
+commit 4d47ff7ee90b37d3610536aed629e308d89e8960
+Author:     CristianLockton <consultor.ti40@lockton.com>
+AuthorDate: Thu Aug 13 16:54:59 2026 -0600
+Commit:     CristianLockton <consultor.ti40@lockton.com>
+CommitDate: Thu Aug 13 16:54:59 2026 -0600
+
+    feat: reporte sabana homologacion - actualizacion servicios y utilidades
+
+diff --git a/src/main/java/com/lockton/rpt/RptApplication.java b/src/main/java/com/lockton/rpt/RptApplication.java
+index 37eb045..6dbde0d 100644
+--- a/src/main/java/com/lockton/rpt/RptApplication.java
++++ b/src/main/java/com/lockton/rpt/RptApplication.java
+@@ -9,6 +9,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
+ import org.springframework.boot.web.servlet.ServletComponentScan;
+ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+ import org.springframework.context.annotation.Configuration;
++import org.springframework.scheduling.annotation.EnableScheduling;
+ 
+ 
+ /**
+@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
+ * @author  DTI
+ * @since 1.0
+ */
++@EnableScheduling
+ @ServletComponentScan
+ @Configuration
+ @EnableAutoConfiguration
+@@ -25,6 +27,7 @@ import org.springframework.context.annotation.Configuration;
+        "com.lockton.rpt.config",
+        "com.lockton.rpt.controllers",
+        "com.lockton.rpt.dao",
++       "com.lockton.rpt.jobs",
+        "com.lockton.rpt.models.entities",
+        "com.lockton.rpt.repositories",
+        "com.lockton.rpt.services",
+
+===== ESTADO =====
+UU src/main/java/com/lockton/rpt/RptApplication.java
+M  src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
+M  src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
+M  src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
+M  src/main/java/com/lockton/rpt/util/Excel_Columna_Multiple.java
+PS C:\repo\reportes\APIREPORTS> 
+
+
+
+--------------------------------------------------
+
+
 Set-Location 'C:\repo\reportes\APIREPORTS'
 
 $Archivo = 'src/main/java/com/lockton/rpt/RptApplication.java'
