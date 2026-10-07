@@ -1,26 +1,100 @@
-Set-Location 'C:\repo\reportes\APIREPORTS'
+PS C:\repo\reportes\APIREPORTS> Set-Location 'C:\repo\reportes\APIREPORTS'
+>> 
+>> $Repositorio = 'src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java'
+>> $Properties = 'src/main/resources/application.properties'
+>> $Commit = '22f437eb62cc338429e479a3d571447eeb1d0d63'
+>> 
+>> Write-Host "`n===== REPOSITORY ACTUAL PRE-MAIN (OURS) =====" -ForegroundColor Cyan
+>> git show ":2:$Repositorio"
+>> 
+>> Write-Host "`n===== REPOSITORY DEL COMMIT (THEIRS) =====" -ForegroundColor Yellow
+>> git show ":3:$Repositorio"
+>> 
+>> Write-Host "`n===== PROPERTIES ACTUAL PRE-MAIN (OURS) =====" -ForegroundColor Cyan
+>> git show ":2:$Properties"
+>> 
+>> Write-Host "`n===== PROPERTIES DEL COMMIT (THEIRS) =====" -ForegroundColor Yellow
+>> git show ":3:$Properties"
+>> 
+>> Write-Host "`n===== CAMBIO ORIGINAL EN AMBOS ARCHIVOS =====" -ForegroundColor Magenta
+>> git show `
+>>     --format=fuller `
+>>     $Commit `
+>>     -- $Repositorio $Properties
+>> 
+>> Write-Host "`n===== ESTADO =====" -ForegroundColor Cyan
+>> git status --short
 
-$Repositorio = 'src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java'
-$Properties = 'src/main/resources/application.properties'
-$Commit = '22f437eb62cc338429e479a3d571447eeb1d0d63'
+===== REPOSITORY ACTUAL PRE-MAIN (OURS) =====
+package com.lockton.rpt.repositories;
 
-Write-Host "`n===== REPOSITORY ACTUAL PRE-MAIN (OURS) =====" -ForegroundColor Cyan
-git show ":2:$Repositorio"
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-Write-Host "`n===== REPOSITORY DEL COMMIT (THEIRS) =====" -ForegroundColor Yellow
-git show ":3:$Repositorio"
+import com.lockton.rpt.models.entities.ControlReporteGen;
 
-Write-Host "`n===== PROPERTIES ACTUAL PRE-MAIN (OURS) =====" -ForegroundColor Cyan
-git show ":2:$Properties"
+@Repository
+public interface CtlRptGenRepository extends JpaRepository<ControlReporteGen, Long> {
+    boolean existsByCRptIdUsuarioSolicitudAndCRptIdReporteAndCRptIdEmpresaAndCRptParamsAndCRptIdEstatus(
+        Integer cRptIdUsuarioSolicitud,
+        Integer cRptIdReporte,
+        Integer cRptIdEmpresa,
+        String cRptParams,
+        Integer cRptIdEstatus
+    );
+}
 
-Write-Host "`n===== PROPERTIES DEL COMMIT (THEIRS) =====" -ForegroundColor Yellow
-git show ":3:$Properties"
+===== REPOSITORY DEL COMMIT (THEIRS) =====
+package com.lockton.rpt.repositories;
 
-Write-Host "`n===== CAMBIO ORIGINAL EN AMBOS ARCHIVOS =====" -ForegroundColor Magenta
-git show `
-    --format=fuller `
-    $Commit `
-    -- $Repositorio $Properties
+import java.util.List;
 
-Write-Host "`n===== ESTADO =====" -ForegroundColor Cyan
-git status --short
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.lockton.rpt.models.entities.ControlReporteGen;
+
+@Repository
+public interface CtlRptGenRepository extends JpaRepository<ControlReporteGen, Long> {
+//    boolean existsByCRptIdUsuarioSolicitudAndCRptIdReporteAndCRptIdEmpresaAndCRptParamsAndCRptIdEstatus(
+//        Integer cRptIdUsuarioSolicitud,
+//        Integer cRptIdReporte,
+//        Integer cRptIdEmpresa,
+//        String cRptParams,
+//        Integer cRptIdEstatus
+//    );
+
+    @Query(
+            "SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END " +
+                    "FROM ControlReporteGen c " +
+                    "WHERE c.cRptIdUsuarioSolicitud = :cRptIdUsuarioSolicitud " +
+                    "AND c.cRptIdReporte = :cRptIdReporte " +
+                    "AND c.cRptIdEmpresa = :cRptIdEmpresa " +
+                    "AND c.cRptParams = :cRptParams " +
+                    "AND c.cRptIdEstatus = :cRptIdEstatus"
+    )
+    boolean existsControlReporteGen(
+            @Param("cRptIdUsuarioSolicitud") Integer cRptIdUsuarioSolicitud,
+            @Param("cRptIdReporte") Integer cRptIdReporte,
+            @Param("cRptIdEmpresa") Integer cRptIdEmpresa,
+            @Param("cRptParams") String cRptParams,
+            @Param("cRptIdEstatus") Integer cRptIdEstatus
+    );
+
+    @Query(
+            "SELECT c FROM ControlReporteGen c " +
+                    "WHERE c.cRptIdUsuarioSolicitud = :idUsuario " +
+                    "AND c.cRptIdReporte = :idReporte " +
+                    "AND c.cRptIdEmpresa = :idEmpresa " +
+                    "AND c.cRptParams = :params " +
+                    "AND c.cRptIdEstatus IN (:estatus) " +
+                    "ORDER BY c.cRptId ASC"
+    )
+    List<ControlReporteGen> findSolicitudesActivas(
+            @Param("idUsuario") Integer idUsuario,
+            @Param("idReporte") Integer idReporte,
+            @Param("idEmpresa") Integer idEmpresa,
+            @Param("params") String params,
+:
