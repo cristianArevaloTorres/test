@@ -1,58 +1,84 @@
 -----git branch --show-current
-# =========================
-# PARÁMETROS
-# =========================
-$RutaRepo   = 'C:\repo\reportes\FRONT'
-$RamaOrigen = 'origin/issue-reportesabanaQA'
-$RamaQA     = 'origin/QA'
-$RamaProd   = 'origin/master'
-$AutorGit   = 'consultor.ti40@lockton.com'
+# ==========================================
+# SOLO CONSULTA: FRONT Y API REPORTS
+# ==========================================
 
-Set-Location -LiteralPath $RutaRepo
+$AutorGit = 'consultor.ti40@lockton.com'
 
-Write-Host "`nMERGES EXISTENTES EN LA RAMA" -ForegroundColor Cyan
-
-$Merges = @(git rev-list --first-parent --merges $RamaOrigen)
-
-foreach ($Merge in $Merges) {
-    $Datos = (git show -s --format='%H|%ad|%an <%ae>|%s|%P' --date=iso $Merge) -split '\|', 5
-    $Padres = @($Datos[4] -split ' ')
-
-    # En un merge normal, el segundo padre corresponde a la rama incorporada.
-    $SegundoPadre = if ($Padres.Count -gt 1) { $Padres[1] } else { $null }
-    $PosibleMergeQA = $false
-
-    if ($SegundoPadre) {
-        git merge-base --is-ancestor $SegundoPadre $RamaQA
-        $PosibleMergeQA = ($LASTEXITCODE -eq 0)
+$Repositorios = @(
+    @{
+        Nombre = 'FRONT'
+        Ruta   = 'C:\repo\reportes\FRONT'
+        Rama   = 'issue-reportesabanaQA'
+    },
+    @{
+        Nombre = 'API REPORTS'
+        Ruta   = 'C:\repo\reportes\APIREPORTS'
+        Rama   = 'COLOCA_AQUI_LA_RAMA_DE_API_REPORTS'
     }
+)
 
-    Write-Host "`nMERGE: $($Datos[0])" -ForegroundColor Yellow
-    Write-Host "Fecha: $($Datos[1])"
-    Write-Host "Autor: $($Datos[2])"
-    Write-Host "Título: $($Datos[3])"
-    Write-Host "Padres: $($Datos[4])"
-    Write-Host "Posible origen QA: $PosibleMergeQA"
+foreach ($Repo in $Repositorios) {
+    Write-Host "`n========================================" -ForegroundColor Cyan
+    Write-Host $Repo.Nombre -ForegroundColor Cyan
+    Write-Host "Ruta: $($Repo.Ruta)"
+    Write-Host "Rama: $($Repo.Rama)"
+    Write-Host '========================================' -ForegroundColor Cyan
 
-    if ($SegundoPadre) {
-        Write-Host 'Commits introducidos por este merge:' -ForegroundColor DarkCyan
+    Push-Location -LiteralPath $Repo.Ruta
+
+    try {
+        git rev-parse --is-inside-work-tree | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "No es un repositorio Git: $($Repo.Ruta)"
+        }
+
+        # No cambia de rama. Determina si se consulta la referencia remota o local.
+        git show-ref --verify --quiet "refs/remotes/origin/$($Repo.Rama)"
+        if ($LASTEXITCODE -eq 0) {
+            $Referencia = "origin/$($Repo.Rama)"
+        } else {
+            git show-ref --verify --quiet "refs/heads/$($Repo.Rama)"
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "No se encontró la rama $($Repo.Rama)." -ForegroundColor Red
+                Write-Host 'Ramas disponibles:' -ForegroundColor Yellow
+                git branch -a
+                continue
+            }
+
+            $Referencia = $Repo.Rama
+        }
+
+        Write-Host "`nCOMMITS DE NUESTRO USUARIO" -ForegroundColor Green
 
         git log `
-            "$($Padres[0])..$SegundoPadre" `
-            --reverse `
+            $Referencia `
+            --author="$AutorGit" `
             --date=format:'%Y-%m-%d %H:%M:%S' `
-            --pretty=format:'  %H | %ad | %an <%ae> | %s'
+            --pretty=format:'COMMIT: %H%nFECHA: %ad%nAUTOR: %an <%ae>%nPADRES: %P%nTÍTULO: %s%nDESCRIPCIÓN:%n%b%n'
+
+        Write-Host "`n`nTODOS LOS MERGES REALIZADOS SOBRE LA RAMA" -ForegroundColor Yellow
+
+        git log `
+            $Referencia `
+            --first-parent `
+            --merges `
+            --date=format:'%Y-%m-%d %H:%M:%S' `
+            --pretty=format:'MERGE: %H%nFECHA: %ad%nAUTOR: %an <%ae>%nPADRES: %P%nTÍTULO: %s%nDESCRIPCIÓN:%n%b%n'
+
+        Write-Host "`n`nHISTORIAL GRÁFICO DE LA RAMA" -ForegroundColor Green
+
+        git log `
+            $Referencia `
+            --first-parent `
+            --graph `
+            --decorate=short `
+            --date=format:'%Y-%m-%d %H:%M:%S' `
+            --pretty=format:'%h | %ad | %an <%ae> | %s'
+
+        Write-Host "`n"
+    }
+    finally {
+        Pop-Location
     }
 }
-
-Write-Host "`n`nCANDIDATOS DE NUESTRO DESARROLLO" -ForegroundColor Green
-Write-Host '(Excluye merges y commits heredados dentro de esos merges)'
-
-git log `
-    "$RamaProd..$RamaOrigen" `
-    --first-parent `
-    --no-merges `
-    --author="$AutorGit" `
-    --reverse `
-    --date=format:'%Y-%m-%d %H:%M:%S' `
-    --pretty=format:'%H | %ad | %an <%ae> | %s'
