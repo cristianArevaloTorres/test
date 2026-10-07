@@ -1,1 +1,42 @@
+src\main\java\com\lockton\WSBeFlex\Services\LogicaFfArchivosAdjuntos.java
+src\main\java\com\lockton\WSBeFlex\DAO\ArchivosAdjuntos\JDBCProcesaFormatos.java
+[bf_AltaConstanciaEmpleado]
+ 
+EMNumeroEmpleado	EMClaveAcceso	EMContraseña
 
+100280826	GAL100280826	9F6bF9EgW/MXIVvQmnaO4A==
+ 
+Prueba123*
+ 
+API_Beflex\Controllers\ConstanciaEmpleadoController.cs
+API_Beflex\Model\IConstanciaEmpleado.cs
+API_Beflex\DAO\ConstanciaEmpleadoDAO.cs
+API_Beflex\Data\IRepositoryConstancia.cs
+API_Beflex\Data\RepositoryConstancia.cs
+API_Beflex\Tools\ConstanciaSAT.cs
+
+
+
+ Conforme a lo conversado en llamada en días pasados.
+ 
+El equipo de beFlex requiere de algunos cambios en los procesos de Reactivación y Transferencia de Empleados que consume el proceso del Middleware.
+ 
+Reactivación:
+SP: bf_ReactivacionEmpleadosTitular
+No actualizar la fecha y hora de alta del registro, se debe mantener la fecha y hora de alta inicial del registro.
+ 
+Transferencia:
+SP: ff_transferenciaMasivaEmpleado
+Asignación de rol por default:
+Buscar el rol por default considerando:
+RODefault = 1
+PEAdministrador = 0
+Si no se encuentra el rol por default, considerar
+PEAdministrador = 0
+Tomar el registro con el menor IDRol si se tiene más de un registro.
+ 
+Cualquier duda, pueden apoyarse con Diego Barron.
+ 
+ 
+Gracias,
+Saludos cordiales
