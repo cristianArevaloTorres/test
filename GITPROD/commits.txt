@@ -1,5 +1,53 @@
 $ErrorActionPreference = 'Stop'
 
+$RepoFront = 'C:\repo\reportes\FRONT'
+$StashName = "respaldo-front-antes-cherry-pick-$([DateTime]::Now.ToString('yyyyMMddHHmmss'))"
+
+Set-Location -LiteralPath $RepoFront
+
+Write-Host 'Estado actual de Front:' -ForegroundColor Cyan
+git status --short
+
+$GitDir = (git rev-parse --git-dir).Trim()
+$CherryPickHead = Join-Path $GitDir 'CHERRY_PICK_HEAD'
+
+if (Test-Path -LiteralPath $CherryPickHead) {
+    throw 'Ya existe un cherry-pick en proceso. No se creó el stash. Revisa git status.'
+}
+
+$Cambios = git status --porcelain
+
+if ([string]::IsNullOrWhiteSpace(($Cambios | Out-String))) {
+    Write-Host 'El repositorio Front ya está limpio.' -ForegroundColor Green
+}
+else {
+    git stash push -u -m $StashName
+
+    if ($LASTEXITCODE -ne 0) {
+        throw 'No fue posible guardar los cambios locales de Front.'
+    }
+
+    $EstadoFinal = git status --porcelain
+
+    if (-not [string]::IsNullOrWhiteSpace(($EstadoFinal | Out-String))) {
+        Write-Host 'Todavía existen cambios pendientes:' -ForegroundColor Red
+        git status --short
+        throw 'Front todavía no quedó limpio.'
+    }
+
+    Write-Host "Front quedó limpio. Respaldo creado: $StashName" -ForegroundColor Green
+    git stash list | Select-Object -First 3
+}
+
+Write-Host ''
+Write-Host 'Ya puedes volver a ejecutar tu comando de cherry-pick.' -ForegroundColor Green
+
+
+--------------------------------
+
+
+$ErrorActionPreference = 'Stop'
+
 $Repositorios = @(
     @{
         Nombre     = 'FRONT'
