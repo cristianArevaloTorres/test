@@ -1,281 +1,88 @@
-139df96 feature to qa
-PS C:\repo\reportes\APIREPORTS> $ErrorActionPreference = 'Stop'
->> 
->> Set-Location 'C:\repo\reportes\APIREPORTS'
->> 
->> $RamaEsperada = 'PRE-MAIN-REPORTS'
->> $CantidadEsperada = 31
->> 
->> $RamaActual = (git branch --show-current).Trim()
->> 
->> if ($RamaActual -ne $RamaEsperada) {
->>     throw "La rama actual es $RamaActual; se esperaba $RamaEsperada."
->> }
->> 
->> $GitDir = (git rev-parse --git-dir).Trim()
->> 
->> if (Test-Path -LiteralPath (Join-Path $GitDir 'CHERRY_PICK_HEAD')) {
->>     throw 'Todavía existe un cherry-pick activo.'
->> }
->> 
->> $EstadoInicial = @(git status --porcelain)
->> 
->> if ($EstadoInicial.Count -gt 0) {
->>     git status --short
->>     throw 'API Reports no está limpio.'
->> }
->> 
->> Write-Host 'Buscando marcadores de conflicto...' -ForegroundColor Cyan
->> 
->> $Marcadores = @(
->>     git grep -n -E '^(<<<<<<<|>>>>>>>)' -- '*.java' '*.properties'
->> )
->> 
->> if ($LASTEXITCODE -notin @(0, 1)) {
->>     throw 'No fue posible buscar marcadores de conflicto.'
->> }
->> 
->> if ($Marcadores.Count -gt 0) {
->>     $Marcadores
->>     throw 'Se encontraron marcadores de conflicto.'
->> }
->> 
->> Write-Host ''
->> Write-Host 'Ejecutando pruebas de API Reports...' -ForegroundColor Cyan
->> 
->> if (Test-Path -LiteralPath '.\mvnw.cmd') {
->>     & .\mvnw.cmd test
->> }
->> elseif (Get-Command mvn -ErrorAction SilentlyContinue) {
->>     & mvn test
->> }
->> else {
->>     throw 'No se encontró mvnw.cmd ni Maven instalado.'
->> }
->> 
->> if ($LASTEXITCODE -ne 0) {
->>     throw 'Las pruebas de API Reports fallaron. No se hará push.'
->> }
->> 
->> $EstadoDespuesPruebas = @(git status --porcelain)
->> 
->> if ($EstadoDespuesPruebas.Count -gt 0) {
->>     git status --short
->>     throw 'Las pruebas dejaron cambios en el repositorio. No se hará push.'
->> }
->> 
->> Write-Host ''
->> Write-Host 'Actualizando referencia remota...' -ForegroundColor Cyan
->> 
->> git fetch origin
->> 
->> if ($LASTEXITCODE -ne 0) {
->>     throw 'No fue posible actualizar las referencias remotas.'
->> }
->> 
->> git rev-parse --verify "origin/$RamaEsperada" *> $null
->> 
->> if ($LASTEXITCODE -ne 0) {
->>     throw "No existe origin/$RamaEsperada."
->> }
->> 
->> $Comparacion = (
->>     (git rev-list --left-right --count "origin/$RamaEsperada...HEAD").Trim() `
->>         -split '\s+'
->> )
->> 
->> if ($Comparacion.Count -ne 2) {
->>     throw 'No fue posible calcular la diferencia con la rama remota.'
->> }
->> 
->> $CommitsSoloRemoto = [int]$Comparacion[0]
->> $CommitsSoloLocal = [int]$Comparacion[1]
->> 
->> if ($CommitsSoloRemoto -gt 0) {
->>     throw "El remoto contiene $CommitsSoloRemoto commits que no están localmente. No se hará push."
->> }
->> 
->> if ($CommitsSoloLocal -ne $CantidadEsperada) {
->>     throw "Se esperaban $CantidadEsperada commits locales, pero se encontraron $CommitsSoloLocal. No se hará push."
->> }
->> 
->> Write-Host ''
->> Write-Host "Validación correcta: $CommitsSoloLocal commits preparados." -ForegroundColor Green
->> Write-Host ''
->> Write-Host 'Commits que se publicarán:' -ForegroundColor Cyan
->> 
->> git --no-pager log `
->>     --oneline `
->>     --reverse `
->>     "origin/$RamaEsperada..HEAD"
->> 
->> Write-Host ''
->> git --no-pager diff --stat "origin/$RamaEsperada..HEAD"
->> 
->> Write-Host ''
->> $Confirmacion = Read-Host 'Escribe PUBLICAR API REPORTS para realizar el push'
->> 
->> if ($Confirmacion -cne 'PUBLICAR API REPORTS') {
->>     throw 'Publicación cancelada. No se hizo push.'
->> }
->> 
->> if ((git branch --show-current).Trim() -ne $RamaEsperada) {
->>     throw 'La rama cambió antes del push.'
->> }
->> 
->> if (@(git status --porcelain).Count -gt 0) {
->>     throw 'El repositorio dejó de estar limpio antes del push.'
->> }
->> 
->> git push --set-upstream origin $RamaEsperada
->> 
->> if ($LASTEXITCODE -ne 0) {
->>     throw 'Falló el push de API Reports.'
->> }
->> 
->> $CommitLocal = (git rev-parse HEAD).Trim()
->> $CommitRemoto = (git rev-parse "origin/$RamaEsperada").Trim()
->> 
->> if ($CommitLocal -ne $CommitRemoto) {
->>     throw 'El push terminó, pero la referencia remota no coincide con HEAD.'
->> }
->> 
->> Write-Host ''
->> Write-Host 'API REPORTS publicado correctamente.' -ForegroundColor Green
->> Write-Host "Rama: $RamaEsperada"
->> Write-Host "Commit final: $CommitLocal"
->> 
->> git status
-Buscando marcadores de conflicto...
+$ErrorActionPreference = 'Stop'
 
-Ejecutando pruebas de API Reports...
-[INFO] Scanning for projects...
-[WARNING] 
-[WARNING] Some problems were encountered while building the effective model for com.lockton:rpt:war:0.0.1-SNAPSHOT
-[WARNING] 'build.plugins.plugin.(groupId:artifactId)' must be unique but found duplicate declaration of plugin org.springframework.boot:spring-boot-maven-plugin @ line 204, column 12
-[WARNING] 
-[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
-[WARNING] 
-[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
-[WARNING] 
-[INFO] 
-[INFO] --------------------------< com.lockton:rpt >---------------------------
-[INFO] Building rpt 0.0.1-SNAPSHOT
-[INFO]   from pom.xml
-[INFO] --------------------------------[ war ]---------------------------------
-Downloading from central: https://repo.maven.apache.org/maven2/org/projectlombok/lombok/1.18.20/lombok-1.18.20.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/org/projectlombok/lombok/1.18.20/lombok-1.18.20.pom (1.5 kB at 3.0 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/projectlombok/lombok/1.18.20/lombok-1.18.20.jar
-Downloaded from central: https://repo.maven.apache.org/maven2/org/projectlombok/lombok/1.18.20/lombok-1.18.20.jar (1.9 MB at 5.6 MB/s)
-[INFO] 
-[INFO] --- resources:3.0.1:resources (default-resources) @ rpt ---
-[INFO] Using 'UTF-8' encoding to copy filtered resources.
-[INFO] Copying 2 resources
-[INFO] Copying 2 resources
-[INFO] 
-[INFO] --- compiler:3.7.0:compile (default-compile) @ rpt ---
-Downloading from central: https://repo.maven.apache.org/maven2/org/mapstruct/mapstruct-processor/1.4.2.Final/mapstruct-processor-1.4.2.Final.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/org/mapstruct/mapstruct-processor/1.4.2.Final/mapstruct-processor-1.4.2.Final.pom (3.5 kB at 38 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/mapstruct/mapstruct-parent/1.4.2.Final/mapstruct-parent-1.4.2.Final.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/org/mapstruct/mapstruct-parent/1.4.2.Final/mapstruct-parent-1.4.2.Final.pom (1.6 kB at 23 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/mapstruct/mapstruct-processor/1.4.2.Final/mapstruct-processor-1.4.2.Final.jar
-Downloaded from central: https://repo.maven.apache.org/maven2/org/mapstruct/mapstruct-processor/1.4.2.Final/mapstruct-processor-1.4.2.Final.jar (1.8 MB at 6.4 MB/s)
-[INFO] Changes detected - recompiling the module!
-[INFO] Compiling 257 source files to C:\repo\reportes\APIREPORTS\target\classes
-[INFO] /C:/repo/reportes/APIREPORTS/src/main/java/com/lockton/rpt/util/Excel_Tablas_Graficos.java: Some input files use or override a deprecated API.
-[INFO] /C:/repo/reportes/APIREPORTS/src/main/java/com/lockton/rpt/util/Excel_Tablas_Graficos.java: Recompile with -Xlint:deprecation for details.
-[INFO] /C:/repo/reportes/APIREPORTS/src/main/java/com/lockton/rpt/repositories/CorreosRepository.java: Some input files use unchecked or unsafe operations.
-[INFO] /C:/repo/reportes/APIREPORTS/src/main/java/com/lockton/rpt/repositories/CorreosRepository.java: Recompile with -Xlint:unchecked for details.
-[INFO] 
-[INFO] --- resources:3.0.1:testResources (default-testResources) @ rpt ---
-[INFO] Using 'UTF-8' encoding to copy filtered resources.
-[INFO] skip non existing resourceDirectory C:\repo\reportes\APIREPORTS\src\test\resources
-[INFO] 
-[INFO] --- compiler:3.7.0:testCompile (default-testCompile) @ rpt ---
-[INFO] Changes detected - recompiling the module!
-[INFO] Compiling 11 source files to C:\repo\reportes\APIREPORTS\target\test-classes
-[INFO] 
-[INFO] --- surefire:2.21.0:test (default-test) @ rpt ---
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/surefire-junit4/2.21.0/surefire-junit4-2.21.0.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/surefire-junit4/2.21.0/surefire-junit4-2.21.0.pom (3.1 kB at 21 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/surefire-providers/2.21.0/surefire-providers-2.21.0.pom
-Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/surefire-providers/2.21.0/surefire-providers-2.21.0.pom (2.5 kB at 16 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/surefire-junit4/2.21.0/surefire-junit4-2.21.0.jar
-Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/surefire/surefire-junit4/2.21.0/surefire-junit4-2.21.0.jar (85 kB at 492 kB/s)
-[INFO] 
-[INFO] -------------------------------------------------------
-[INFO]  T E S T S
-[INFO] -------------------------------------------------------
-[INFO] 
-[INFO] Results:
-[INFO] 
-[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0
-[INFO] 
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD FAILURE
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  15.810 s
-[INFO] Finished at: 2026-10-07T16:08:29-06:00
-[INFO] ------------------------------------------------------------------------
-[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.21.0:test (default-test) on project rpt: There are test failures.
-[ERROR] 
-[ERROR] Please refer to C:\repo\reportes\APIREPORTS\target\surefire-reports for the individual test results.
-[ERROR] Please refer to dump files (if any exist) [date]-jvmRun[N].dump, [date].dumpstream and [date]-jvmRun[N].dumpstream.
-[ERROR] The forked VM terminated without properly saying goodbye. VM crash or System.exit called?
-[ERROR] Command was cmd.exe /X /C ""C:\Program Files\Java\jdk-11.0.31\bin\java" -jar C:\Users\CONSUL~1.TI4\AppData\Local\Temp\surefire7199012379538713583\surefirebooter16097058466514178628.jar C:\Users\consultor.ti40\AppData\Local\Temp\surefire7199012379538713583 2026-10-07T16-08-28_075-jvmRun1 surefire1649878906749598120tmp surefire_04972057372298703001tmp"
-[ERROR] Error occurred in starting fork, check output in log
-[ERROR] Process Exit Code: 1
-[ERROR] org.apache.maven.surefire.booter.SurefireBooterForkException: The forked VM terminated without properly saying goodbye. VM crash or System.exit called?
-[ERROR] Command was cmd.exe /X /C ""C:\Program Files\Java\jdk-11.0.31\bin\java" -jar C:\Users\CONSUL~1.TI4\AppData\Local\Temp\surefire7199012379538713583\surefirebooter16097058466514178628.jar C:\Users\consultor.ti40\AppData\Local\Temp\surefire7199012379538713583 2026-10-07T16-08-28_075-jvmRun1 surefire1649878906749598120tmp surefire_04972057372298703001tmp"
-[ERROR] Error occurred in starting fork, check output in log
-[ERROR] Process Exit Code: 1
-[ERROR]         at org.apache.maven.plugin.surefire.booterclient.ForkStarter.fork(ForkStarter.java:671)
-[ERROR]         at org.apache.maven.plugin.surefire.booterclient.ForkStarter.fork(ForkStarter.java:533)
-[ERROR]         at org.apache.maven.plugin.surefire.booterclient.ForkStarter.run(ForkStarter.java:278)
-[ERROR]         at org.apache.maven.plugin.surefire.booterclient.ForkStarter.run(ForkStarter.java:244)
-[ERROR]         at org.apache.maven.plugin.surefire.AbstractSurefireMojo.executeProvider(AbstractSurefireMojo.java:1149)
-[ERROR]         at org.apache.maven.plugin.surefire.AbstractSurefireMojo.executeAfterPreconditionsChecked(AbstractSurefireMojo.java:978)
-[ERROR]         at org.apache.maven.plugin.surefire.AbstractSurefireMojo.execute(AbstractSurefireMojo.java:854)
-[ERROR]         at org.apache.maven.plugin.DefaultBuildPluginManager.executeMojo(DefaultBuildPluginManager.java:126)
-[ERROR]         at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute2(MojoExecutor.java:328)
-[ERROR]         at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute(MojoExecutor.java:316)
-[ERROR]         at org.apache.maven.lifecycle.internal.MojoExecutor.execute(MojoExecutor.java:212)
-[ERROR]         at org.apache.maven.lifecycle.internal.MojoExecutor.execute(MojoExecutor.java:174)
-[ERROR]         at org.apache.maven.lifecycle.internal.MojoExecutor.access$000(MojoExecutor.java:75)
-[ERROR]         at org.apache.maven.lifecycle.internal.MojoExecutor$1.run(MojoExecutor.java:162)
-[ERROR]         at org.apache.maven.plugin.DefaultMojosExecutionStrategy.execute(DefaultMojosExecutionStrategy.java:39)
-[ERROR]         at org.apache.maven.lifecycle.internal.MojoExecutor.execute(MojoExecutor.java:159)
-[ERROR]         at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject(LifecycleModuleBuilder.java:105)
-[ERROR]         at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject(LifecycleModuleBuilder.java:73)
-[ERROR]         at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build(SingleThreadedBuilder.java:53)
-[ERROR]         at org.apache.maven.lifecycle.internal.LifecycleStarter.execute(LifecycleStarter.java:118)
-[ERROR]         at org.apache.maven.DefaultMaven.doExecute(DefaultMaven.java:261)
-[ERROR]         at org.apache.maven.DefaultMaven.doExecute(DefaultMaven.java:173)
-[ERROR]         at org.apache.maven.DefaultMaven.execute(DefaultMaven.java:101)
-[ERROR]         at org.apache.maven.cli.MavenCli.execute(MavenCli.java:906)
-[ERROR]         at org.apache.maven.cli.MavenCli.doMain(MavenCli.java:283)
-[ERROR]         at org.apache.maven.cli.MavenCli.main(MavenCli.java:206)
-[ERROR]         at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-[ERROR]         at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-[ERROR]         at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-[ERROR]         at java.base/java.lang.reflect.Method.invoke(Method.java:566)
-[ERROR]         at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced(Launcher.java:255)
-[ERROR]         at org.codehaus.plexus.classworlds.launcher.Launcher.launch(Launcher.java:201)
-[ERROR]         at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode(Launcher.java:361)
-[ERROR]         at org.codehaus.plexus.classworlds.launcher.Launcher.main(Launcher.java:314)
-[ERROR] 
-[ERROR] -> [Help 1]
-[ERROR] 
-[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
-[ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
-[ERROR] For more information about the errors and possible solutions, please read the following articles:
-[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
-Las pruebas de API Reports fallaron. No se hará push.
-En línea: 56 Carácter: 5
-+     throw 'Las pruebas de API Reports fallaron. No se hará push.'
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Las pruebas de ...o se hará push.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Las pruebas de API Reports fallaron. No se hará push.
- 
-PS C:\repo\reportes\APIREPORTS> 
+Set-Location 'C:\repo\reportes\APIREPORTS'
+
+$Rama = 'PRE-MAIN-REPORTS'
+$CantidadEsperada = 31
+
+if ((git branch --show-current).Trim() -ne $Rama) {
+    throw "Debes estar en la rama $Rama."
+}
+
+$GitDir = (git rev-parse --git-dir).Trim()
+
+if (Test-Path -LiteralPath (Join-Path $GitDir 'CHERRY_PICK_HEAD')) {
+    throw 'Existe un cherry-pick activo.'
+}
+
+if (@(git status --porcelain).Count -gt 0) {
+    git status --short
+    throw 'El repositorio no está limpio.'
+}
+
+Write-Host 'Generando paquete sin ejecutar pruebas...' -ForegroundColor Cyan
+
+& .\mvnw.cmd -DskipTests clean package
+
+if ($LASTEXITCODE -ne 0) {
+    throw 'La compilación o generación del paquete falló. No se hará push.'
+}
+
+if (@(git status --porcelain).Count -gt 0) {
+    git status --short
+    throw 'La compilación dejó cambios en archivos controlados.'
+}
+
+Write-Host ''
+Write-Host 'Actualizando referencias remotas...' -ForegroundColor Cyan
+
+git fetch origin
+
+if ($LASTEXITCODE -ne 0) {
+    throw 'No fue posible consultar el remoto.'
+}
+
+$Comparacion = (
+    (git rev-list --left-right --count "origin/$Rama...HEAD").Trim() `
+        -split '\s+'
+)
+
+$CommitsRemotos = [int]$Comparacion[0]
+$CommitsLocales = [int]$Comparacion[1]
+
+if ($CommitsRemotos -gt 0) {
+    throw "El remoto tiene $CommitsRemotos commits que no están localmente."
+}
+
+if ($CommitsLocales -ne $CantidadEsperada) {
+    throw "Se esperaban $CantidadEsperada commits para publicar, pero se encontraron $CommitsLocales."
+}
+
+Write-Host ''
+Write-Host "BUILD correcto. Se publicarán $CommitsLocales commits." -ForegroundColor Green
+Write-Host 'ADVERTENCIA: las pruebas no se ejecutaron por el fallo de Surefire.' -ForegroundColor Yellow
+
+$Confirmacion = Read-Host 'Escribe PUBLICAR API REPORTS SIN PRUEBAS'
+
+if ($Confirmacion -cne 'PUBLICAR API REPORTS SIN PRUEBAS') {
+    throw 'Publicación cancelada.'
+}
+
+git push --set-upstream origin $Rama
+
+if ($LASTEXITCODE -ne 0) {
+    throw 'Falló el push de API Reports.'
+}
+
+$Local = (git rev-parse HEAD).Trim()
+$Remoto = (git rev-parse "origin/$Rama").Trim()
+
+if ($Local -ne $Remoto) {
+    throw 'El remoto no coincide con el commit local.'
+}
+
+Write-Host ''
+Write-Host 'API REPORTS publicado correctamente.' -ForegroundColor Green
+Write-Host "Commit final: $Local"
+
+git status
