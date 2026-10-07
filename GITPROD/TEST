@@ -97,4 +97,178 @@ public interface CtlRptGenRepository extends JpaRepository<ControlReporteGen, Lo
             @Param("idReporte") Integer idReporte,
             @Param("idEmpresa") Integer idEmpresa,
             @Param("params") String params,
-:
+
+===== PROPERTIES ACTUAL PRE-MAIN (OURS) =====
+application.title=API de reportes en segundo plano
+application.version=1.0
+#spring.main.banner-mode=off
+
+spring.profiles.active=dev
+spring.application.name=rpt
+server.port=8182
+
+spring.task.poolsize=5
+spring.task.maxpoolsize=10
+spring.task.queuecapacity=50
+
+spring.mail.host=${HOST_MAIL}
+spring.mail.port=${PORT_MAIL:587}
+spring.mail.username=${USER_MAIL}
+spring.mail.password=${PASS_MAIL}
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=false
+
+#server.ssl.key-store=classpath:ssl-server.jks
+#server.ssl.key-store-password: changeit
+#server.ssl.keyStoreType: JKS
+#server.ssl.keyAlias: selfsigned_localhost_sslserver
+
+spring.datasourcerpt.url=jdbc:sqlserver://${BD_SERVER}
+spring.datasourcerpt.username=${BD_USER}
+spring.datasourcerpt.password=${BD_PASSWORD}
+spring.datasourcerpt.hikari.idle-timeout=180000
+spring.datasourcerpt.hikari.connectionTimeout=180000
+spring.datasourcerpt.hikari.maxLifetime=180000
+spring.datasourcerpt.hikari.minimumIdle=10
+spring.datasourcerpt.hikari.maximumPoolSize=5000
+#spring.datasource.name="ReportesDataSourse"
+#spring.datasource.hikari.pool-name="ReportesPool"
+#spring.jmx.default-domain="WSBeflexReportes"
+spring.datasourcerpt.driverClassName=com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+spring.jmx.enabled=false
+spring.datasourcerpt.hikari.register-mbeans=false
+spring.datasourcerpt.hikari.pool-name=RPTPool-QA
+
+#logging.level.com.microsoft.sqlserver=DEBUG
+
+odessa.administrador=${ODESSA_ADMINISTRADOR}
+odessa.nip=${ODESSA_NIP}
+odessa.empresa=${ODESSA_EMPRESA}
+
+spring.servlet.multipart.max-file-size=65MB 
+#spring.datasource.tomcat.max-wait=20000
+#spring.datasource.tomcat.max-active=50
+#spring.datasource.tomcat.initial-size=10
+#spring.datasource.tomcat.min-idle=10
+
+===== PROPERTIES DEL COMMIT (THEIRS) =====
+application.title=API de reportes en segundo plano
+application.version=1.0
+#spring.main.banner-mode=off
+
+spring.profiles.active=dev
+spring.application.name=rpt
+server.port=8182
+
+spring.task.poolsize=5
+spring.task.maxpoolsize=10
+spring.task.queuecapacity=50
+
+# Cobranza se procesa de forma serial para no competir por memoria/conexiones.
+# Las solicitudes adicionales permanecen EN_ESPERA en una cola acotada.
+cobranza.queue.capacity=5
+cobranza.queue.lock-timeout-ms=30000
+
+# La precarga automatica queda deshabilitada. Solo se habilita de forma
+# explicita despues de una prueba de carga controlada.
+cobranza.cache.worker.enabled=false
+
+spring.mail.host=${HOST_MAIL}
+spring.mail.port=${PORT_MAIL:587}
+spring.mail.username=${USER_MAIL}
+spring.mail.password=${PASS_MAIL}
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=false
+
+#server.ssl.key-store=classpath:ssl-server.jks
+#server.ssl.key-store-password: changeit
+#server.ssl.keyStoreType: JKS
+#server.ssl.keyAlias: selfsigned_localhost_sslserver
+
+spring.datasourcerpt.url=jdbc:sqlserver://${BD_SERVER};encrypt=true;trustServerCertificate=true
+spring.datasourcerpt.username=${BD_USER}
+spring.datasourcerpt.password=${BD_PASSWORD}
+spring.datasourcerpt.hikari.idle-timeout=180000
+spring.datasourcerpt.hikari.connectionTimeout=180000
+spring.datasourcerpt.hikari.maxLifetime=180000
+spring.datasourcerpt.hikari.minimumIdle=10
+spring.datasourcerpt.hikari.maximumPoolSize=5000
+#spring.datasource.name="ReportesDataSourse"
+#spring.datasource.hikari.pool-name="ReportesPool"
+#spring.jmx.default-domain="WSBeflexReportes"
+spring.datasourcerpt.driverClassName=com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+spring.jmx.enabled=false
+spring.datasourcerpt.hikari.register-mbeans=false
+spring.datasourcerpt.hikari.pool-name=RPTPool-QA
+
+#logging.level.com.microsoft.sqlserver=DEBUG
+
+
+===== CAMBIO ORIGINAL EN AMBOS ARCHIVOS =====
+commit 22f437eb62cc338429e479a3d571447eeb1d0d63
+Author:     CristianLockton <consultor.ti40@lockton.com>
+AuthorDate: Thu Sep 10 14:14:59 2026 -0600
+Commit:     CristianLockton <consultor.ti40@lockton.com>
+CommitDate: Thu Sep 10 14:14:59 2026 -0600
+
+    Agrega soporte de consulta histórica de defaulteo
+
+diff --git a/src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java b/src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java
+index 4901423..6c91738 100644
+--- a/src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java
++++ b/src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java
+@@ -1,5 +1,7 @@
+ package com.lockton.rpt.repositories;
+ 
++import java.util.List;
++
+ import org.springframework.data.jpa.repository.JpaRepository;
+ import org.springframework.data.jpa.repository.Query;
+ import org.springframework.data.repository.query.Param;
+@@ -33,5 +35,21 @@ public interface CtlRptGenRepository extends JpaRepository<ControlReporteGen, Lo
+             @Param("cRptParams") String cRptParams,
+             @Param("cRptIdEstatus") Integer cRptIdEstatus
+     );
+-}
+ 
++    @Query(
++            "SELECT c FROM ControlReporteGen c " +
++                    "WHERE c.cRptIdUsuarioSolicitud = :idUsuario " +
++                    "AND c.cRptIdReporte = :idReporte " +
++                    "AND c.cRptIdEmpresa = :idEmpresa " +
++                    "AND c.cRptParams = :params " +
++                    "AND c.cRptIdEstatus IN (:estatus) " +
++                    "ORDER BY c.cRptId ASC"
++    )
++    List<ControlReporteGen> findSolicitudesActivas(
++            @Param("idUsuario") Integer idUsuario,
++            @Param("idReporte") Integer idReporte,
++            @Param("idEmpresa") Integer idEmpresa,
++            @Param("params") String params,
++            @Param("estatus") List<Integer> estatus
++    );
++}
+diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
+index f41c6e3..ddaf25e 100644
+--- a/src/main/resources/application.properties
++++ b/src/main/resources/application.properties
+@@ -10,6 +10,15 @@ spring.task.poolsize=5
+ spring.task.maxpoolsize=10
+ spring.task.queuecapacity=50
+ 
++# Cobranza se procesa de forma serial para no competir por memoria/conexiones.
+
+===== ESTADO =====
+M  src/main/java/com/lockton/rpt/config/AsyncConfig.java
+M  src/main/java/com/lockton/rpt/controllers/WSCobranzaController.java
+M  src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
+M  src/main/java/com/lockton/rpt/enumeradores/EstatusReporte.java
+M  src/main/java/com/lockton/rpt/jobs/CobranzaCacheWorker.java
+UU src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java
+A  src/main/java/com/lockton/rpt/services/impl/CobranzaExecutionGate.java
+M  src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
+UU src/main/resources/application.properties
+M  src/test/java/com/lockton/rpt/services/impl/CobranzaServiceImplTest.java
+PS C:\repo\reportes\APIREPORTS> 
