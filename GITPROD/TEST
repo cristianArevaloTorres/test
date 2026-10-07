@@ -1,3 +1,115 @@
+Escribe APLICAR API REPORTS: APLICAR API REPORTS
+
+Aplicando e41c82df1e7ed160052cda16de18e63e0c820306...
+[PRE-MAIN-REPORTS 139df96] feature to qa
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Fri Jul 31 03:07:33 2026 -0600
+ 3 files changed, 786 insertions(+), 113 deletions(-)
+ create mode 100644 src/main/java/com/lockton/rpt/services/SabanaBeneficiosLegacyService.java
+
+Aplicando 91e7fcacd787a4801b383cb2e5c8ab44f4174927...
+[PRE-MAIN-REPORTS 820a2a6] Fix typos in comments and update messagescorreccion de datos con acentos mal escritos
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Fri Jul 31 10:25:21 2026 -0600
+ 1 file changed, 15 insertions(+), 15 deletions(-)
+
+Aplicando 01e4f91e67bd883a461220e91574d762fd8e12b2...
+[PRE-MAIN-REPORTS e385e0c] correccion de  acenteo mal escritos
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Fri Jul 31 10:28:11 2026 -0600
+ 1 file changed, 145 insertions(+), 57 deletions(-)
+
+Aplicando 90485a2d454d76323b216333baab2d4880ed9583...
+[PRE-MAIN-REPORTS 1707c81] Refactor Excel_Hoja_Multiple for clarity and consistency
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Fri Jul 31 10:30:29 2026 -0600
+ 1 file changed, 334 insertions(+), 81 deletions(-)
+
+Aplicando d52ae59425c6b53928a57266e5e3d7bec07e3535...
+[PRE-MAIN-REPORTS b3f7da3] correccion
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Fri Jul 31 10:35:27 2026 -0600
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+Aplicando ab2f9f0eea6026ebe457900e04926a5f27995626...
+[PRE-MAIN-REPORTS 7e0df7a] Remove diagnostic sink comments from Excel_Hoja_Multiple
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Fri Jul 31 10:37:31 2026 -0600
+ 1 file changed, 1 insertion(+), 7 deletions(-)
+
+Aplicando dd342683132df69a39e77d696345ff74a868904f...
+[PRE-MAIN-REPORTS 22beff4] fix: remove BOM from Java files and fix compilation errors in Excel_Hoja_Multiple
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Fri Jul 31 16:30:39 2026 -0600
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+Aplicando 3bc204d2eaa8e79ba3706f2aef5f9696c2f32311...
+[PRE-MAIN-REPORTS 9214230] fix: remove duplicate esVisible method in Excel_Hoja_Multiple
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Fri Jul 31 16:45:27 2026 -0600
+ 1 file changed, 6 deletions(-)
+
+Aplicando 81813e08deb93f2b0398bc0ca5ad48ffd6612101...
+[PRE-MAIN-REPORTS c345ecf] fix: restore rows arg in obtenerGrupoConfigPrefer call
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Fri Jul 31 16:49:28 2026 -0600
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Aplicando 7f95507e1c5989e2958cf57fc1ba2f17457c2765...
+[PRE-MAIN-REPORTS eb4ef21] Remove optional constraints from entity fields
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Mon Aug 3 09:09:42 2026 -0600
+ 1 file changed, 1 insertion(+), 7 deletions(-)
+
+Aplicando eee9625b6495b24990cf88b745a886b694fb4eb8...
+[PRE-MAIN-REPORTS 7dcae82] fix: ajustes sabana homologacion - GeneradorReportesService y Excel_Hoja_Multiple
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Fri Aug 7 16:54:16 2026 -0600
+ 2 files changed, 87 insertions(+), 11 deletions(-)
+
+Aplicando ed7373e9219dee294d4f0ba40045ab339f43e29c...
+Auto-merging src/main/java/com/lockton/rpt/RptApplication.java
+CONFLICT (content): Merge conflict in src/main/java/com/lockton/rpt/RptApplication.java
+Auto-merging src/main/resources/application.properties
+error: could not apply ed7373e... feat: cobranza service + fix cifrarXlsx + purgar bf_RepConf_Debug 48h
+hint: After resolving the conflicts, mark them with
+hint: "git add/rm <pathspec>", then run
+hint: "git cherry-pick --continue".
+hint: You can instead skip this commit with "git cherry-pick --skip".
+hint: To abort and get back to the state before "git cherry-pick",
+hint: run "git cherry-pick --abort".
+hint: Disable this message with "git config set advice.mergeConflict false"
+
+CONFLICTO EN: ed7373e9219dee294d4f0ba40045ab339f43e29c
+UU src/main/java/com/lockton/rpt/RptApplication.java
+A  src/main/java/com/lockton/rpt/controllers/WSCobranzaController.java
+A  src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
+A  src/main/java/com/lockton/rpt/services/CobranzaService.java
+M  src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
+A  src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
+M  src/main/resources/application.properties
+A  src/test/java/com/lockton/rpt/services/GeneradorReportesServiceTest.java
+A  src/test/java/com/lockton/rpt/services/SabanaBeneficiosLegacyServiceTest.java
+A  src/test/java/com/lockton/rpt/util/ExcelHojaMultipleHomologacionTest.java
+
+No se hizo push.
+Se detuvo el cherry-pick en ed7373e9219dee294d4f0ba40045ab339f43e29c.
+En línea: 168 Carácter: 9
++         throw "Se detuvo el cherry-pick en $Commit."
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Se detuvo el ch...45ab339f43e29c.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Se detuvo el cherry-pick en ed7373e9219dee294d4f0ba40045ab339f43e29c.
+ 
+PS C:\repo\reportes\APIREPORTS> 
+
+
+
+--------------------------------------------
+
+
+
+
+
 $ErrorActionPreference = 'Stop'
 
 $Repo = 'C:\repo\reportes\APIREPORTS'
