@@ -2,199 +2,91 @@ $ErrorActionPreference = 'Stop'
 
 Set-Location 'C:\repo\reportes\APIREPORTS'
 
-$CommitEsperado = '22f437eb62cc338429e479a3d571447eeb1d0d63'
-$Repositorio = 'src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java'
-$Properties = 'src/main/resources/application.properties'
-$Utf8SinBom = [System.Text.UTF8Encoding]::new($false)
+$RamaEsperada = 'PRE-MAIN-REPORTS'
+
+$CommitsRestantes = @(
+    'aa07c52c7bbb3759ed54ccce614064cf3d495d00'
+    '02d7f3850ceac219110079132bc69001c63293df'
+    'fa5da3c393d2d7a06e5638dfe9b2521ba041106f'
+    '7e82654871a659da6b993664016cb73d01c4d625'
+    '5631dfcc687b003d7f490d0c5ff26d4e8d393667'
+    '63e1d4893c86174efb0e76ab2611153601f8b45e'
+)
 
 $RamaActual = (git branch --show-current).Trim()
-if ($RamaActual -ne 'PRE-MAIN-REPORTS') {
-    throw "La rama actual es $RamaActual; se esperaba PRE-MAIN-REPORTS."
+
+if ($RamaActual -ne $RamaEsperada) {
+    throw "La rama actual es $RamaActual; se esperaba $RamaEsperada."
 }
 
-$CommitActivo = (git rev-parse CHERRY_PICK_HEAD).Trim()
-if ($CommitActivo -ne $CommitEsperado) {
-    throw "El cherry-pick activo es $CommitActivo; se esperaba $CommitEsperado."
+$GitDir = (git rev-parse --git-dir).Trim()
+$CherryPickHead = Join-Path $GitDir 'CHERRY_PICK_HEAD'
+
+if (Test-Path -LiteralPath $CherryPickHead) {
+    throw 'Todavía existe un cherry-pick activo. Revisa git status antes de continuar.'
 }
 
-# Combinar ambas versiones del repositorio:
-# conserva el método existente y agrega los dos métodos nuevos.
-$ContenidoRepositorio = @'
-package com.lockton.rpt.repositories;
+$CambiosLocales = @(git status --porcelain)
 
-import java.util.List;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
-import com.lockton.rpt.models.entities.ControlReporteGen;
-
-@Repository
-public interface CtlRptGenRepository extends JpaRepository<ControlReporteGen, Long> {
-    boolean existsByCRptIdUsuarioSolicitudAndCRptIdReporteAndCRptIdEmpresaAndCRptParamsAndCRptIdEstatus(
-            Integer cRptIdUsuarioSolicitud,
-            Integer cRptIdReporte,
-            Integer cRptIdEmpresa,
-            String cRptParams,
-            Integer cRptIdEstatus
-    );
-
-    @Query(
-            "SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END " +
-                    "FROM ControlReporteGen c " +
-                    "WHERE c.cRptIdUsuarioSolicitud = :cRptIdUsuarioSolicitud " +
-                    "AND c.cRptIdReporte = :cRptIdReporte " +
-                    "AND c.cRptIdEmpresa = :cRptIdEmpresa " +
-                    "AND c.cRptParams = :cRptParams " +
-                    "AND c.cRptIdEstatus = :cRptIdEstatus"
-    )
-    boolean existsControlReporteGen(
-            @Param("cRptIdUsuarioSolicitud") Integer cRptIdUsuarioSolicitud,
-            @Param("cRptIdReporte") Integer cRptIdReporte,
-            @Param("cRptIdEmpresa") Integer cRptIdEmpresa,
-            @Param("cRptParams") String cRptParams,
-            @Param("cRptIdEstatus") Integer cRptIdEstatus
-    );
-
-    @Query(
-            "SELECT c FROM ControlReporteGen c " +
-                    "WHERE c.cRptIdUsuarioSolicitud = :idUsuario " +
-                    "AND c.cRptIdReporte = :idReporte " +
-                    "AND c.cRptIdEmpresa = :idEmpresa " +
-                    "AND c.cRptParams = :params " +
-                    "AND c.cRptIdEstatus IN (:estatus) " +
-                    "ORDER BY c.cRptId ASC"
-    )
-    List<ControlReporteGen> findSolicitudesActivas(
-            @Param("idUsuario") Integer idUsuario,
-            @Param("idReporte") Integer idReporte,
-            @Param("idEmpresa") Integer idEmpresa,
-            @Param("params") String params,
-            @Param("estatus") List<Integer> estatus
-    );
-}
-'@
-
-$RutaRepositorio = Join-Path (Get-Location) $Repositorio
-
-[System.IO.File]::WriteAllText(
-    $RutaRepositorio,
-    $ContenidoRepositorio + [Environment]::NewLine,
-    $Utf8SinBom
-)
-
-# Conservar application.properties de PRE-MAIN-REPORTS.
-git checkout --ours -- $Properties
-
-if ($LASTEXITCODE -ne 0) {
-    throw 'No se pudo recuperar application.properties de PRE-MAIN-REPORTS.'
+if ($CambiosLocales.Count -gt 0) {
+    Write-Host 'El repositorio no está limpio:' -ForegroundColor Red
+    git status --short
+    throw 'No se aplicarán los commits restantes.'
 }
 
-$RutaProperties = Join-Path (Get-Location) $Properties
-$ContenidoProperties = [System.IO.File]::ReadAllText($RutaProperties)
-$Ancla = 'spring.task.queuecapacity=50'
+foreach ($Commit in $CommitsRestantes) {
+    git cat-file -e "$Commit^{commit}"
 
-if (-not $ContenidoProperties.Contains($Ancla)) {
-    throw "No se encontró la línea '$Ancla' en application.properties."
-}
-
-$SaltoLinea = if ($ContenidoProperties.Contains("`r`n")) {
-    "`r`n"
-}
-else {
-    "`n"
-}
-
-$LineasCobranza = @(
-    '# Cobranza se procesa de forma serial para no competir por memoria/conexiones.'
-    '# Las solicitudes adicionales permanecen EN_ESPERA en una cola acotada.'
-    'cobranza.queue.capacity=5'
-    'cobranza.queue.lock-timeout-ms=30000'
-    ''
-    '# La precarga automatica queda deshabilitada. Solo se habilita de forma'
-    '# explicita despues de una prueba de carga controlada.'
-    'cobranza.cache.worker.enabled=false'
-)
-
-$BloqueCobranza = $LineasCobranza -join $SaltoLinea
-
-$ContenidoProperties = $ContenidoProperties.Replace(
-    $Ancla,
-    $Ancla + $SaltoLinea + $SaltoLinea + $BloqueCobranza
-)
-
-[System.IO.File]::WriteAllText(
-    $RutaProperties,
-    $ContenidoProperties,
-    $Utf8SinBom
-)
-
-git add -- $Repositorio $Properties
-
-if ($LASTEXITCODE -ne 0) {
-    throw 'No fue posible preparar los dos archivos resueltos.'
-}
-
-$ConflictosPendientes = @(git diff --name-only --diff-filter=U)
-
-if ($ConflictosPendientes.Count -gt 0) {
-    Write-Host 'Todavía existen conflictos:' -ForegroundColor Red
-    $ConflictosPendientes
-    throw 'No se continuará el cherry-pick.'
-}
-
-$RepositorioFinal = [System.IO.File]::ReadAllText($RutaRepositorio)
-$PropertiesFinal = [System.IO.File]::ReadAllText($RutaProperties)
-
-$MetodosRequeridos = @(
-    'existsByCRptIdUsuarioSolicitudAndCRptIdReporteAndCRptIdEmpresaAndCRptParamsAndCRptIdEstatus'
-    'existsControlReporteGen'
-    'findSolicitudesActivas'
-)
-
-foreach ($Metodo in $MetodosRequeridos) {
-    if (-not $RepositorioFinal.Contains($Metodo)) {
-        throw "Falta el método requerido: $Metodo"
+    if ($LASTEXITCODE -ne 0) {
+        throw "El commit $Commit no existe en el repositorio local."
     }
-}
 
-$PropiedadesRequeridas = @(
-    'cobranza.queue.capacity=5'
-    'cobranza.queue.lock-timeout-ms=30000'
-    'cobranza.cache.worker.enabled=false'
-    'odessa.administrador=${ODESSA_ADMINISTRADOR}'
-)
+    Write-Host ''
+    Write-Host "Aplicando $Commit..." -ForegroundColor Cyan
 
-foreach ($Propiedad in $PropiedadesRequeridas) {
-    if (-not $PropertiesFinal.Contains($Propiedad)) {
-        throw "Falta la propiedad requerida: $Propiedad"
+    git cherry-pick $Commit
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ''
+        Write-Host "EL PROCESO SE DETUVO EN: $Commit" -ForegroundColor Red
+
+        $Conflictos = @(git diff --name-only --diff-filter=U)
+
+        if ($Conflictos.Count -gt 0) {
+            Write-Host 'Conflictos pendientes:' -ForegroundColor Yellow
+            git status --short
+        }
+        elseif (Test-Path -LiteralPath $CherryPickHead) {
+            Write-Host 'El cherry-pick quedó activo, posiblemente porque el commit resultó vacío.' -ForegroundColor Yellow
+            git status
+        }
+        else {
+            git status
+        }
+
+        throw "No se pudo aplicar $Commit. No se hizo push."
     }
+
+    Write-Host "Aplicado correctamente: $Commit" -ForegroundColor Green
 }
 
-$Marcadores = @(
-    Select-String `
-        -LiteralPath $RutaRepositorio, $RutaProperties `
-        -Pattern '^(<<<<<<<|=======|>>>>>>>)'
-)
+$EstadoFinal = @(git status --porcelain)
 
-if ($Marcadores.Count -gt 0) {
-    $Marcadores
-    throw 'Todavía existen marcadores de conflicto.'
+if ($EstadoFinal.Count -gt 0) {
+    git status --short
+    throw 'Los commits terminaron, pero el repositorio no quedó limpio.'
 }
 
 Write-Host ''
-Write-Host 'Archivos preparados:' -ForegroundColor Cyan
-git status --short
-git --no-pager diff --cached --stat
+Write-Host 'Los seis commits restantes fueron aplicados correctamente.' -ForegroundColor Green
+Write-Host 'Todavía NO se hizo push.' -ForegroundColor Yellow
 
-git -c core.editor=true cherry-pick --continue
-
-if ($LASTEXITCODE -ne 0) {
-    throw 'No fue posible terminar el cherry-pick de 22f437e.'
-}
-
-Write-Host ''
-Write-Host 'Commit 22f437e aplicado correctamente.' -ForegroundColor Green
 git status
+
+Write-Host ''
+Write-Host 'Commits locales pendientes de publicar:' -ForegroundColor Cyan
+git --no-pager log `
+    --oneline `
+    --decorate `
+    --max-count=40 `
+    origin/PRE-MAIN-REPORTS..HEAD
