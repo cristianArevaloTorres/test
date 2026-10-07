@@ -1,3 +1,25 @@
+Estado actual de Front:
+ M .vs/VSWorkspaceState.json
+ M .vs/slnx.sqlite
+ M package-lock.json
+UU src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html
+ M src/app/services/global.ts
+?? .vs/FRONT.slnx/
+?? .vs/FRONT/
+src/app/beflex/adm-reportes/sabana-beneficios/sabana-beneficios.component.html: needs merge
+error: could not write index
+No fue posible guardar los cambios locales de Front.
+En línea: 27 Carácter: 9
++         throw 'No fue posible guardar los cambios locales de Front.'
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (No fue posible ...cales de Front.:String) [], RuntimeException
+    + FullyQualifiedErrorId : No fue posible guardar los cambios locales de Front.
+ 
+PS C:\repo\reportes\FRONT> 
+
+
+------------
+
 $ErrorActionPreference = 'Stop'
 
 $RepoFront = 'C:\repo\reportes\FRONT'
