@@ -1,1086 +1,273 @@
 $ErrorActionPreference = 'Stop'
 
-# ==============================
-# PARÁMETROS
-# ==============================
+# ============================================================
+# CONFIGURACIÓN GENERAL
+# ============================================================
 
-$RutaRepo   = 'C:\repo\reportes\FRONT'
-$RamaFront  = 'issue-reportesabanaQA'
-$UsuarioGit = 'CristianLockton'
-$Salida     = 'C:\Users\sanel\Downloads\gitprod\COMMITS_FRONT.txt'
+# Cambiar a $true solamente después de revisar los cherry-picks.
+$HacerPush = $false
 
-Set-Location -LiteralPath $RutaRepo
+$Entregas = @(
+    @{
+        Nombre  = 'FRONT'
+        Ruta    = 'C:\repo\reportes\FRONT'
+        Origen  = 'issue-reportesabanaQA'
+        Destino = 'COLOCA_AQUI_RAMA_DESTINO_FRONT'
 
-git rev-parse --is-inside-work-tree | Out-Null
-if ($LASTEXITCODE -ne 0) {
-    throw "No es un repositorio Git: $RutaRepo"
-}
+        # 13 commits, incluyendo los tres commits vacíos.
+        Commits = @(
+            '23437799caaaced20fa34baa8d33210dacaa5478',
+            'c9f0bf923ad9117e76088633c05d4c7ff28b48c5',
+            'd714c5d9be8ecf4f4bca61dabc1748bdc271483c',
+            '03586c8b640f62c961d917c4c18247353f7823d4',
+            'df7009df60ed4c3aa202facd36b44301a496d58e',
+            '487391e05df39d2d93e8427a4bcf82d25afbdd14',
+            '22fb7323bded92f5e007c29576eec9192c5b7815',
+            '6bf349be0de3d5d1250069faab40df3be53fe132',
+            '01aa164b8a63975e28f29dc3a61064f9f7d4e309',
+            '32509fec8fdbbbbd226d01e4233bfad198cdb216',
+            'f5411c2918a94b07eeabef046fffd6b9e0203647',
+            '7cd081ea54c4ce6ac10b2ebc2330e56a47f4ec01',
+            'f213401d9c1ad51160ad0b504bdfc708e6f97028'
+        )
+    },
+    @{
+        Nombre  = 'API REPORTS'
+        Ruta    = 'C:\repo\reportes\APIREPORTS'
+        Origen  = 'ReporteSabanaHomologacionOK-clean'
+        Destino = 'COLOCA_AQUI_RAMA_DESTINO_API_REPORTS'
 
-# Utiliza la rama remota si está disponible.
-git show-ref --verify --quiet "refs/remotes/origin/$RamaFront"
-
-if ($LASTEXITCODE -eq 0) {
-    $Referencia = "origin/$RamaFront"
-} else {
-    git show-ref --verify --quiet "refs/heads/$RamaFront"
-
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host 'Ramas disponibles:' -ForegroundColor Yellow
-        git branch -a
-        throw "No se encontró la rama $RamaFront."
+        # 28 commits efectivos. No incluye merges ni el alta/reversión
+        # del archivo de WSBeFlex agregado en el repositorio equivocado.
+        Commits = @(
+            'e41c82df1e7ed160052cda16de18e63e0c820306',
+            '91e7fcacd787a4801b383cb2e5c8ab44f4174927',
+            '01e4f91e67bd883a461220e91574d762fd8e12b2',
+            '90485a2d454d76323b216333baab2d4880ed9583',
+            'd52ae59425c6b53928a57266e5e3d7bec07e3535',
+            'ab2f9f0eea6026ebe457900e04926a5f27995626',
+            'dd342683132df69a39e77d696345ff74a868904f',
+            '3bc204d2eaa8e79ba3706f2aef5f9696c2f32311',
+            '81813e08deb93f2b0398bc0ca5ad48ffd6612101',
+            '7f95507e1c5989e2958cf57fc1ba2f17457c2765',
+            'eee9625b6495b24990cf88b745a886b694fb4eb8',
+            'ed7373e9219dee294d4f0ba40045ab339f43e29c',
+            '657809e3ac259b758713772b56872e5b01faa086',
+            'c1ced5f804c24fa648915c3de4d65b46c161969e',
+            '4d47ff7ee90b37d3610536aed629e308d89e8960',
+            'e2fea4173447a2eb0bfe01d8cf88180af7aea673',
+            '20a20defa0954d617f304b8a1d0efb72d5c7541e',
+            '9f75db1d6b072906b222056ae5722dccf648b007',
+            '07804c9deaa6c4325ee3b5b10669e65cb817ecda',
+            'd2605e23b93236abe4cb6b3b7bd039209391fe6c',
+            '956c3669f459dc2bba620df905eeaf95038c7c04',
+            '6586aab8ad82ad29a15b87f85440883b0061609e',
+            'c902c38d1600625bd53319bac2409de095bc58d6',
+            'ef3716c502dbd6b01b24b346c347a2075c70a5ea',
+            '22f437eb62cc338429e479a3d571447eeb1d0d63',
+            'aa07c52c7bbb3759ed54ccce614064cf3d495d00',
+            '02d7f3850ceac219110079132bc69001c63293df',
+            'fa5da3c393d2d7a06e5638dfe9b2521ba041106f'
+        )
     }
-
-    $Referencia = $RamaFront
-}
-
-# Obtiene solamente commits directos del usuario.
-# --first-parent excluye commits heredados mediante merges.
-# --no-merges excluye los propios commits de merge.
-$Resultado = @(
-    git --no-pager log `
-        $Referencia `
-        --first-parent `
-        --no-merges `
-        --author="$UsuarioGit" `
-        --reverse `
-        --date=format:'%Y-%m-%d %H:%M:%S' `
-        --pretty=format:'COMMIT: %H%nFECHA: %ad%nAUTOR: %an <%ae>%nCOMMITTER: %cn <%ce>%nPADRES: %P%nTÍTULO: %s%nDESCRIPCIÓN:%n%b%nARCHIVOS:' `
-        --name-status
 )
 
-if ($LASTEXITCODE -ne 0) {
-    throw 'No fue posible consultar los commits de Front.'
+# ============================================================
+# VALIDAR CANTIDADES ESPERADAS
+# ============================================================
+
+if ($Entregas[0].Commits.Count -ne 13) {
+    throw 'La lista de Front no contiene los 13 commits esperados.'
 }
 
-$Resultado | Out-File -LiteralPath $Salida -Encoding utf8
-
-Write-Host "`nRama consultada: $Referencia" -ForegroundColor Cyan
-Write-Host "Usuario:          $UsuarioGit" -ForegroundColor Cyan
-Write-Host "Resultado:        $Salida" -ForegroundColor Green
-Write-Host "`nCommits encontrados:" -ForegroundColor Yellow
-
-git --no-pager log `
-    $Referencia `
-    --first-parent `
-    --no-merges `
-    --author="$UsuarioGit" `
-    --reverse `
-    --date=format:'%Y-%m-%d %H:%M:%S' `
-    --pretty=format:'%H | %ad | %an <%ae> | %s'
-
-
-
-* 1b4642a1 | 2026-04-20 09:35:46 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #818 from LcktnMX/devDTI-QA
-* 26676109 | 2026-04-16 12:22:40 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #816 from LcktnMX/devDTI-QA
-* 4a42c7c6 | 2026-04-15 13:39:34 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #814 from LcktnMX/devDTI-QA
-* 54df79d4 | 2026-04-14 17:34:04 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #812 from LcktnMX/devDTI-QA
-* 5d4bbd99 | 2026-04-14 15:37:11 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #810 from LcktnMX/devDTI-QA
-* 9d339ce7 | 2026-04-14 14:12:02 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #808 from LcktnMX/devDTI-QA
-* d06911b7 | 2026-04-14 07:47:10 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #806 from LcktnMX/devDTI-QA
-* e3018512 | 2026-04-14 07:46:18 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #804 from LcktnMX/lockton/niko.sygno/MejoraEstilosbeMobile
-* 0128792f | 2026-04-10 12:01:40 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #803 from LcktnMX/devDTI-QA
-* 326914fa | 2026-04-08 16:44:23 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #802 from LcktnMX/devDTI-QA
-* ea12cc7c | 2026-04-08 11:58:39 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #800 from LcktnMX/lockton/niko.sygno/MejoraEstilosbeMobile
-* 959b93f6 | 2026-04-07 15:58:43 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #799 from LcktnMX/devDTI-QA
-* 17bb9cad | 2026-04-01 15:09:53 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #797 from LcktnMX/devDTI-QA
-* ce8c6387 | 2026-03-31 20:58:03 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #795 from LcktnMX/devDTI-QA
-* e7ed8171 | 2026-03-30 10:12:10 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #793 from LcktnMX/devDTI-QA
-* cbac49b3 | 2026-03-30 10:01:35 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #791 from LcktnMX/devDTI-QA
-* 3782ae6d | 2026-03-30 08:12:09 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #789 from LcktnMX/devDTI-QA
-* 1d8174ff | 2026-03-26 10:58:07 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #786 from LcktnMX/devDTI-QA
-* 5c76113d | 2026-03-26 01:29:13 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #784 from LcktnMX/devDTI-QA
-* c1325d74 | 2026-03-25 18:48:18 | beflexdesarrollo <53061208+LcktnMX@users.noreply.github.com> | Merge pull request #782 from LcktnMX/lockton/niko.sygno/MejorasPasoAdicionalULSA
-* 6906d5d5 | 2026-03-24 11:38:18 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #779 from LcktnMX/devDTI-QA
-* 53bc51d6 | 2026-03-23 13:53:07 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #777 from LcktnMX/devDTI-QA
-* f89df462 | 2026-03-18 22:55:29 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #774 from LcktnMX/devDTI-QA
-* fcf12045 | 2026-03-18 09:33:09 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #771 from LcktnMX/devDTI-QA
-* 12bf0a9b | 2026-03-12 23:59:33 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #768 from LcktnMX/devDTI-QA
-* 4c86d9b8 | 2026-03-12 14:56:59 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #766 from LcktnMX/devDTI-QA
-* fa132293 | 2026-03-10 17:40:19 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #763 from LcktnMX/devDTI-QA
-* 59bb27f0 | 2026-03-10 12:32:46 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #761 from LcktnMX/devDTI-QA
-* d073595e | 2026-03-10 07:32:48 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #755 from LcktnMX/devDTI-QA
-* 9effe9e4 | 2026-03-06 09:50:05 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #750 from LcktnMX/devDTI-QA
-* 10cdd369 | 2026-03-05 15:15:38 | beflexdesarrollo <53061208+LcktnMX@users.noreply.github.com> | Merge pull request #748 from LcktnMX/devDTI-QA
-* c0dd07ce | 2026-03-04 09:54:13 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #747 from LcktnMX/devDTI-QA
-* fd950cee | 2026-03-03 14:03:21 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #745 from LcktnMX/devDTI-QA
-* 6ba70436 | 2026-03-02 23:44:53 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #743 from LcktnMX/dev_ricardoR22
-* 2b8ca7fd | 2026-03-02 14:28:45 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #741 from LcktnMX/dev_ricardoR22
-* 979b1f6a | 2026-03-02 14:05:28 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #739 from LcktnMX/dev_ricardoR22
-* 7d22e772 | 2026-03-02 14:05:14 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #740 from LcktnMX/devDTI-QA
-* 48feb115 | 2026-03-01 00:38:19 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #737 from LcktnMX/devDTI-QA
-* 939b5acb | 2026-02-27 11:13:15 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #734 from LcktnMX/lockton/niko/MejoraRedireccionReportes-IDReportes
-* 53249e1f | 2026-02-26 08:34:47 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #733 from LcktnMX/devDTI-QA
-* 231e5825 | 2026-02-24 18:54:12 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #730 from LcktnMX/devDTI-QA
-* 34d6056c | 2026-02-24 12:29:10 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #728 from LcktnMX/lockton/niko.sygno/MejorasEstilosWizard
-* fb96fb2d | 2026-02-23 11:49:46 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #727 from LcktnMX/devDTI-QA
-* 43f0db2e | 2026-02-20 19:00:10 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #725 from LcktnMX/devDTI-QA
-* 08d59f5f | 2026-02-18 10:51:50 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #722 from LcktnMX/devDTI-QA
-* da63aa56 | 2026-02-17 18:08:59 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #720 from LcktnMX/lockton/niko/MejoraReporteDocsPersonalizados
-* d2875002 | 2026-02-17 11:39:26 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #719 from LcktnMX/devDTI-QA
-* 5d0278ff | 2026-02-16 11:32:29 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #714 from LcktnMX/devDTI-QA
-* 5e938124 | 2026-02-13 10:02:48 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #712 from LcktnMX/devDTI-QA
-* 6cbcec48 | 2026-02-12 10:08:06 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #711 from LcktnMX/lockton/niko/MejoraLogin
-* ef642060 | 2026-02-08 13:52:01 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #707 from LcktnMX/devDTI-QA
-* b3260228 | 2026-02-06 23:35:27 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #705 from LcktnMX/devDTI-QA
-* ddab0e57 | 2026-02-06 19:30:30 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #703 from LcktnMX/devDTI-QA
-* 1ab53526 | 2026-02-06 18:50:29 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #700 from LcktnMX/devDTI-QA
-* b5896975 | 2026-02-06 11:20:18 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #698 from LcktnMX/devDTI-QA
-* 31106d92 | 2026-02-05 09:08:44 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #696 from LcktnMX/devDTI-QA
-* c3a9cdfd | 2026-02-05 00:46:50 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #694 from LcktnMX/devDTI-QA
-* c033b2dc | 2026-02-03 10:58:37 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #692 from LcktnMX/devDTI-QA
-* 6e009861 | 2026-01-30 13:15:19 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #690 from LcktnMX/revert-687-devDTI-QA
-* 4cb091aa | 2026-01-30 13:08:03 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #687 from LcktnMX/devDTI-QA
-* 7e70fd75 | 2026-01-29 12:50:44 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #686 from LcktnMX/devDTI-QA
-* a35bf0de | 2026-01-26 13:56:44 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #672 from LcktnMX/lockton/niko.sygno/FixLoginCSS-ConsultaDocumentos
-* 87c46577 | 2026-01-23 11:10:10 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #669 from LcktnMX/devDTI-QA
-* 3babe0ff | 2026-01-22 15:37:55 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #667 from LcktnMX/devDTI-QA
-* c9a3dcf1 | 2026-01-22 12:32:35 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #665 from LcktnMX/lockton/niko.sygno/CorreccionBotonesCargaMasiva
-* 6ffb858e | 2026-01-22 12:23:26 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #664 from LcktnMX/devDTI-QA
-* 151cf99c | 2026-01-22 11:52:02 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #661 from LcktnMX/devDTI-QA
-* 631a0c13 | 2026-01-19 22:18:14 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #659 from LcktnMX/devDTI-QA
-* 8465005b | 2026-01-15 12:24:28 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #655 from LcktnMX/devDTI-QA
-* a96a8ab2 | 2026-01-15 11:06:23 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #653 from LcktnMX/devDTI-QA
-* da4ed4f5 | 2026-01-15 09:19:33 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #651 from LcktnMX/feature/INC016-validacion-caracteres
-* c2be3f22 | 2026-01-13 13:01:43 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #650 from LcktnMX/devDTI-QA
-* 08143d0e | 2026-01-09 18:05:58 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #646 from LcktnMX/devDTI-QA
-* 7d38811a | 2025-12-31 14:51:24 | EnriqueZapataValle <consultor.ti05@lockton.com> | Merge pull request #644 from LcktnMX/devDTI-QA
-* a15ffc71 | 2025-12-30 12:31:53 | EnriqueZapataValle <consultor.ti05@lockton.com> | Merge pull request #641 from LcktnMX/devDTI-QA
-* a68002dc | 2025-12-29 19:11:22 | EnriqueZapataValle <consultor.ti05@lockton.com> | Merge pull request #638 from LcktnMX/devDTI-QA
-* f002a0c3 | 2025-12-22 16:57:12 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #633 from LcktnMX/lockton/niko/PruebaIntegracion-QA
-* cc559ca0 | 2025-12-17 01:29:38 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #630 from LcktnMX/devDTI-QA
-* afaa77fd | 2025-12-16 12:32:18 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #628 from LcktnMX/devDTI-QA
-* 98080649 | 2025-12-12 22:05:41 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #624 from LcktnMX/devDTI-QA
-* fc17e1eb | 2025-12-04 10:53:19 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #615 from LcktnMX/devDTI-QA
-* 030730f4 | 2025-12-01 11:24:26 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #612 from LcktnMX/lockton/niko.sygno/FixConsultaSolicitudes
-* 4aaf7677 | 2025-12-01 11:21:29 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #611 from LcktnMX/devDTI-QA
-* 57a47e28 | 2025-11-12 13:27:32 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #606 from LcktnMX/lockton/niko.sygno/CorreccionDocumentos-QA
-* b74cb271 | 2025-11-08 22:35:59 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #605 from LcktnMX/lockton/niko.sygno/CorreccionCotizador-BotonElimnarPlan
-* 809987f0 | 2025-11-08 22:21:27 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #604 from LcktnMX/lockton/niko.sygno/CorreccionCotizador-BotonElimnarPlan
-* aafcce9a | 2025-11-08 18:19:31 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #603 from LcktnMX/lockton/niko.sygno/Mejoras-AccesoCentralizado-QA
-* ef2b4b8d | 2025-10-31 19:47:33 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #601 from LcktnMX/feature/consentimiento_inc
-* fc267d51 | 2025-10-31 10:31:16 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #599 from LcktnMX/lockton/niko.sygno/CambioURLS-QA
-* d67d217d | 2025-10-24 22:54:35 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #596 from LcktnMX/lockton/niko.sygno/CambiosEstilosLogin-QA
-* eb789721 | 2025-10-23 23:46:09 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #592 from LcktnMX/feature/consentimientos
-* bf97a557 | 2025-10-23 23:46:00 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #590 from LcktnMX/feature/fixsendmail
-* 6397df49 | 2025-10-23 18:34:09 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #588 from LcktnMX/lockton/niko.sygno/MejorasPentest-AdminPago-QA
-* cf7661df | 2025-10-22 00:46:10 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #584 from LcktnMX/lockton/niko.sygno/MejorasPentest-AdminPago-QA
-* a576be1f | 2025-10-22 00:31:03 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #583 from LcktnMX/lockton/niko.sygno/MejorasPentest-AdminPago-QA
-* e079a24a | 2025-10-21 17:36:55 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #582 from LcktnMX/devDTI-master
-* 36396e8a | 2025-10-21 17:21:14 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #581 from LcktnMX/devDTI-QA
-* 707bfe8f | 2025-10-21 14:02:20 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #580 from LcktnMX/lockton/niko.sygno/HomologacionQA-MASTER
-* acf5012f | 2025-10-21 13:09:09 | Sygno4 <con_sygno4@lockton.com> | Se realiza una homologacion de ambientes
-* 8ed682fe | 2025-10-14 00:40:31 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #575 from LcktnMX/lockton/niko.sygno/FixRestablecerPassword
-* 56bd4762 | 2025-10-14 00:02:17 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #574 from LcktnMX/revert-568-lockton/niko.sygno/MejorasPostProduccion-Estilos
-* 086bac47 | 2025-10-13 23:49:55 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #572 from LcktnMX/revert-570-lockton/niko.sygno/MejorasPostProduccion-Estilos
-* a0ab1b5f | 2025-10-13 22:46:33 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #571 from LcktnMX/lockton/niko.sygno/MejorasPostProduccion-Estilos
-* a02c88e9 | 2025-10-13 21:10:10 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #570 from LcktnMX/lockton/niko.sygno/MejorasPostProduccion-Estilos
-* 8a80ae60 | 2025-10-13 20:16:43 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #568 from LcktnMX/lockton/niko.sygno/MejorasPostProduccion-Estilos
-* e2139bcc | 2025-10-13 20:16:26 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #567 from LcktnMX/devDTI-master
-* 3abec7d2 | 2025-10-03 21:56:51 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #555 from LcktnMX/lockton/niko.sygno/Mejoras-SSO-PROD-v2
-* 35db8d9e | 2025-09-27 02:23:13 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #544 from LcktnMX/revert-539-lockton/niko.sygno/Mejoras-SSO-PROD
-* ec46b2de | 2025-09-26 17:43:42 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #539 from LcktnMX/lockton/niko.sygno/Mejoras-SSO-PROD
-* b8caab30 | 2025-08-29 21:38:46 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #532 from LcktnMX/lockton/niko.sygno/AccesoCentralizado-PROD
-* 386910b9 | 2025-08-05 17:44:31 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #517 from LcktnMX/Daniel.zamora-20250807-DependientesCompnentTS
-* 4a073303 | 2025-08-01 21:26:09 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #516 from LcktnMX/DanielZamora-Ajustes-CambiosCalificados-TablaDependientes
-* 945a1aaa | 2025-08-01 21:26:01 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #514 from LcktnMX/lockton/niko.sygno/PTDC-AIG-PROD
-* 72383f7b | 2025-07-20 22:06:03 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #498 from LcktnMX/lockton/niko.sygno/MejorasPostProduccion-FixCambio-de-Contraseña
-* 8a399284 | 2025-07-18 22:37:25 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #497 from LcktnMX/lockton/niko.sygno/FIX-Duplicados-TitularesService-Master
-* 4b8b3640 | 2025-07-18 20:47:32 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #495 from LcktnMX/lockton/niko.sygno/Pre-Prod-18072025
-* 5f973f6c | 2025-07-16 20:43:07 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #494 from LcktnMX/lockton/niko.sygno/Configuracion-YML-PROD
-* ac5ecfd4 | 2025-07-10 19:39:38 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #488 from LcktnMX/lockton/niko.sygno/Homologacion-Master-10072025
-* 2ea8de39 | 2025-07-04 23:24:46 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #480 from LcktnMX/lockton/niko.sygno/BugFix-ALTA-TITULARES-PROD
-* 2687bf0a | 2025-04-25 12:43:12 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #459 from LcktnMX/lockton/niko.sygno/Ticket-3196-PROD
-* 264cb7fa | 2025-03-27 17:29:28 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #452 from LcktnMX/lockton/niko.sygno/ParametrizarMensajesPTDC-PROD
-* 3adbfd88 | 2025-03-27 17:29:10 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #450 from LcktnMX/lockton/beflex/joseluis.campillo/prod/restriccion_tope_maximo_dependientes
-* 9947a077 | 2025-02-28 13:07:28 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #444 from LcktnMX/lockton/niko.sygno/ReportesPTDC-Master
-* 80f1040f | 2025-02-26 13:59:11 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #443 from LcktnMX/Beflex-Daniel-zamora-PROD-Ajuste_IKE
-* 1d619ac0 | 2025-01-30 17:16:13 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #434 from LcktnMX/lockton/niko.sygno/FixValidacionMultipagos-PROD
-* 443b21b3 | 2025-01-28 19:04:39 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #430 from LcktnMX/Beflex-Daniel.zamora-PROD-IYMB-114-PasoAdicional
-* 0ae49075 | 2025-01-16 21:35:21 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #427 from LcktnMX/lockton/beflex/joseluis.campillo/prod/acceso_modulo_facturacion_empleado
-* 50dba7dc | 2025-01-13 15:27:44 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #425 from LcktnMX/lockton/niko.sygno/FixSiteKEY-Recaptcha-PROD
-* 9046ef16 | 2025-01-13 14:59:28 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #424 from LcktnMX/lockton/niko.sygno/FixSiteKEY-Recaptcha-PROD
-* d8ad2045 | 2025-01-10 12:06:50 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #417 from LcktnMX/lockton/niko.sygno/Payment-V2.5-Prod
-* 77e18c05 | 2024-12-07 00:33:13 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #415 from LcktnMX/Lockton-Daniel.Zamora-PROD-CargaArchivoPasoAdicional
-* 0914adc1 | 2024-12-06 15:26:33 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #411 from LcktnMX/Lockton-Daniel.Zamora-PROD-CargaArchivoPasoAdicional
-* 0c6d9806 | 2024-12-06 15:26:22 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #413 from LcktnMX/lockton/beflex/con_sygno4/prod/PCTD/fase_2_1
-* c4ea57a3 | 2024-11-29 14:13:03 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #404 from LcktnMX/lockton-Daniel.zamora-PROD-FIXCambiosCalificados
-* 893f13fd | 2024-11-29 14:12:55 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #405 from LcktnMX/lockton/Payment-Bitacora
-* 91972245 | 2024-11-23 03:33:19 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #401 from LcktnMX/lockton/FixPayment-Master
-* f9a33feb | 2024-11-22 14:04:36 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #397 from LcktnMX/lockton/Payment-V1-Master
-* 2ccb94e7 | 2024-11-22 14:02:41 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #398 from LcktnMX/lockton-daniel.zamora-PROD-BotonMenuURLpara3M
-* 64789b9f | 2024-11-22 13:59:50 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #399 from LcktnMX/lockton/beflex/joseluis.campillo/prod/acceso_modulo_facturación
-* 49071c26 | 2024-11-01 17:06:02 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #384 from LcktnMX/lockton/niko.sygno/FixInciencias-MergePDF
-* 9f6444dd | 2024-10-07 23:55:28 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #377 from LcktnMX/lockton/niko.sygno/MergeMigracion-MiCompensacion
-* f56fb32d | 2024-09-20 17:08:48 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #370 from LcktnMX/lockton/niko.sygno/FixJsBanwireMaster
-* df44255f | 2024-09-13 12:09:28 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #366 from LcktnMX/lockton/beflex/joseluis.campillo/prod/ajuste_layout_red_medica
-* ea5448c7 | 2024-09-06 01:44:43 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #361 from LcktnMX/lockton/beflex/joseluis.campillo/prod/mi_compensacion
-* df6370d9 | 2024-08-30 11:33:51 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #358 from LcktnMX/lockton/beflex/daniel.zamora/PROD/NotificacionAltaBeneficiario
-* 0b04c81c | 2024-08-15 15:08:13 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #355 from LcktnMX/lockton/beflex/joseluis.campillo/gestion_cambio_password_admin
-* 5886ee65 | 2024-08-09 11:37:33 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #351 from LcktnMX/lockton/niko.sygno/cambiosCalificadosPromax-Master
-* afe15eb4 | 2024-06-13 13:41:21 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #344 from LcktnMX/Lockton-Beflex-Daniel.zamora-PROD-CambioInterEmpresa
-* 3918b5b6 | 2024-06-13 13:41:03 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #343 from LcktnMX/lockton/beflex/joseluis.campillo/reportes-facturas
-* e355847a | 2024-05-31 10:07:10 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #340 from LcktnMX/lockton/beflex/joseluis.campillo/facturas
-* 3ba0957b | 2024-05-16 13:42:51 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #337 from LcktnMX/lockton/beflex/joseluis.campillo/izzy
-* cba8b5d7 | 2024-04-26 14:42:35 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #331 from LcktnMX/lockton/beflex/joseluis.campillo/administracion-red-medicaMaster
-* c02222d1 | 2024-04-19 11:48:03 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #326 from LcktnMX/lockton/beflex/kelly.gonzalez/cargaMasivaProd
-* e638bde0 | 2024-04-12 10:55:11 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #322 from LcktnMX/lockton/aaron/RF-10-master
-* 58726cf4 | 2024-04-12 10:55:00 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #320 from LcktnMX/lockton/beflex/kelly.gonzalez/solicitudes-administrador
-* 5e964972 | 2024-03-22 01:12:01 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #308 from LcktnMX/lockton/niko.sygno/IncidenciaAchFoodsPROD
-* 6804642b | 2024-03-14 16:39:41 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #305 from LcktnMX/lockton/beflex/kelly.gonzalez/IncidenciaGenerarsolicitud
-* 94d28ab5 | 2024-03-08 10:49:54 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #304 from LcktnMX/Lockton-Beflex-Daniel.Zamora-PROD-MejoraBotonCambioEmpresaDinamico3
-* d75be134 | 2024-03-08 09:49:54 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #302 from LcktnMX/revert-301-Lockton-Beflex-Daniel.Zamora-PROD-MejoraBotonCambioEmpresaDinamico2
-* 00f6b0b9 | 2024-03-08 09:47:21 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #301 from LcktnMX/Lockton-Beflex-Daniel.Zamora-PROD-MejoraBotonCambioEmpresaDinamico2
-* 65745190 | 2024-03-01 13:29:29 | Daniel Zamora <92056674+Daniel-asymmetric@users.noreply.github.com> | Merge pull request #296 from LcktnMX/Lockton-Beflex-Daniel.zamora-PROD-FixIntentosLogin2
-* 087a96e4 | 2024-03-01 13:09:34 | Daniel Zamora <92056674+Daniel-asymmetric@users.noreply.github.com> | Merge pull request #295 from LcktnMX/Lockton-Beflex-Daniel.zamora-PROD-FixIntentosLogin
-* 1d07b42c | 2024-02-16 13:24:12 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #289 from LcktnMX/lockton/kelly.gonzalez/IncidenciasCambiosCalificados
-* c05de6a6 | 2024-02-16 00:34:57 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #288 from LcktnMX/lockton/kelly.gonzalez/IncidenciasCambiosCalificados
-* c61045a9 | 2024-02-16 00:34:46 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #287 from LcktnMX/Lockton-Beflex-Daniel.zamora-PROD-FixFord_FizReactivacionSolicitudes
-* 53c24711 | 2024-02-16 00:34:24 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #286 from LcktnMX/lockton/aaron/RF-08-master
-* 2219ba85 | 2024-02-01 11:55:13 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #278 from LcktnMX/Lockton-Beflex-Daniel.zamora-PROD-ConstanciasFiscales
-* b5ebffb4 | 2024-01-19 13:29:29 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #273 from LcktnMX/Mejoras-RF-02-master
-* 2728dcf8 | 2024-01-12 14:17:49 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #264 from LcktnMX/lockton-beflex-daniel.zamora-PROD-IncidenciaCambioContrasenaAdmin
-* c9850d89 | 2024-01-12 14:17:43 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #269 from LcktnMX/lockton/aaron/cambioscalificados/banwireMaster
-* bab6fc60 | 2023-12-22 09:10:22 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #257 from LcktnMX/Lockton-beflex-PROD-daniel.zamora-IncidenciaCambioContrasena
-* 93981d21 | 2023-12-06 23:49:15 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #254 from LcktnMX/lockton/niko.sygno/FixParametro213Master
-* ac675c46 | 2023-12-06 22:52:19 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #253 from LcktnMX/lockton/niko.sygno/FixRFCMaster
-* 67b6025a | 2023-12-05 10:19:18 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #252 from LcktnMX/lockton/beflex/kelly.gonzalez/modificarTitularProd
-* 37b1d2e2 | 2023-12-01 13:20:27 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #251 from LcktnMX/Lockton-Beflex-Damoe;.zamora-PROD-IncidenciaFacturas_20231130
-* 60f34739 | 2023-11-23 22:05:45 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #245 from LcktnMX/lockton/niko.sygno/FixMenus-CotizadorMaster
-* c0897ab1 | 2023-11-17 15:00:25 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #240 from LcktnMX/lockton/Beflex/Daniel.Zamora/PROD/Liberacon_Seguridad_Smartechk
-* 9318e6d6 | 2023-11-17 14:59:33 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #242 from LcktnMX/Lockton/Beflex/Daniel.zamora/Prod/Incidencia_CabiosCalificados_AltaTiularesNodeV2
-* 2a219773 | 2023-11-09 23:11:06 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #237 from LcktnMX/lockton/niko.sygno/FixAnexarConsentimientoMaster
-* e833b76a | 2023-11-08 14:37:42 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #232 from LcktnMX/lockton/niko.sygno/FixMisdatosFiscalesMaster
-* 696f2272 | 2023-11-06 12:02:02 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #231 from LcktnMX/lockton/niko.sygno/FixLoginTokenMaster
-* b89b9e3d | 2023-10-27 16:25:07 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #230 from LcktnMX/lockton/beflex/gilberto.garcia/banwireprogramacionpagosPROD
-* ce975c58 | 2023-10-27 16:24:57 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #228 from LcktnMX/lockton/beflex/kelly.gonzalez/incicenciaFordMaster
-* ea3f5fb0 | 2023-10-26 11:24:01 | beflexdesarrollo <53061208+LcktnMX@users.noreply.github.com> | Update azure-pipelines.yml for Azure Pipelines
-* 2cbaca8d | 2023-10-06 19:09:44 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #224 from LcktnMX/lockton/beflex/gilberto.garcia/QA/BanwiereCambioCalificadoPROD
-* e59250da | 2023-09-22 11:59:40 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #221 from LcktnMX/lockton/niko.sygno/CambiosFordProd
-* bf1b025d | 2023-09-08 09:59:05 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #218 from LcktnMX/lockton/beflex/kelly.gonzalez/modalBeneficiariosProd
-* 16443b2a | 2023-08-25 10:21:40 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #211 from LcktnMX/BKT_PRODUCCION_RegeneracionSolc_28Agosto
-* 68d3b924 | 2023-08-18 16:28:57 | gilgasam <91164073+gilgasam@users.noreply.github.com> | Merge pull request #207 from LcktnMX/lockton/beflex/carlos.perez/CambioEmpresaProduccion
-* 2d5a2c27 | 2023-08-11 15:30:20 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #203 from LcktnMX/lockton/beflex/edgar.serrano/fixRecoverPasswordMejorasMaster
-* 3aa27762 | 2023-08-04 22:14:40 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #196 from LcktnMX/lockton/beflex/edgar.serrano/featureMejorasBeflexMaster
-* 08de32da | 2023-08-04 14:49:46 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #194 from LcktnMX/lockton/niko.sygno/DeshabilitacionDeEnvioCorreoMaster
-* b73c4208 | 2023-08-03 17:17:53 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #192 from LcktnMX/lockton/beflex/niko.sygno/ValidacionPlanesAutoProd
-* 35e9d45a | 2023-08-03 16:39:19 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #191 from LcktnMX/lockton/beflex/edgar.serrano/featureMejorasBeflexMaster
-* bfdaf8b2 | 2023-08-03 16:37:34 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #190 from LcktnMX/lockton-beflex-daniel.zamora-PROD-CasaHabitacionPDF
-* 0e4ad7f9 | 2023-07-21 20:13:21 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #187 from LcktnMX/lockton/beflex/gilberto.garcia/nuevaEstructuraBanwireParaProd
-* 82addc25 | 2023-07-21 19:44:09 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #183 from LcktnMX/lockton/beflex/daniel.zamora/PROD/Alta_titulo_SA_VIDA
-* 63b91448 | 2023-07-21 10:36:10 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #186 from LcktnMX/lockton/beflex/gilberto.garcia/nuevaEstructuraBanwireParaProd
-* ef1e28ff | 2023-07-21 09:45:18 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #185 from LcktnMX/lockton/beflex/gilberto.garcia/nuevaEstructuraBanwireParaProd
-* a27feab5 | 2023-07-14 12:11:24 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #182 from LcktnMX/lockton/beflex/daniel.zamora/PROD/Alta_titulo_SA_VIDA
-* e2dd1793 | 2023-06-30 12:28:06 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #167 from LcktnMX/lockton/beflex/daniel.zamora/Componentes_Carga_Masiva_y_Flujo_Alta_PROD
-* bb5d992f | 2023-06-02 10:23:01 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #157 from LcktnMX/bkt_FacturacionEnvioCorreo_PROD
-* e86c0341 | 2023-05-25 11:22:35 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #149 from LcktnMX/BKT_PROD_FIX_CambCalif_Modal_26Mayo
-* 605d43d0 | 2023-05-25 11:19:54 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #150 from LcktnMX/lockton/beflex/nicolas.contreras/FixBajaDependiente-FixParametroBeneficiariosMaster
-* 27bc75ca | 2023-05-18 14:38:44 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #143 from LcktnMX/BKT_Prod_CambiosCal_Estilo_19Mayo
-* 5ce45526 | 2023-05-13 20:40:51 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #139 from LcktnMX/BKT_FIX_AgregarBeneficiarios_FechaAlta
-* e657f185 | 2023-05-12 12:49:00 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #137 from LcktnMX/BKT_SetIncidencias_Prod_Mayo12
-* 341c9b51 | 2023-05-11 20:03:51 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #135 from LcktnMX/lockton/beflex/nicolas.contreras/HomologacionServerMaster_11-05-23
-* 03212160 | 2023-05-11 14:20:55 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #134 from LcktnMX/lockton/beflex/nicolas.contreras/FixMenusMaster
-* 51bfc443 | 2023-05-05 10:07:21 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #131 from LcktnMX/BKT_AdminMejoras_4may2023
-* 13ba63bc | 2023-05-05 09:35:01 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #130 from LcktnMX/Release/BonoAutoAdmin/4Mayo
-* 14c2f872 | 2023-04-28 21:54:36 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #126 from LcktnMX/lockton/beflex/gilberto.garcia/paraProduccionOptimizacionDoc
-* dda117f3 | 2023-04-28 19:52:47 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #122 from LcktnMX/bkt_mod_facturas_PROD
-* be5e82ef | 2023-04-28 16:22:15 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #121 from LcktnMX/lockton/beflex/nicolas.contreras/Concepto-BolsaIflex-IconnMaster
-* 2a4b1c5f | 2023-04-28 15:55:07 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #120 from LcktnMX/revert-113-BKT_SetIncidencias_entrega1
-* 33460cdf | 2023-04-28 15:54:51 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #119 from LcktnMX/revert-114-BKT_AdminAccesos_entregable1
-* 8a77df43 | 2023-04-28 15:54:35 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #118 from LcktnMX/revert-111-bkt_mod_facturas_PROD
-* 775e2969 | 2023-04-28 14:43:11 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #113 from LcktnMX/BKT_SetIncidencias_entrega1
-* f9ff69d2 | 2023-04-28 14:06:33 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #114 from LcktnMX/BKT_AdminAccesos_entregable1
-* c78ae22f | 2023-04-28 13:58:48 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #111 from LcktnMX/bkt_mod_facturas_PROD
-* 223e0ba1 | 2023-04-28 13:58:40 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #108 from LcktnMX/lockton/beflex/carlos.perez/ConstanciaComboFiscalProd
-* 6380652c | 2023-04-20 14:35:09 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #99 from LcktnMX/lockton/beflex/carlos.perez/TextoAyudaProd
-* f2c1652e | 2023-04-04 17:35:07 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #86 from LcktnMX/lockton/beflex/nicolas.contreras/CorreccionesGlobal
-* 05992def | 2023-04-04 16:57:27 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #85 from LcktnMX/lockton/beflex/nicolas.contreras/CorreccionesGlobal
-* b440dc70 | 2023-04-04 13:37:52 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #84 from LcktnMX/Release_BKT_AdminMejoras_4Abril
-* 044c87f1 | 2023-03-27 13:52:46 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #74 from LcktnMX/lockton/beflex/nicolas.contreras/ObtenerBitacoraAccesosMaster
-* 73e6474c | 2023-03-17 01:18:59 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #69 from LcktnMX/beflex/gil.garcia/optimizacionDocumentosIssues
-* ca4351aa | 2023-03-16 18:04:38 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #68 from LcktnMX/beflex/gil.garcia/optimizacionDocumentosIssues
-* 7a1d03f9 | 2023-03-16 16:25:12 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #67 from LcktnMX/lockton/beflex/gustavo.canul/formatos-bono-auto-prod
-* 3580f567 | 2023-03-15 19:28:45 | beflexdesarrollo <53061208+LcktnMX@users.noreply.github.com> | Update azure-pipelines.yml for Azure Pipelines
-* b0fbb23b | 2023-03-07 18:08:01 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #49 from LcktnMX/lockton/beflex/nicolas.contreras/FacturacionV2Master
-* 4aa41103 | 2023-03-03 11:09:37 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #48 from LcktnMX/lockton/beflex/bono-auto-prod
-* 5717c1ad | 2023-02-24 16:51:23 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #43 from LcktnMX/feature/MFA_Prod
-* d6b8adbc | 2023-02-24 15:48:32 | consultor <consultor> | MFA implementation
-* b7abfb37 | 2023-02-16 19:37:21 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #33 from LcktnMX/lockton/beflex/edgar.serrano/cambiosiconotarjetamaster
-* 5e9c2a80 | 2023-02-16 19:37:04 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #34 from LcktnMX/Lockton/beflex/daniel.zamora/incidencia412y413
-* fd0dd87e | 2023-02-09 03:48:57 | Nicolas Contreras <nicolas.contreras@sygno.mx> | Se homologa rama master (prod) con Servidor Productivo
-* 3ee1eaf1 | 2023-01-30 13:36:11 | NikoSygno <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #24 from LcktnMX/lockton/beflex/nicolas.contreras/IncidenciasScotiabankProd
-* 7cbec57f | 2023-01-25 12:28:59 | Nicolas Contreras <nicolas.contreras@sygno.mx> | Se Homologa Rama Master con Archivos en el servidor Productivo
-* a4dfcc87 | 2022-11-03 22:16:25 | Luis Daniel Zamora <luis.zamora@asymmetric.mx> | Correccion de Inicidencia Tabla de Beneficiarios.
-* d1182390 | 2022-08-13 00:34:59 | ConAsymmetric4 <enrique.alvaro@asymmetric.mx> | ajuste correo envio alta
-* f7f4325f | 2022-08-12 15:55:10 | ConAsymmetric4 <enrique.alvaro@asymmetric.mx> | Notificacion dependiente
-* cae5c744 | 2022-08-12 11:46:24 | ConAsymmetric4 <enrique.alvaro@asymmetric.mx> | Ajuste rutra API Prod
-* ad675ea8 | 2022-08-10 17:33:35 | ConAsymmetric4 <enrique.alvaro@asymmetric.mx> | Envio correo Olvide contraseña
-* 8d95be6f | 2022-05-10 11:20:26 | Gilberto García <gilgasan@gmail.com> | se agrega global.ts
-* b0f0e0c1 | 2022-05-10 10:51:07 | Gilberto García <gilgasan@gmail.com> | Todos los cambios Master 10 de mayo
-* 6b77bad2 | 2022-03-19 14:10:15 | ConAsymmetric4 <91164298+ConAsymmetric4@users.noreply.github.com> | Integracion Nuevo envio Email
-* fb557c99 | 2022-03-19 01:48:26 | ConAsymmetric4 <91164298+ConAsymmetric4@users.noreply.github.com> | Merge branch 'master' of https://github.com/LcktnMX/BeFlex3-EmpAdm
-* a1512943 | 2022-03-19 01:48:20 | ConAsymmetric4 <91164298+ConAsymmetric4@users.noreply.github.com> | Ruta API
-* e68ef02f | 2022-03-18 20:02:53 | ConAsymmetric4 <91164298+ConAsymmetric4@users.noreply.github.com> | Integracion CoE
-* 5f4e7fd6 | 2022-03-11 14:15:05 | Carlos Torres <carlos.torres@sygno.mx> | Add KPI component change for buttons
-* 740fe118 | 2022-03-11 13:53:06 | Carlos Torres <carlos.torres@sygno.mx> | Se agregan 5 manuales
-* d583f703 | 2022-03-10 13:07:08 | luisLockton <65301186+luisLockton@users.noreply.github.com> | Update azure-pipelines.yml for Azure Pipelines
-* 59c915a4 | 2022-03-10 11:02:08 | luisLockton <65301186+luisLockton@users.noreply.github.com> | Update azure-pipelines.yml for Azure Pipelines
-* 0af29591 | 2022-02-11 09:04:38 | ConAsymmetric4 <91164298+ConAsymmetric4@users.noreply.github.com> | Ajuste URL Documento CasaHabitacion Produccion
-* 64d1ceb1 | 2022-02-09 18:24:26 | ConAsymmetric4 <91164298+ConAsymmetric4@users.noreply.github.com> | Cambios CasaHabitacion
-* 0b4caaf1 | 2022-01-20 22:46:26 | ConAsymmetric4 <91164298+ConAsymmetric4@users.noreply.github.com> | Restauracion Commit PROD
-* 4902a5c1 | 2022-01-20 17:34:40 | ConAsymmetric4 <91164298+ConAsymmetric4@users.noreply.github.com> | Ajustes en Nic, Login y control de errores SSO
-* cfd6061f | 2022-01-09 21:50:46 | luisLockton <65301186+luisLockton@users.noreply.github.com> | Se agrega comentario de prueba
-* cf429c68 | 2022-01-07 12:58:35 | EfrahdzSygno <efrain.hernandez@sygno.mx> | se añaden documentos assets
-* f81583a1 | 2022-01-07 10:59:37 | EfrahdzSygno <efrain.hernandez@sygno.mx> | cambios para conexion con redhat sso
-* 500dc4a7 | 2021-12-27 16:35:13 | ConAsymmetric4 <91164298+ConAsymmetric4@users.noreply.github.com> | LinkADFS se actualiza variable global
-* ad5eb445 | 2021-12-10 17:43:22 | gilgasam <gilberto.garcia@asymmetric.mx> | Se agrega cambios vulnerabilidades FORD
-* d5593f5e | 2021-11-12 18:48:17 | EfrahdzSygno <efrain.hernandez@sygno.mx> | se agregan documentos
-* 5d0b260b | 2021-11-12 12:41:49 | gilgasam <gilberto.garcia@asymmetric.mx> | se ajusta para documentos personalizados.
-* ef9550ef | 2021-11-12 12:39:32 | gilgasam <gilberto.garcia@asymmetric.mx> | Merge branch 'master' of https://github.com/LcktnMX/BeFlex3-EmpAdm into master
-* ab6141a7 | 2021-10-28 18:23:11 | ConAsymmetric4 <91164298+ConAsymmetric4@users.noreply.github.com> | Merge branch 'master' of https://github.com/LcktnMX/BeFlex3-EmpAdm
-* e2e52f5d | 2021-10-28 18:23:04 | ConAsymmetric4 <91164298+ConAsymmetric4@users.noreply.github.com> | Edicion de dependientes
-* c8d68e41 | 2021-10-08 16:33:52 | gilgasam <gilberto.garcia@asymmetric.mx> | Resolución de incidencia #346 (liberación)
-* 15df3ae6 | 2021-10-08 16:24:12 | gilgasam <gilberto.garcia@asymmetric.mx> | Reverso vulnerabilidades ford
-* 37e20427 | 2021-09-08 21:02:56 | Yael Mendez <ymendez@asymmetric.mx> | vulnerabilidades FORD 13082021
-* 5bddf5b1 | 2021-08-20 12:51:27 | DiegoGonzalezPs <diego_gonzalez@puntosingular.com> | 20-08-21 - cambios imagenes EDENRED y documentos de manuales
-* ab3c6584 | 2021-08-20 09:17:22 | DiegoGonzalezPs <diego_gonzalez@puntosingular.com> | 20-08-21 - liberación incidencias #277 y #288
-* 0ac1392b | 2021-07-23 12:41:46 | Antonio <tony_al12@hotmail.com> | 23-07-21 - Agregando documento, 'eBook_Donaldson'
-* bd206fc5 | 2021-07-22 12:04:56 | Antonio <tony_al12@hotmail.com> | 22-07-21 - Cambios vulnerabilidades ID RCE-3 *Se pusieron las librerías de forma local, así como se tiene el resto *Se quito al importación de la vista *Se coloco la importación como el resto en index
-* 19469823 | 2021-07-17 00:14:21 | Antonio <tony_al12@hotmail.com> | 16-07-21 - 2° liberación Tickets y cc25 (Observaciones) *Se agregaron iconos que faltaron *se agrego un html con estilos de tickets que falto
-* f5fcd602 | 2021-07-16 17:58:53 | Antonio <tony_al12@hotmail.com> | 16-07-21 - liberación Tickets y cc25 *se suben componentes tomados de DEV y paso por QA
-* 06a7c78c | 2021-07-09 17:12:29 | Antonio <tony_al12@hotmail.com> | 09-07-21 - Cambios vulnerabilidades ID Ext-1, Ext-3, Ext-4, Ext-8, RCE-1, RCE-2, RCE-4, RCE-5, RCE-6 *para Ext-1, se agrego el token al consumo de la petición de actualizar *para Ext-3, solo se modifico java *para Ext-4, se retiro el uso de la librería chart, y se actualizo Jquery *para Ext-8 y RCE-4, se cambiaron las ips fijas por 0.0.0.0, estas no se usan *para RCE-1, Se cambio en login la función random por la recomendada, la otra referencia se retiro del código ya que no era utilizada *para RCE-2, se elimino o corrigió la configuración cors *para RCE-5, se eliminaron las referencias a http, era código muerto *para RCE-6, Solo se modifico la API NodeJS
-* 38a79325 | 2021-07-02 16:20:36 | Antonio <tony_al12@hotmail.com> | 02-07-21 - Cambio preview bemobile
-* 4e270b04 | 2021-07-02 15:25:48 | Antonio <tony_al12@hotmail.com> | 02-07-21 - Liberación incidencia 269
-* f11b5fa1 | 2021-06-30 19:42:15 | Antonio <tony_al12@hotmail.com> | 30-06-21 - actualizando documento DESCRIPCION DE PLANES OPCIONALES
-* 073520bd | 2021-06-25 13:17:53 | Antonio <tony_al12@hotmail.com> | 25-06-21 - Cambio de imagen de nic *Se actualizo la imagen del nic
-* 268c2464 | 2021-06-24 13:50:42 | Antonio <tony_al12@hotmail.com> | 24-06-21 - Liberación preview y regeneración de solicitudes *Se pasaron los componentes que se recibieron de estos cambios *el paquete compilo
-* e7775c43 | 2021-06-21 11:47:12 | Antonio <tony_al12@hotmail.com> | 21-06-21 - Actualizar documento 2 - Manual de Beflex Corteva
-* ca820bd0 | 2021-06-21 11:03:34 | Antonio <tony_al12@hotmail.com> | 21-06-21 - Actualizar documento - Manual de usuario Buró de Crédito
-* 891f6213 | 2021-06-18 11:03:48 | Antonio <tony_al12@hotmail.com> | 18-06-21 - Calculadora EY admin Y Actualizar documentos *Se agregaron los archivos para la liberación de calculadora EY admin *Se actualizo la carpeta documents con archivos *Se actualizo package.json ya que faltaba librería para calculadora
-* ed9aca07 | 2021-06-17 18:09:35 | Antonio <tony_al12@hotmail.com> | 17-06-21 - Incidencia 265 y 266 - alta de titulares y dependientes *paquete para liberación del 18-06-21
-* 0033d972 | 2021-06-11 16:09:41 | Antonio <tony_al12@hotmail.com> | 11-06-21 - Documentos agregados *manual beflex comcucom *manual apex
-* f2a83dd9 | 2021-06-04 13:59:05 | Antonio <tony_al12@hotmail.com> | 04-06-21 - Calculadora de retiro *Se agregaron los componentes que se recibieron de este modulo *No se tiene tickets, app module y routing se modificaron para compilar
-* deda8dfa | 2021-06-04 13:14:49 | Antonio <tony_al12@hotmail.com> | 04-06-21 - Prueba despliegue en Devops *Se agrego un console sencillo, en nic
-* ba6a953c | 2021-06-04 13:02:58 | Antonio <tony_al12@hotmail.com> | 04-06-21 - Actualización código de producción *Se coloco el código de producción sobre la rama *Solo se dejaron los cambios necesarios
-* 561a6c29 | 2021-04-19 16:09:11 | Mijail Espadas <mijail.espadas@gmail.com> | Update azure-pipelines.yml for Azure Pipelines
-* 809e4d59 | 2021-03-19 12:56:51 | AntonioAL12 <tony_al12@hotmail.com> | Cambio de Global para Pro
-* 9d0f4037 | 2021-03-18 18:06:18 | ETECH-AlejandroVieyra <63731245+ETECH-AlejandroVieyra@users.noreply.github.com> | Update azure-pipelines.yml for Azure Pipelines
-* 44b9ae16 | 2021-03-17 18:41:35 | Mijail Espadas <mijail.espadas@gmail.com> | Update azure-pipelines.yml for Azure Pipelines
-* 6975c0f1 | 2021-03-16 11:15:15 | JDDGC <juand.garcia_cruz@outlook.com> | Merge branch 'master' of https://github.com/LcktnMX/BeFlex3-EmpAdm
-* 51c3c1cb | 2021-03-16 11:15:03 | JDDGC <juand.garcia_cruz@outlook.com> | Cambio url de imagen (navegadores soportados), y comentarios pasos BonoAuto
-* 404d7968 | 2021-03-09 12:29:04 | JDDGC <juand.garcia_cruz@outlook.com> | Merge branch 'master' of https://github.com/LcktnMX/BeFlex3-EmpAdm
-* 94267d2a | 2021-03-09 12:28:43 | JDDGC <juand.garcia_cruz@outlook.com> | Comentarios bono auto 09-03-2021
-* 3814add0 | 2021-02-25 15:24:12 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 25-02-21 - ultima integracion que se mando
-* 102aeb95 | 2021-02-25 11:49:42 | JDDGC <juand.garcia_cruz@outlook.com> | Cambios paso BonoAuto
-* 5c46b444 | 2021-02-24 20:44:55 | AntonioAL12 <tony_al12@hotmail.com> | Merge branch 'master' of https://github.com/LcktnMX/BeFlex3-EmpAdm
-* ce643cb0 | 2021-02-24 20:44:49 | AntonioAL12 <tony_al12@hotmail.com> | Modulo bono auto vista y funcionalidad
-* eb239704 | 2021-02-16 14:58:45 | JDDGC <juand.garcia_cruz@outlook.com> | Add services Bono Auto
-* 2042ba26 | 2021-02-15 12:41:31 | JDDGC <juand.garcia_cruz@outlook.com> | Paso nuevo Bono Auto
-* 9a2f4f3c | 2021-02-08 11:18:39 | AntonioAL12 <tony_al12@hotmail.com> | Merge branch 'master' of https://github.com/LcktnMX/BeFlex3-EmpAdm
-* 4b174a77 | 2021-02-08 11:18:25 | AntonioAL12 <tony_al12@hotmail.com> | Arreglando eliminacion de plan cuando excede cantidades
-* 457ab343 | 2021-02-03 13:11:31 | AntonioAL12 <tony_al12@hotmail.com> | Merge branch 'master' of https://github.com/LcktnMX/BeFlex3-EmpAdm
-* df7dc4e8 | 2021-02-03 13:11:23 | AntonioAL12 <tony_al12@hotmail.com> | Acomodando variables globales
-* 07c8aa28 | 2021-02-03 12:55:02 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 02-02-21
-* 4332493f | 2021-02-02 17:24:51 | AntonioAL12 <tony_al12@hotmail.com> | Incidencias de liberacion de admin 31-01-21
-* 6c2f4708 | 2021-01-31 14:07:33 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 30-01-21
-* 4a03a2cf | 2021-01-29 17:35:28 | AntonioAL12 <tony_al12@hotmail.com> | Cambio de ip fija
-* ff8a310d | 2021-01-29 10:40:26 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 29-01-21
-* 84f17c5c | 2021-01-28 23:14:13 | AntonioAL12 <tony_al12@hotmail.com> | Agregando idEmpresa a la descarga de documentos
-* 314c4840 | 2021-01-28 18:43:50 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 28-01-21
-* c9e4f4fc | 2021-01-28 16:50:00 | AntonioAL12 <tony_al12@hotmail.com> | Ocultando columna idempresa en dependientes
-* c2c45e7c | 2021-01-26 12:10:44 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 26-01-21
-* 7177047c | 2021-01-26 12:08:17 | AntonioAL12 <tony_al12@hotmail.com> | Cambio en login para sso de lizzy
-* 08b4fd6a | 2021-01-24 13:07:17 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 24-01-21
-* 269e87e1 | 2021-01-24 12:46:50 | AntonioAL12 <tony_al12@hotmail.com> | Despliegue en produccion 23-01-21
-* 2631e9ba | 2021-01-20 15:55:57 | AntonioAL12 <tony_al12@hotmail.com> | Arreglando parentesco en la notificacion de baja de dependientes
-* 7fa618bb | 2021-01-20 09:36:50 | JDDGC <juand.garcia_cruz@outlook.com> | Integracion con admin 20-01-2021
-* 0c372eb5 | 2021-01-20 09:33:27 | JDDGC <juand.garcia_cruz@outlook.com> | Fix login por SSO, Cierre de sesion sin motivo
-* 731c312b | 2021-01-19 13:04:11 | JDDGC <juand.garcia_cruz@outlook.com> | Merge branch 'master' of https://github.com/LcktnMX/BeFlex3-EmpAdm
-* 626dcac4 | 2021-01-19 13:03:48 | JDDGC <juand.garcia_cruz@outlook.com> | Parametro 127, solo agregar beneficiarios mayores de edad
-* 9c6c06b1 | 2021-01-18 14:39:52 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 18-01-21, y merge del modulo de facturacion
-* 3f15a8f4 | 2021-01-18 11:03:40 | AntonioAL12 <tony_al12@hotmail.com> | Merge branch 'master' of https://github.com/LcktnMX/BeFlex3-EmpAdm
-* 77cb1aa3 | 2021-01-18 11:03:26 | AntonioAL12 <tony_al12@hotmail.com> | Facturacion Empleado - arreglando navecacion, Arreglando plantilla de baja de dependientes
-* 5b8c3c95 | 2021-01-15 12:29:32 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 15-01-21
-* fececf95 | 2021-01-14 13:42:09 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 14-01-21
-* 324d3aec | 2021-01-13 13:40:11 | JDDGC <juand.garcia_cruz@outlook.com> | Envio de solicitud con consentimientos, homologacion de descarga de documentos de ayuda en planes e integracion con admin 13-enero-2021
-* 74bf22ec | 2021-01-12 15:53:31 | AntonioAL12 <tony_al12@hotmail.com> | Facturacion empleado - Mostrando carga de facturas
-* 774c03ad | 2021-01-08 12:43:09 | AntonioAL12 <tony_al12@hotmail.com> | Merge branch 'master' of https://github.com/LcktnMX/BeFlex3-EmpAdm
-* 7ef0de5a | 2021-01-08 12:23:21 | AntonioAL12 <tony_al12@hotmail.com> | Facturacion empleado merge
-* 45a1e0ca | 2021-01-05 10:41:39 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 04-01-21 (2)
-* 95e37389 | 2021-01-04 16:28:34 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 04-01-21
-* 8e007e7e | 2020-12-30 14:21:30 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 29-12
-* 2258b967 | 2020-12-28 13:05:20 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 23-12
-* feed0642 | 2020-12-21 16:08:48 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 21-12
-* 616acf30 | 2020-12-18 12:08:31 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 17-12
-* 4280bb74 | 2020-12-10 13:42:56 | AntonioAL12 <tony_al12@hotmail.com> | Estilo de home y cambios admin 10-12
-* 0474b78f | 2020-12-08 15:48:49 | AntonioAL12 <tony_al12@hotmail.com> | cambios admin 07-12 (archivo faltante)
-* 7bb5f43e | 2020-12-08 15:23:43 | AntonioAL12 <tony_al12@hotmail.com> | Cambios admin 07-12
-* d839898a | 2020-12-08 15:13:21 | AntonioAL12 <tony_al12@hotmail.com> | Arreglo para build productivo
-* 45bec589 | 2020-12-07 15:02:07 | JDDGC <juand.garcia_cruz@outlook.com> | integracion con admin 07-dic-2020
-* 7d618aec | 2020-12-03 12:25:42 | JDDGC <juand.garcia_cruz@outlook.com> | integracion con admin 02-dic-2020
-* 725b747d | 2020-12-02 13:32:51 | AntonioAL12 <tony_al12@hotmail.com> | Cambios de admin 02-12
-* 8bd2d825 | 2020-11-27 12:40:39 | JDDGC <juand.garcia_cruz@outlook.com> | Integracion con admin 27-nov-2020
-* 46fb0494 | 2020-11-26 14:58:55 | JDDGC <juand.garcia_cruz@outlook.com> | Arreglo envio de solicitud adjunta como blob
-* 962c5ae8 | 2020-11-23 19:10:50 | JDDGC <juand.garcia_cruz@outlook.com> | integracion con admin 23-nov-2020
-* 1b73be34 | 2020-11-17 17:08:33 | AntonioAL12 <tony_al12@hotmail.com> | Cambios Admin 13-11
-* 36d9d468 | 2020-11-11 13:29:36 | AntonioAL12 <tony_al12@hotmail.com> | Comentarios Ford, registro de Beneficiarios y componentes Admin 11-11
-* de413c56 | 2020-11-06 09:48:32 | AntonioAL12 <tony_al12@hotmail.com> | Cambio de admin - 05-11
-* afaade9e | 2020-11-03 13:54:30 | AntonioAL12 <tony_al12@hotmail.com> | Arreglo al modulo de Administrador
-* eb1ab42d | 2020-11-03 13:48:49 | AntonioAL12 <tony_al12@hotmail.com> | Incidencias de Ford
-* c18f056e | 2020-10-27 13:44:48 | JDDGC <49292340+JDDGC@users.noreply.github.com> | Arreglando Fecha de nacimiento, edicion dependientes y global
-* 573928f7 | 2020-10-26 17:08:35 | AntonioAL12 <tony_al12@hotmail.com> | First Commit - BeFlex3-EmpAdm
-
-
-============================================================
-REPOSITORIO: API REPORTS
-RUTA: C:\repo\reportes\APIREPORTS
-============================================================
-
-Rama local seleccionada: ReporteSabanaHomologacionOK-clean
-Rama consultada:         origin/ReporteSabanaHomologacionOK-clean
-Usuario Git filtrado:    CristianLockton
-
-------------------------------------------------------------
-COMMITS DEL USUARIO CristianLockton
-------------------------------------------------------------
-COMMIT: e41c82df1e7ed160052cda16de18e63e0c820306
-FECHA: 2026-07-31 03:07:33
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: 20c6593505b9b1f69f959362bf8b145aa297002a
-TÍTULO: feature to qa
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
-A       src/main/java/com/lockton/rpt/services/SabanaBeneficiosLegacyService.java
-M       src/main/java/com/lockton/rpt/util/Excel_Hoja_Multiple.java
-
-COMMIT: 91e7fcacd787a4801b383cb2e5c8ab44f4174927
-FECHA: 2026-07-31 10:25:21
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: e41c82df1e7ed160052cda16de18e63e0c820306
-TÍTULO: Fix typos in comments and update messagescorreccion de datos con acentos mal escritos
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
-
-COMMIT: 01e4f91e67bd883a461220e91574d762fd8e12b2
-FECHA: 2026-07-31 10:28:11
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 91e7fcacd787a4801b383cb2e5c8ab44f4174927
-TÍTULO: correccion de  acenteo mal escritos
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
-
-COMMIT: 90485a2d454d76323b216333baab2d4880ed9583
-FECHA: 2026-07-31 10:30:29
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 01e4f91e67bd883a461220e91574d762fd8e12b2
-TÍTULO: Refactor Excel_Hoja_Multiple for clarity and consistency
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/util/Excel_Hoja_Multiple.java
-
-COMMIT: d52ae59425c6b53928a57266e5e3d7bec07e3535
-FECHA: 2026-07-31 10:35:27
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 90485a2d454d76323b216333baab2d4880ed9583
-TÍTULO: correccion
-DESCRIPCIÓN:
-Removed comments
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
-
-COMMIT: ab2f9f0eea6026ebe457900e04926a5f27995626
-FECHA: 2026-07-31 10:37:31
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: d52ae59425c6b53928a57266e5e3d7bec07e3535
-TÍTULO: Remove diagnostic sink comments from Excel_Hoja_Multiple
-DESCRIPCIÓN:
-Removed optional diagnostic sink documentation from the class.
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/util/Excel_Hoja_Multiple.java
-
-COMMIT: dd342683132df69a39e77d696345ff74a868904f
-FECHA: 2026-07-31 16:30:39
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: ab2f9f0eea6026ebe457900e04926a5f27995626
-TÍTULO: fix: remove BOM from Java files and fix compilation errors in Excel_Hoja_Multiple
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/services/SabanaBeneficiosLegacyService.java
-M       src/main/java/com/lockton/rpt/util/Excel_Hoja_Multiple.java
-
-COMMIT: 3bc204d2eaa8e79ba3706f2aef5f9696c2f32311
-FECHA: 2026-07-31 16:45:27
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: dd342683132df69a39e77d696345ff74a868904f
-TÍTULO: fix: remove duplicate esVisible method in Excel_Hoja_Multiple
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/util/Excel_Hoja_Multiple.java
-
-COMMIT: 81813e08deb93f2b0398bc0ca5ad48ffd6612101
-FECHA: 2026-07-31 16:49:28
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: 3bc204d2eaa8e79ba3706f2aef5f9696c2f32311
-TÍTULO: fix: restore rows arg in obtenerGrupoConfigPrefer call
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/util/Excel_Hoja_Multiple.java
-
-COMMIT: 7f95507e1c5989e2958cf57fc1ba2f17457c2765
-FECHA: 2026-08-03 09:09:42
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 81813e08deb93f2b0398bc0ca5ad48ffd6612101
-TÍTULO: Remove optional constraints from entity fields
-DESCRIPCIÓN:
-Removed optional constraints from several fields.
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/models/entities/ControlReporteGen.java
-
-COMMIT: eee9625b6495b24990cf88b745a886b694fb4eb8
-FECHA: 2026-08-07 16:54:16
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: 7f95507e1c5989e2958cf57fc1ba2f17457c2765
-TÍTULO: fix: ajustes sabana homologacion - GeneradorReportesService y Excel_Hoja_Multiple
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
-M       src/main/java/com/lockton/rpt/util/Excel_Hoja_Multiple.java
-
-COMMIT: ed7373e9219dee294d4f0ba40045ab339f43e29c
-FECHA: 2026-08-10 15:28:41
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: eee9625b6495b24990cf88b745a886b694fb4eb8
-TÍTULO: feat: cobranza service + fix cifrarXlsx + purgar bf_RepConf_Debug 48h
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/RptApplication.java
-A       src/main/java/com/lockton/rpt/controllers/WSCobranzaController.java
-A       src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
-A       src/main/java/com/lockton/rpt/services/CobranzaService.java
-M       src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
-A       src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
-M       src/main/resources/application.properties
-A       src/test/java/com/lockton/rpt/services/GeneradorReportesServiceTest.java
-A       src/test/java/com/lockton/rpt/services/SabanaBeneficiosLegacyServiceTest.java
-A       src/test/java/com/lockton/rpt/util/ExcelHojaMultipleHomologacionTest.java
-
-COMMIT: 657809e3ac259b758713772b56872e5b01faa086
-FECHA: 2026-08-10 18:09:53
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: ed7373e9219dee294d4f0ba40045ab339f43e29c
-TÍTULO: fix: add missing LinkedHashMap import in JDBCCobranza
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
-
-COMMIT: c1ced5f804c24fa648915c3de4d65b46c161969e
-FECHA: 2026-08-10 18:25:50
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: 657809e3ac259b758713772b56872e5b01faa086
-TÍTULO: fix: migrate test files from JUnit 4 to JUnit 5 imports
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/test/java/com/lockton/rpt/services/GeneradorReportesServiceTest.java
-M       src/test/java/com/lockton/rpt/services/SabanaBeneficiosLegacyServiceTest.java
-M       src/test/java/com/lockton/rpt/util/ExcelHojaMultipleHomologacionTest.java
-
-COMMIT: 4d47ff7ee90b37d3610536aed629e308d89e8960
-FECHA: 2026-08-13 16:54:59
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: c1ced5f804c24fa648915c3de4d65b46c161969e
-TÍTULO: feat: reporte sabana homologacion - actualizacion servicios y utilidades
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/RptApplication.java
-M       src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
-M       src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
-M       src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
-M       src/main/java/com/lockton/rpt/util/Excel_Columna_Multiple.java
-
-COMMIT: e2fea4173447a2eb0bfe01d8cf88180af7aea673
-FECHA: 2026-08-18 14:55:20
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: 4d47ff7ee90b37d3610536aed629e308d89e8960
-TÍTULO: fix(sabana): homologa columnas y planes opcionales con legacy
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
-M       src/main/java/com/lockton/rpt/util/Excel_Hoja_Multiple.java
-M       src/test/java/com/lockton/rpt/services/GeneradorReportesServiceTest.java
-M       src/test/java/com/lockton/rpt/util/ExcelHojaMultipleHomologacionTest.java
-
-COMMIT: 20a20defa0954d617f304b8a1d0efb72d5c7541e
-FECHA: 2026-08-24 11:39:41
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: e2fea4173447a2eb0bfe01d8cf88180af7aea673
-TÍTULO: Actualiza generación y validación de reportes B3
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
-M       src/main/java/com/lockton/rpt/util/Excel_Hoja_Multiple.java
-A       src/test/java/com/lockton/rpt/dao/CobranzaWorkbookInspectorTest.java
-A       src/test/java/com/lockton/rpt/dao/JDBCCobranzaTest.java
-M       src/test/java/com/lockton/rpt/util/ExcelHojaMultipleHomologacionTest.java
-
-COMMIT: 9f75db1d6b072906b222056ae5722dccf648b007
-FECHA: 2026-08-25 00:24:45
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 20a20defa0954d617f304b8a1d0efb72d5c7541e
-TÍTULO: Update GeneradorReportesService.java
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
-
-COMMIT: 07804c9deaa6c4325ee3b5b10669e65cb817ecda
-FECHA: 2026-09-04 12:55:16
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: 9f75db1d6b072906b222056ae5722dccf648b007
-TÍTULO: Actualiza generación y validación de reportes B3
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
-A       src/main/java/com/lockton/rpt/jobs/CobranzaCacheWorker.java
-M       src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
-M       src/test/java/com/lockton/rpt/dao/JDBCCobranzaTest.java
-A       src/test/java/com/lockton/rpt/jobs/CobranzaCacheWorkerTest.java
-A       src/test/java/com/lockton/rpt/services/impl/CobranzaServiceImplTest.java
-
-COMMIT: d2605e23b93236abe4cb6b3b7bd039209391fe6c
-FECHA: 2026-09-08 00:07:59
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: 07804c9deaa6c4325ee3b5b10669e65cb817ecda
-TÍTULO: Actualiza generación y validación de reportes B3
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/controllers/WSCobranzaController.java
-M       src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
-M       src/main/java/com/lockton/rpt/services/CobranzaService.java
-M       src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
-M       src/test/java/com/lockton/rpt/dao/CobranzaWorkbookInspectorTest.java
-M       src/test/java/com/lockton/rpt/dao/JDBCCobranzaTest.java
-M       src/test/java/com/lockton/rpt/services/impl/CobranzaServiceImplTest.java
-M       src/test/java/com/lockton/rpt/util/ExcelHojaMultipleHomologacionTest.java
-A       src/test/java/com/lockton/rpt/util/SabanaWorkbookInspectorTest.java
-
-COMMIT: 956c3669f459dc2bba620df905eeaf95038c7c04
-FECHA: 2026-09-08 15:44:35
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: d2605e23b93236abe4cb6b3b7bd039209391fe6c
-TÍTULO: Actualiza generación y validación de reportes B3
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/controllers/WSCobranzaController.java
-M       src/main/java/com/lockton/rpt/services/CobranzaService.java
-M       src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
-
-COMMIT: 6586aab8ad82ad29a15b87f85440883b0061609e
-FECHA: 2026-09-08 17:50:20
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: 956c3669f459dc2bba620df905eeaf95038c7c04
-TÍTULO: Actualiza generación y validación de reportes B3
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
-
-COMMIT: c902c38d1600625bd53319bac2409de095bc58d6
-FECHA: 2026-09-09 10:36:51
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: 6586aab8ad82ad29a15b87f85440883b0061609e
-TÍTULO: Actualiza generación y validación de reportes B3
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
-
-COMMIT: 0d8738a607faeb88958541f2703295582e4b0342
-FECHA: 2026-09-09 17:21:36
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: c902c38d1600625bd53319bac2409de095bc58d6
-TÍTULO: Actualiza generación y validación de reportes B3
-DESCRIPCIÓN:
-
-ARCHIVOS:
-A       src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCobranza.java
-
-COMMIT: 43d423be8696cc41a2c29f4964e19b4737a35755
-FECHA: 2026-09-09 17:46:58
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: 0d8738a607faeb88958541f2703295582e4b0342
-TÍTULO: Revert "Actualiza generación y validación de reportes B3"
-DESCRIPCIÓN:
-This reverts commit 0d8738a607faeb88958541f2703295582e4b0342.
-
-ARCHIVOS:
-D       src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCobranza.java
-
-COMMIT: ef3716c502dbd6b01b24b346c347a2075c70a5ea
-FECHA: 2026-09-09 17:47:51
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: 43d423be8696cc41a2c29f4964e19b4737a35755
-TÍTULO: Actualiza generación y validación de reportes B3
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
-
-COMMIT: 22f437eb62cc338429e479a3d571447eeb1d0d63
-FECHA: 2026-09-10 14:14:59
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: ef3716c502dbd6b01b24b346c347a2075c70a5ea
-TÍTULO: Agrega soporte de consulta histórica de defaulteo
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/config/AsyncConfig.java
-M       src/main/java/com/lockton/rpt/controllers/WSCobranzaController.java
-M       src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
-M       src/main/java/com/lockton/rpt/enumeradores/EstatusReporte.java
-M       src/main/java/com/lockton/rpt/jobs/CobranzaCacheWorker.java
-M       src/main/java/com/lockton/rpt/repositories/CtlRptGenRepository.java
-A       src/main/java/com/lockton/rpt/services/impl/CobranzaExecutionGate.java
-M       src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
-M       src/main/resources/application.properties
-M       src/test/java/com/lockton/rpt/services/impl/CobranzaServiceImplTest.java
-
-COMMIT: aa07c52c7bbb3759ed54ccce614064cf3d495d00
-FECHA: 2026-09-21 10:37:03
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: 22f437eb62cc338429e479a3d571447eeb1d0d63
-TÍTULO: observaciones issues cobranza sabana
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/controllers/WSCobranzaController.java
-M       src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
-M       src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
-M       src/main/java/com/lockton/rpt/util/Constantes.java
-A       src/main/java/com/lockton/rpt/util/ReportePathUtil.java
-M       src/main/resources/application.properties
-A       src/test/java/com/lockton/rpt/controllers/WSCobranzaControllerTest.java
-A       src/test/java/com/lockton/rpt/util/ReportePathUtilTest.java
-
-COMMIT: 02d7f3850ceac219110079132bc69001c63293df
-FECHA: 2026-09-23 10:47:43
-AUTOR: CristianLockton <consultor.ti40@lockton.com>
-COMMITTER: CristianLockton <consultor.ti40@lockton.com>
-PADRES: aa07c52c7bbb3759ed54ccce614064cf3d495d00
-TÍTULO: observaciones issues cobranza sabana
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
-M       src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
-A       src/main/java/com/lockton/rpt/util/ReporteProcesoLog.java
-A       src/test/java/com/lockton/rpt/util/ReporteProcesoLogTest.java
-
-COMMIT: fa5da3c393d2d7a06e5638dfe9b2521ba041106f
-FECHA: 2026-09-29 12:11:25
-AUTOR: CristianLockton <Consultor.TI40@lockton.com>
-COMMITTER: CristianLockton <Consultor.TI40@lockton.com>
-PADRES: 02d7f3850ceac219110079132bc69001c63293df
-TÍTULO: observaciones issues cobranza sabana
-DESCRIPCIÓN:
-
-ARCHIVOS:
-M       src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
-
-
-------------------------------------------------------------
-TODOS LOS COMMITS DE MERGE EN LA RAMA
-------------------------------------------------------------
-MERGE: 5ffc365f7593b4160c8f7ca173164dd75f11e129
-FECHA: 2025-12-10 12:52:06
-AUTOR: NikoVonter <108759427+NikoSygno@users.noreply.github.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 1c626b5ae1169ca4daeacd68eb7898cd50744962 6f70fc6474a84f15cdad0f2b3f751b28d3f151ed
-TÍTULO: Merge pull request #9 from LcktnMX/DEV
-DESCRIPCIÓN:
-Integracion a QA
-
-MERGE: 7485df5595261df24b40883373a95d3b8265fd9a
-FECHA: 2025-12-11 15:09:10
-AUTOR: NikoVonter <108759427+NikoSygno@users.noreply.github.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 5ffc365f7593b4160c8f7ca173164dd75f11e129 82a039d8910e374ccf9c11595fbd1e7025ebda13
-TÍTULO: Merge pull request #17 from LcktnMX/DEV
-DESCRIPCIÓN:
-Eliminacion de librería log4j y adecuaciones
-
-MERGE: 0410a6decf415b234da0d02344b5c65fe5705b2a
-FECHA: 2025-12-16 12:22:05
-AUTOR: NikoVonter <108759427+NikoSygno@users.noreply.github.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 7485df5595261df24b40883373a95d3b8265fd9a 0830644bcf19bac6b3eadede604e95a9a002783e
-TÍTULO: Merge pull request #20 from LcktnMX/DEV
-DESCRIPCIÓN:
-Aislamiento de libreria de Logs
-
-MERGE: 5d0a83cce34e3f1c21dd5ec8fe183149dd542eea
-FECHA: 2025-12-16 19:43:10
-AUTOR: NikoVonter <108759427+NikoSygno@users.noreply.github.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 0410a6decf415b234da0d02344b5c65fe5705b2a 04e6ec95508c6d11782ac5d31a6469b2b1484d5a
-TÍTULO: Merge pull request #22 from LcktnMX/DEV
-DESCRIPCIÓN:
-Configuracion de Hikari, WeebSocket y loggers
-
-MERGE: 47341b521dc0fccb7db6a016985e5cf20e28dc16
-FECHA: 2025-12-29 09:04:55
-AUTOR: EnriqueZapataValle <consultor.ti05@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 5d0a83cce34e3f1c21dd5ec8fe183149dd542eea b6fea80786286ca65ed2b69db1f494751b6e2064
-TÍTULO: Merge pull request #26 from LcktnMX/DEV
-DESCRIPCIÓN:
-Atencion a observaciones en Reportes de segundo plano - Primer Bloque
-
-MERGE: 55b291c8cab6fe6a175604aa233cd7350c2d3b1c
-FECHA: 2025-12-29 12:38:06
-AUTOR: EnriqueZapataValle <consultor.ti05@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 47341b521dc0fccb7db6a016985e5cf20e28dc16 02fd985a90e5a7ccb21e5a928426e40af401936d
-TÍTULO: Merge pull request #28 from LcktnMX/DEV
-DESCRIPCIÓN:
-Cambios en Logger. Aprovados
-
-MERGE: d98c63982dd02a8b4ea1cafe5ba0e3eeb26cff7e
-FECHA: 2025-12-30 12:18:19
-AUTOR: EnriqueZapataValle <consultor.ti05@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 55b291c8cab6fe6a175604aa233cd7350c2d3b1c 65afcdd24c2388e7a6027a33c55c96d3f9bf250f
-TÍTULO: Merge pull request #31 from LcktnMX/DEV
-DESCRIPCIÓN:
-Fix en rutas de llaves.
-
-MERGE: 5e64ed26067e04bc29b8aeb4e52d0611aa756df0
-FECHA: 2025-12-31 13:58:01
-AUTOR: EnriqueZapataValle <consultor.ti05@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: d98c63982dd02a8b4ea1cafe5ba0e3eeb26cff7e 87a815d6b5021d95fea9d887fd560c039b14d074
-TÍTULO: Merge pull request #34 from LcktnMX/DEV
-DESCRIPCIÓN:
-Actualizacion de Reportes
-
-MERGE: 3185bb11aef828baabc0172d5bd18f4faad50b40
-FECHA: 2026-01-05 11:13:59
-AUTOR: EnriqueZapataValle <consultor.ti05@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 5e64ed26067e04bc29b8aeb4e52d0611aa756df0 c1f4d92ee9415cc9270e18992ff383260db83c40
-TÍTULO: Merge pull request #36 from LcktnMX/DEV
-DESCRIPCIÓN:
-Fix URL correo
-
-MERGE: 12c7b3b15f7d4221ad7283579b28ea29e6674443
-FECHA: 2026-01-13 17:56:52
-AUTOR: NikoVonter <108759427+NikoSygno@users.noreply.github.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 3185bb11aef828baabc0172d5bd18f4faad50b40 d6639012440e965d77e464e5e3af3a336695d6bd
-TÍTULO: Merge pull request #39 from LcktnMX/DEV
-DESCRIPCIÓN:
-Integracion a QA
-
-MERGE: abba0bd2d4d908eeefa8d973eced0943c5437ca4
-FECHA: 2026-01-19 22:14:25
-AUTOR: NikoVonter <108759427+NikoSygno@users.noreply.github.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 12c7b3b15f7d4221ad7283579b28ea29e6674443 8caeff32b9aa2ba2f9b6ed70d6d6449a98c0cde9
-TÍTULO: Merge pull request #41 from LcktnMX/DEV
-DESCRIPCIÓN:
-Integracion a QA
-
-MERGE: 763a5b1ef18191b3b026fb307605a1c0f1ac3c18
-FECHA: 2026-01-22 12:20:40
-AUTOR: NikoVonter <108759427+NikoSygno@users.noreply.github.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: abba0bd2d4d908eeefa8d973eced0943c5437ca4 107438596e143cba8adee82faf9bdfb867461fa5
-TÍTULO: Merge pull request #44 from LcktnMX/DEV
-DESCRIPCIÓN:
-Integracion a QA
-
-MERGE: 75e627b4e945a5b3aa97f0e8007d8e998814935d
-FECHA: 2026-02-03 10:17:57
-AUTOR: NikoVonter <108759427+NikoSygno@users.noreply.github.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 763a5b1ef18191b3b026fb307605a1c0f1ac3c18 87404560e97d5e7cc8fd0544518c3c0e021c5e88
-TÍTULO: Merge pull request #46 from LcktnMX/DEV
-DESCRIPCIÓN:
-Integracion a QA
-
-MERGE: f00b31aa614da91fd2369aa1b469af0bc5610222
-FECHA: 2026-02-06 11:28:59
-AUTOR: NikoVonter <108759427+NikoSygno@users.noreply.github.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 75e627b4e945a5b3aa97f0e8007d8e998814935d a4740810df744c1b93206d03172a37ff03ceb53a
-TÍTULO: Merge pull request #48 from LcktnMX/DEV
-DESCRIPCIÓN:
-Integracion a QA
-
-MERGE: bbe802524014edcb0e0be724cdff7e8dc6070718
-FECHA: 2026-02-17 18:10:02
-AUTOR: NikoVonter <108759427+NikoSygno@users.noreply.github.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: f00b31aa614da91fd2369aa1b469af0bc5610222 1b2d74a2fe08d38b1c0e831ed4b697f2c0a1f68e
-TÍTULO: Merge pull request #53 from LcktnMX/DEV
-DESCRIPCIÓN:
-Fix Ancho Columnas
-
-MERGE: e583c6b6bf099aceca5fae97dd7c4ee7b88a91bd
-FECHA: 2026-05-29 18:04:02
-AUTOR: NikoVonter <108759427+NikoSygno@users.noreply.github.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: bbe802524014edcb0e0be724cdff7e8dc6070718 48e4d9b0135e713e813faa2d31c5ecead118f97f
-TÍTULO: Merge pull request #56 from LcktnMX/DEV
-DESCRIPCIÓN:
-Marge DEV a QA
-
-MERGE: 5251a36f8cbf4df85f08d5c5a72b4fb89b024f95
-FECHA: 2026-07-06 12:30:45
-AUTOR: Nicolas-Contreras-Lockton <con_sygno4@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: e583c6b6bf099aceca5fae97dd7c4ee7b88a91bd 05099069bd6e513b9f6f7c0a0475ac3dc8c58b9e
-TÍTULO: Merge pull request #60 from LcktnMX/DEV
-DESCRIPCIÓN:
-Dev
-
-MERGE: 14ea7af43b546ce66bf20cb3603b64f4952985a0
-FECHA: 2026-07-09 21:06:21
-AUTOR: Nicolas-Contreras-Lockton <con_sygno4@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 5251a36f8cbf4df85f08d5c5a72b4fb89b024f95 b1d75ebdfa368d8c6511feaeae72429d803c5794
-TÍTULO: Merge pull request #62 from LcktnMX/DEV
-DESCRIPCIÓN:
-Dev
-
-MERGE: aa691fd25f3e949f40a49249c6ca14e4eed718bd
-FECHA: 2026-07-09 21:19:02
-AUTOR: Nicolas-Contreras-Lockton <con_sygno4@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 14ea7af43b546ce66bf20cb3603b64f4952985a0 77305d908ecabee59903d6b9494e96bd4f75b8a8
-TÍTULO: Merge pull request #63 from LcktnMX/lockton/niko.sygno/CopyToJboss
-DESCRIPCIÓN:
-Se integra copiado automatico a jboss
-
-MERGE: 7fd7ce1280ada4a6290b9720680e5f423e0953e6
-FECHA: 2026-07-23 16:12:47
-AUTOR: Nicolas-Contreras-Lockton <con_sygno4@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: aa691fd25f3e949f40a49249c6ca14e4eed718bd dd944c9981391bc0311de37f5ce6d823e48ec804
-TÍTULO: Merge pull request #58 from LcktnMX/azure-migration/framework_upgrade_onprem
-DESCRIPCIÓN:
-framework upgrade 2.7 and java upgrde 11
-
-MERGE: 20c6593505b9b1f69f959362bf8b145aa297002a
-FECHA: 2026-07-24 18:31:00
-AUTOR: Nicolas-Contreras-Lockton <con_sygno4@lockton.com>
-COMMITTER: GitHub <noreply@github.com>
-PADRES: 7fd7ce1280ada4a6290b9720680e5f423e0953e6 6cba01211cace0b2c7a9c542a04ce48f97fefa39
-TÍTULO: Merge pull request #65 from LcktnMX/DEV
-DESCRIPCIÓN:
-Dev
-
-
-------------------------------------------------------------
-HISTORIAL GRÁFICO PRINCIPAL DE LA RAMA
-------------------------------------------------------------
-* fa5da3c | 2026-09-29 12:11:25 | CristianLockton <Consultor.TI40@lockton.com> | observaciones issues cobranza sabana
-* 02d7f38 | 2026-09-23 10:47:43 | CristianLockton <consultor.ti40@lockton.com> | observaciones issues cobranza sabana
-* aa07c52 | 2026-09-21 10:37:03 | CristianLockton <consultor.ti40@lockton.com> | observaciones issues cobranza sabana
-* 22f437e | 2026-09-10 14:14:59 | CristianLockton <consultor.ti40@lockton.com> | Agrega soporte de consulta histórica de defaulteo
-* ef3716c | 2026-09-09 17:47:51 | CristianLockton <consultor.ti40@lockton.com> | Actualiza generación y validación de reportes B3
-* 43d423b | 2026-09-09 17:46:58 | CristianLockton <consultor.ti40@lockton.com> | Revert "Actualiza generación y validación de reportes B3"
-* 0d8738a | 2026-09-09 17:21:36 | CristianLockton <consultor.ti40@lockton.com> | Actualiza generación y validación de reportes B3
-* c902c38 | 2026-09-09 10:36:51 | CristianLockton <consultor.ti40@lockton.com> | Actualiza generación y validación de reportes B3
-* 6586aab | 2026-09-08 17:50:20 | CristianLockton <consultor.ti40@lockton.com> | Actualiza generación y validación de reportes B3
-* 956c366 | 2026-09-08 15:44:35 | CristianLockton <consultor.ti40@lockton.com> | Actualiza generación y validación de reportes B3
-* d2605e2 | 2026-09-08 00:07:59 | CristianLockton <consultor.ti40@lockton.com> | Actualiza generación y validación de reportes B3
-* 07804c9 | 2026-09-04 12:55:16 | CristianLockton <consultor.ti40@lockton.com> | Actualiza generación y validación de reportes B3
-* 9f75db1 | 2026-08-25 00:24:45 | CristianLockton <consultor.ti40@lockton.com> | Update GeneradorReportesService.java
-* 20a20de | 2026-08-24 11:39:41 | CristianLockton <consultor.ti40@lockton.com> | Actualiza generación y validación de reportes B3
-* e2fea41 | 2026-08-18 14:55:20 | CristianLockton <consultor.ti40@lockton.com> | fix(sabana): homologa columnas y planes opcionales con legacy
-* 4d47ff7 | 2026-08-13 16:54:59 | CristianLockton <consultor.ti40@lockton.com> | feat: reporte sabana homologacion - actualizacion servicios y utilidades
-* c1ced5f | 2026-08-10 18:25:50 | CristianLockton <consultor.ti40@lockton.com> | fix: migrate test files from JUnit 4 to JUnit 5 imports
-* 657809e | 2026-08-10 18:09:53 | CristianLockton <consultor.ti40@lockton.com> | fix: add missing LinkedHashMap import in JDBCCobranza
-* ed7373e | 2026-08-10 15:28:41 | CristianLockton <consultor.ti40@lockton.com> | feat: cobranza service + fix cifrarXlsx + purgar bf_RepConf_Debug 48h
-* eee9625 | 2026-08-07 16:54:16 | CristianLockton <consultor.ti40@lockton.com> | fix: ajustes sabana homologacion - GeneradorReportesService y Excel_Hoja_Multiple
-* 7f95507 | 2026-08-03 09:09:42 | CristianLockton <consultor.ti40@lockton.com> | Remove optional constraints from entity fields
-* 81813e0 | 2026-07-31 16:49:28 | CristianLockton <consultor.ti40@lockton.com> | fix: restore rows arg in obtenerGrupoConfigPrefer call
-* 3bc204d | 2026-07-31 16:45:27 | CristianLockton <consultor.ti40@lockton.com> | fix: remove duplicate esVisible method in Excel_Hoja_Multiple
-* dd34268 | 2026-07-31 16:30:39 | CristianLockton <consultor.ti40@lockton.com> | fix: remove BOM from Java files and fix compilation errors in Excel_Hoja_Multiple
-* ab2f9f0 | 2026-07-31 10:37:31 | CristianLockton <consultor.ti40@lockton.com> | Remove diagnostic sink comments from Excel_Hoja_Multiple
-* d52ae59 | 2026-07-31 10:35:27 | CristianLockton <consultor.ti40@lockton.com> | correccion
-* 90485a2 | 2026-07-31 10:30:29 | CristianLockton <consultor.ti40@lockton.com> | Refactor Excel_Hoja_Multiple for clarity and consistency
-* 01e4f91 | 2026-07-31 10:28:11 | CristianLockton <consultor.ti40@lockton.com> | correccion de  acenteo mal escritos
-* 91e7fca | 2026-07-31 10:25:21 | CristianLockton <consultor.ti40@lockton.com> | Fix typos in comments and update messagescorreccion de datos con acentos mal escritos
-* e41c82d | 2026-07-31 03:07:33 | CristianLockton <consultor.ti40@lockton.com> | feature to qa
-* 20c6593 | 2026-07-24 18:31:00 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #65 from LcktnMX/DEV
-* 7fd7ce1 | 2026-07-23 16:12:47 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #58 from LcktnMX/azure-migration/framework_upgrade_onprem
-* aa691fd | 2026-07-09 21:19:02 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #63 from LcktnMX/lockton/niko.sygno/CopyToJboss
-* 14ea7af | 2026-07-09 21:06:21 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #62 from LcktnMX/DEV
-* 5251a36 | 2026-07-06 12:30:45 | Nicolas-Contreras-Lockton <con_sygno4@lockton.com> | Merge pull request #60 from LcktnMX/DEV
-* e583c6b | 2026-05-29 18:04:02 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #56 from LcktnMX/DEV
-* bbe8025 | 2026-02-17 18:10:02 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #53 from LcktnMX/DEV
-* f00b31a | 2026-02-06 11:28:59 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #48 from LcktnMX/DEV
-* 75e627b | 2026-02-03 10:17:57 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #46 from LcktnMX/DEV
-* 763a5b1 | 2026-01-22 12:20:40 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #44 from LcktnMX/DEV
-* abba0bd | 2026-01-19 22:14:25 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #41 from LcktnMX/DEV
-* 12c7b3b | 2026-01-13 17:56:52 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #39 from LcktnMX/DEV
-* 3185bb1 | 2026-01-05 11:13:59 | EnriqueZapataValle <consultor.ti05@lockton.com> | Merge pull request #36 from LcktnMX/DEV
-* 5e64ed2 | 2025-12-31 13:58:01 | EnriqueZapataValle <consultor.ti05@lockton.com> | Merge pull request #34 from LcktnMX/DEV
-* d98c639 | 2025-12-30 12:18:19 | EnriqueZapataValle <consultor.ti05@lockton.com> | Merge pull request #31 from LcktnMX/DEV
-* 55b291c | 2025-12-29 12:38:06 | EnriqueZapataValle <consultor.ti05@lockton.com> | Merge pull request #28 from LcktnMX/DEV
-* 47341b5 | 2025-12-29 09:04:55 | EnriqueZapataValle <consultor.ti05@lockton.com> | Merge pull request #26 from LcktnMX/DEV
-* 5d0a83c | 2025-12-16 19:43:10 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #22 from LcktnMX/DEV
-* 0410a6d | 2025-12-16 12:22:05 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #20 from LcktnMX/DEV
-* 7485df5 | 2025-12-11 15:09:10 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #17 from LcktnMX/DEV
-* 5ffc365 | 2025-12-10 12:52:06 | NikoVonter <108759427+NikoSygno@users.noreply.github.com> | Merge pull request #9 from LcktnMX/DEV
-* 1c626b5 | 2025-10-02 17:50:21 | Consultor DTI 08 <consultor.dti08@lockton.com> | Primer commit
-
-PS C:\repo\reportes\FRONT> 
+if ($Entregas[1].Commits.Count -ne 28) {
+    throw 'La lista de API Reports no contiene los 28 commits esperados.'
+}
+
+# ============================================================
+# PROCESAR CADA REPOSITORIO
+# ============================================================
+
+foreach ($Entrega in $Entregas) {
+    $Nombre       = $Entrega.Nombre
+    $Ruta         = $Entrega.Ruta
+    $RamaOrigen   = $Entrega.Origen
+    $RamaDestino  = $Entrega.Destino
+    $Commits      = @($Entrega.Commits)
+    $OrigenRemoto = "origin/$RamaOrigen"
+    $DestinoRemoto = "origin/$RamaDestino"
+
+    Write-Host "`n============================================================" -ForegroundColor Cyan
+    Write-Host "REPOSITORIO: $Nombre" -ForegroundColor Cyan
+    Write-Host "ORIGEN:      $RamaOrigen"
+    Write-Host "DESTINO:     $RamaDestino"
+    Write-Host "COMMITS:     $($Commits.Count)"
+    Write-Host '============================================================' -ForegroundColor Cyan
+
+    if ($RamaDestino -like 'COLOCA_AQUI_*') {
+        throw "Debes configurar la rama destino de $Nombre."
+    }
+
+    if (-not (Test-Path -LiteralPath $Ruta -PathType Container)) {
+        throw "No existe el repositorio: $Ruta"
+    }
+
+    Push-Location -LiteralPath $Ruta
+
+    try {
+        git rev-parse --is-inside-work-tree | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "No es un repositorio Git: $Ruta"
+        }
+
+        # Evita mezclar cambios locales con la entrega.
+        $CambiosLocales = git status --porcelain
+
+        if (-not [string]::IsNullOrWhiteSpace(($CambiosLocales | Out-String))) {
+            Write-Host 'Existen cambios locales:' -ForegroundColor Red
+            $CambiosLocales
+            throw "El repositorio $Nombre no está limpio."
+        }
+
+        git fetch origin --prune
+        if ($LASTEXITCODE -ne 0) {
+            throw "Falló git fetch en $Nombre."
+        }
+
+        git show-ref --verify --quiet "refs/remotes/$OrigenRemoto"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host 'Ramas remotas disponibles:' -ForegroundColor Yellow
+            git branch -r
+            throw "No existe la rama origen $OrigenRemoto."
+        }
+
+        git show-ref --verify --quiet "refs/remotes/$DestinoRemoto"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host 'Ramas remotas disponibles:' -ForegroundColor Yellow
+            git branch -r
+            throw "No existe la rama destino $DestinoRemoto."
+        }
+
+        Write-Host "`nValidando commits..." -ForegroundColor Cyan
+
+        foreach ($Commit in $Commits) {
+            git cat-file -e "${Commit}^{commit}"
+            if ($LASTEXITCODE -ne 0) {
+                throw "No se encontró el commit $Commit."
+            }
+
+            git merge-base --is-ancestor $Commit $OrigenRemoto
+            if ($LASTEXITCODE -ne 0) {
+                throw "El commit $Commit no pertenece a $OrigenRemoto."
+            }
+
+            $Registro = @(
+                (git rev-list --parents -n 1 $Commit) -split '\s+'
+            )
+
+            # Un commit normal contiene: hash actual + un padre.
+            # Los commits vacíos siguen cumpliendo esta condición.
+            if ($Registro.Count -ne 2) {
+                throw "El commit $Commit es un merge y no puede incluirse."
+            }
+        }
+
+        Write-Host "`nCOMMITS QUE SE APLICARÁN:" -ForegroundColor Green
+
+        foreach ($Commit in $Commits) {
+            git --no-pager show `
+                --no-patch `
+                --date=format:'%Y-%m-%d %H:%M:%S' `
+                --format='%H | %ad | %an <%ae> | %s' `
+                $Commit
+        }
+
+        $Confirmacion = Read-Host "`nEscribe APLICAR $Nombre para continuar"
+
+        if ($Confirmacion -ne "APLICAR $Nombre") {
+            Write-Host "Se omitió $Nombre." -ForegroundColor Yellow
+            continue
+        }
+
+        # ====================================================
+        # CAMBIAR A LA RAMA DESTINO
+        # ====================================================
+
+        git show-ref --verify --quiet "refs/heads/$RamaDestino"
+
+        if ($LASTEXITCODE -eq 0) {
+            git switch $RamaDestino
+        } else {
+            git switch --track -c $RamaDestino $DestinoRemoto
+        }
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "No fue posible cambiar a $RamaDestino."
+        }
+
+        git pull --ff-only origin $RamaDestino
+        if ($LASTEXITCODE -ne 0) {
+            throw "No fue posible actualizar $RamaDestino."
+        }
+
+        # ====================================================
+        # CHERRY-PICK EN EL ORDEN ORIGINAL
+        # ====================================================
+
+        $Aplicados = 0
+
+        foreach ($Commit in $Commits) {
+            # Omite únicamente cuando el hash exacto ya forma parte
+            # de la rama destino.
+            git merge-base --is-ancestor $Commit HEAD
+
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "Ya existe en destino: $Commit" -ForegroundColor DarkYellow
+                continue
+            }
+
+            Write-Host "`nAplicando $Commit..." -ForegroundColor Cyan
+
+            # --allow-empty conserva los tres commits vacíos de Front.
+            git cherry-pick --allow-empty $Commit
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "`nEL PROCESO SE DETUVO EN: $Commit" -ForegroundColor Red
+                Write-Host 'Después de resolver los conflictos:' -ForegroundColor Yellow
+                Write-Host '  git add -- <archivos-resueltos>'
+                Write-Host '  git cherry-pick --continue'
+                Write-Host ''
+                Write-Host 'Para cancelar el cherry-pick actual:'
+                Write-Host '  git cherry-pick --abort'
+
+                throw "Conflicto durante el cherry-pick de $Commit."
+            }
+
+            $Aplicados++
+        }
+
+        Write-Host "`n$Nombre TERMINADO" -ForegroundColor Green
+        Write-Host "Commits aplicados: $Aplicados"
+        git status --short
+
+        Write-Host "`nÚltimos commits de la rama destino:" -ForegroundColor Cyan
+        git --no-pager log --oneline -n $Commits.Count
+
+        if ($HacerPush) {
+            git push -u origin $RamaDestino
+
+            if ($LASTEXITCODE -ne 0) {
+                throw "Los commits quedaron localmente, pero falló el push de $Nombre."
+            }
+
+            Write-Host "Publicado correctamente en origin/$RamaDestino." -ForegroundColor Green
+        } else {
+            Write-Host "`nNo se hizo push porque `$HacerPush está en `$false." -ForegroundColor Yellow
+            Write-Host 'Después de validar, publica con:' -ForegroundColor Yellow
+            Write-Host "git push -u origin $RamaDestino"
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
