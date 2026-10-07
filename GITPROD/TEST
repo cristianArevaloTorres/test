@@ -12,6 +12,289 @@ $Entregas = @(
         Nombre  = 'FRONT'
         Ruta    = 'C:\repo\reportes\FRONT'
         Origen  = 'issue-reportesabanaQA'
+        Destino = 'PRE-MAIN-REPORTS'
+
+        # 13 commits, incluyendo los tres commits vacíos.
+        Commits = @(
+			'282f2338c0a2b018a1e8d199407b4c73f7e02ea6',
+			'a944ff6423d30f88721a8ff4871ccbf955e35171',
+			'45c6def3018306d4ee2ee878c77c3823289ab889',
+			'eff155abc8af8d7bec2c9c9b2cb1355c41426a9e',
+			'7f7aad48a9423ff54fd50c03739958e798b4052d',
+			'afddc69c10ec5313a89e3396cb21ca63a327c95c',
+			'438a891651a5cdf227d194a2503cdce30a7e6a72',
+            '23437799caaaced20fa34baa8d33210dacaa5478',
+            'c9f0bf923ad9117e76088633c05d4c7ff28b48c5',
+            'd714c5d9be8ecf4f4bca61dabc1748bdc271483c',
+            '03586c8b640f62c961d917c4c18247353f7823d4',
+            'df7009df60ed4c3aa202facd36b44301a496d58e',
+            '487391e05df39d2d93e8427a4bcf82d25afbdd14',
+            '22fb7323bded92f5e007c29576eec9192c5b7815',
+            '6bf349be0de3d5d1250069faab40df3be53fe132',
+            '01aa164b8a63975e28f29dc3a61064f9f7d4e309',
+            '32509fec8fdbbbbd226d01e4233bfad198cdb216',
+            'f5411c2918a94b07eeabef046fffd6b9e0203647',
+            '7cd081ea54c4ce6ac10b2ebc2330e56a47f4ec01',
+            'f213401d9c1ad51160ad0b504bdfc708e6f97028'
+			
+        )
+    },
+    @{
+        Nombre  = 'API REPORTS'
+        Ruta    = 'C:\repo\reportes\APIREPORTS'
+        Origen  = 'ReporteSabanaHomologacionOK-clean'
+        Destino = 'PRE-MAIN-REPORTS'
+
+        # 28 commits efectivos. No incluye merges ni el alta/reversión
+        # del archivo de WSBeFlex agregado en el repositorio equivocado.
+        Commits = @(
+            'e41c82df1e7ed160052cda16de18e63e0c820306',
+            '91e7fcacd787a4801b383cb2e5c8ab44f4174927',
+            '01e4f91e67bd883a461220e91574d762fd8e12b2',
+            '90485a2d454d76323b216333baab2d4880ed9583',
+            'd52ae59425c6b53928a57266e5e3d7bec07e3535',
+            'ab2f9f0eea6026ebe457900e04926a5f27995626',
+            'dd342683132df69a39e77d696345ff74a868904f',
+            '3bc204d2eaa8e79ba3706f2aef5f9696c2f32311',
+            '81813e08deb93f2b0398bc0ca5ad48ffd6612101',
+            '7f95507e1c5989e2958cf57fc1ba2f17457c2765',
+            'eee9625b6495b24990cf88b745a886b694fb4eb8',
+            'ed7373e9219dee294d4f0ba40045ab339f43e29c',
+            '657809e3ac259b758713772b56872e5b01faa086',
+            'c1ced5f804c24fa648915c3de4d65b46c161969e',
+            '4d47ff7ee90b37d3610536aed629e308d89e8960',
+            'e2fea4173447a2eb0bfe01d8cf88180af7aea673',
+            '20a20defa0954d617f304b8a1d0efb72d5c7541e',
+            '9f75db1d6b072906b222056ae5722dccf648b007',
+            '07804c9deaa6c4325ee3b5b10669e65cb817ecda',
+            'd2605e23b93236abe4cb6b3b7bd039209391fe6c',
+            '956c3669f459dc2bba620df905eeaf95038c7c04',
+            '6586aab8ad82ad29a15b87f85440883b0061609e',
+            'c902c38d1600625bd53319bac2409de095bc58d6',
+            'ef3716c502dbd6b01b24b346c347a2075c70a5ea',
+            '22f437eb62cc338429e479a3d571447eeb1d0d63',
+            'aa07c52c7bbb3759ed54ccce614064cf3d495d00',
+            '02d7f3850ceac219110079132bc69001c63293df',
+            'fa5da3c393d2d7a06e5638dfe9b2521ba041106f',
+			'7e82654871a659da6b993664016cb73d01c4d625',
+			'5631dfcc687b003d7f490d0c5ff26d4e8d393667',
+			'63e1d4893c86174efb0e76ab2611153601f8b45e'
+			
+        )
+    }
+)
+
+
+
+# ============================================================
+# PROCESAR CADA REPOSITORIO
+# ============================================================
+
+foreach ($Entrega in $Entregas) {
+    $Nombre       = $Entrega.Nombre
+    $Ruta         = $Entrega.Ruta
+    $RamaOrigen   = $Entrega.Origen
+    $RamaDestino  = $Entrega.Destino
+    $Commits      = @($Entrega.Commits)
+    $OrigenRemoto = "origin/$RamaOrigen"
+    $DestinoRemoto = "origin/$RamaDestino"
+
+    Write-Host "`n============================================================" -ForegroundColor Cyan
+    Write-Host "REPOSITORIO: $Nombre" -ForegroundColor Cyan
+    Write-Host "ORIGEN:      $RamaOrigen"
+    Write-Host "DESTINO:     $RamaDestino"
+    Write-Host "COMMITS:     $($Commits.Count)"
+    Write-Host '============================================================' -ForegroundColor Cyan
+
+    if ($RamaDestino -like 'COLOCA_AQUI_*') {
+        throw "Debes configurar la rama destino de $Nombre."
+    }
+
+    if (-not (Test-Path -LiteralPath $Ruta -PathType Container)) {
+        throw "No existe el repositorio: $Ruta"
+    }
+
+    Push-Location -LiteralPath $Ruta
+
+    try {
+        git rev-parse --is-inside-work-tree | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "No es un repositorio Git: $Ruta"
+        }
+
+        # Evita mezclar cambios locales con la entrega.
+        $CambiosLocales = git status --porcelain
+
+        if (-not [string]::IsNullOrWhiteSpace(($CambiosLocales | Out-String))) {
+            Write-Host 'Existen cambios locales:' -ForegroundColor Red
+            $CambiosLocales
+            throw "El repositorio $Nombre no está limpio."
+        }
+
+        git fetch origin --prune
+        if ($LASTEXITCODE -ne 0) {
+            throw "Falló git fetch en $Nombre."
+        }
+
+        git show-ref --verify --quiet "refs/remotes/$OrigenRemoto"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host 'Ramas remotas disponibles:' -ForegroundColor Yellow
+            git branch -r
+            throw "No existe la rama origen $OrigenRemoto."
+        }
+
+        git show-ref --verify --quiet "refs/remotes/$DestinoRemoto"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host 'Ramas remotas disponibles:' -ForegroundColor Yellow
+            git branch -r
+            throw "No existe la rama destino $DestinoRemoto."
+        }
+
+        Write-Host "`nValidando commits..." -ForegroundColor Cyan
+
+        foreach ($Commit in $Commits) {
+            git cat-file -e "${Commit}^{commit}"
+            if ($LASTEXITCODE -ne 0) {
+                throw "No se encontró el commit $Commit."
+            }
+
+            git merge-base --is-ancestor $Commit $OrigenRemoto
+            if ($LASTEXITCODE -ne 0) {
+                throw "El commit $Commit no pertenece a $OrigenRemoto."
+            }
+
+            $Registro = @(
+                (git rev-list --parents -n 1 $Commit) -split '\s+'
+            )
+
+            # Un commit normal contiene: hash actual + un padre.
+            # Los commits vacíos siguen cumpliendo esta condición.
+            if ($Registro.Count -ne 2) {
+                throw "El commit $Commit es un merge y no puede incluirse."
+            }
+        }
+
+        Write-Host "`nCOMMITS QUE SE APLICARÁN:" -ForegroundColor Green
+
+        foreach ($Commit in $Commits) {
+            git --no-pager show `
+                --no-patch `
+                --date=format:'%Y-%m-%d %H:%M:%S' `
+                --format='%H | %ad | %an <%ae> | %s' `
+                $Commit
+        }
+
+        $Confirmacion = Read-Host "`nEscribe APLICAR $Nombre para continuar"
+
+        if ($Confirmacion -ne "APLICAR $Nombre") {
+            Write-Host "Se omitió $Nombre." -ForegroundColor Yellow
+            continue
+        }
+
+        # ====================================================
+        # CAMBIAR A LA RAMA DESTINO
+        # ====================================================
+
+        git show-ref --verify --quiet "refs/heads/$RamaDestino"
+
+        if ($LASTEXITCODE -eq 0) {
+            git switch $RamaDestino
+        } else {
+            git switch --track -c $RamaDestino $DestinoRemoto
+        }
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "No fue posible cambiar a $RamaDestino."
+        }
+
+        git pull --ff-only origin $RamaDestino
+        if ($LASTEXITCODE -ne 0) {
+            throw "No fue posible actualizar $RamaDestino."
+        }
+
+        # ====================================================
+        # CHERRY-PICK EN EL ORDEN ORIGINAL
+        # ====================================================
+
+        $Aplicados = 0
+
+        foreach ($Commit in $Commits) {
+            # Omite únicamente cuando el hash exacto ya forma parte
+            # de la rama destino.
+            git merge-base --is-ancestor $Commit HEAD
+
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "Ya existe en destino: $Commit" -ForegroundColor DarkYellow
+                continue
+            }
+
+            Write-Host "`nAplicando $Commit..." -ForegroundColor Cyan
+
+            # --allow-empty conserva los tres commits vacíos de Front.
+            git cherry-pick --allow-empty $Commit
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "`nEL PROCESO SE DETUVO EN: $Commit" -ForegroundColor Red
+                Write-Host 'Después de resolver los conflictos:' -ForegroundColor Yellow
+                Write-Host '  git add -- <archivos-resueltos>'
+                Write-Host '  git cherry-pick --continue'
+                Write-Host ''
+                Write-Host 'Para cancelar el cherry-pick actual:'
+                Write-Host '  git cherry-pick --abort'
+
+                throw "Conflicto durante el cherry-pick de $Commit."
+            }
+
+            $Aplicados++
+        }
+
+        Write-Host "`n$Nombre TERMINADO" -ForegroundColor Green
+        Write-Host "Commits aplicados: $Aplicados"
+        git status --short
+
+        Write-Host "`nÚltimos commits de la rama destino:" -ForegroundColor Cyan
+        git --no-pager log --oneline -n $Commits.Count
+
+        if ($HacerPush) {
+            git push -u origin $RamaDestino
+
+            if ($LASTEXITCODE -ne 0) {
+                throw "Los commits quedaron localmente, pero falló el push de $Nombre."
+            }
+
+            Write-Host "Publicado correctamente en origin/$RamaDestino." -ForegroundColor Green
+        } else {
+            Write-Host "`nNo se hizo push porque `$HacerPush está en `$false." -ForegroundColor Yellow
+            Write-Host 'Después de validar, publica con:' -ForegroundColor Yellow
+            Write-Host "git push -u origin $RamaDestino"
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+
+
+
+
+
+-----------------------------------------------
+
+$ErrorActionPreference = 'Stop'
+
+# ============================================================
+# CONFIGURACIÓN GENERAL
+# ============================================================
+
+# Cambiar a $true solamente después de revisar los cherry-picks.
+$HacerPush = $false
+
+$Entregas = @(
+    @{
+        Nombre  = 'FRONT'
+        Ruta    = 'C:\repo\reportes\FRONT'
+        Origen  = 'issue-reportesabanaQA'
         Destino = 'COLOCA_AQUI_RAMA_DESTINO_FRONT'
 
         # 13 commits, incluyendo los tres commits vacíos.
