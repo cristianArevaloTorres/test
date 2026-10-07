@@ -1,3 +1,68 @@
+>> git status
+
+Archivos preparados para el commit:
+M       src/main/java/com/lockton/rpt/RptApplication.java
+A       src/main/java/com/lockton/rpt/controllers/WSCobranzaController.java
+A       src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
+A       src/main/java/com/lockton/rpt/services/CobranzaService.java
+M       src/main/java/com/lockton/rpt/services/GeneradorReportesService.java
+A       src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
+M       src/main/resources/application.properties
+A       src/test/java/com/lockton/rpt/services/GeneradorReportesServiceTest.java
+A       src/test/java/com/lockton/rpt/services/SabanaBeneficiosLegacyServiceTest.java
+A       src/test/java/com/lockton/rpt/util/ExcelHojaMultipleHomologacionTest.java
+
+Validando que se conservaron DAO y REPE:
+
+src\main\java\com\lockton\rpt\RptApplication.java:27:    "com.lockton.rpt.dao",
+src\main\java\com\lockton\rpt\RptApplication.java:33:    "com.lockton.rpt.repe"
+
+Propiedad agregada para Cobranza:
+diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
+index 6d72204..9d7f2dd 100644
+--- a/src/main/resources/application.properties
++++ b/src/main/resources/application.properties
+@@ -57,6 +57,9 @@ url.beflex.admin.srv=https://www.belockton.com/beflex-admin-srv
+ 
+ administracion.reportes.ruta=C://dev//ReportesBeflex3//docpersonalizados//
+ 
++# Ruta base DocumentoEmpresa para cobranza (misma que UPLOAD_FOLDER/DocumentoEmpresa/ en SAB)
++cobranza.ruta.base=C://dev//ReportesBeflex3//DocumentoEmpresa//
++
+ spring.jpa.properties.hibernate.jdbc.time_zone=America/Mexico_City
+ spring.jackson.time-zone=America/Mexico_City
+ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.SQLServerDialect
+Enumerating objects: 123, done.
+Counting objects: 100% (123/123), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (73/73), done.
+Writing objects: 100% (123/123), done.
+Total 123 (delta 34), reused 0 (delta 0), pack-reused 0 (from 0)
+[PRE-MAIN-REPORTS 5384ca2] feat: cobranza service + fix cifrarXlsx + purgar bf_RepConf_Debug 48h
+ Author: CristianLockton <consultor.ti40@lockton.com>
+ Date: Mon Aug 10 15:28:41 2026 -0600
+ 10 files changed, 1741 insertions(+), 20 deletions(-)
+ create mode 100644 src/main/java/com/lockton/rpt/controllers/WSCobranzaController.java
+ create mode 100644 src/main/java/com/lockton/rpt/dao/JDBCCobranza.java
+ create mode 100644 src/main/java/com/lockton/rpt/services/CobranzaService.java
+ create mode 100644 src/main/java/com/lockton/rpt/services/impl/CobranzaServiceImpl.java
+ create mode 100644 src/test/java/com/lockton/rpt/services/GeneradorReportesServiceTest.java
+ create mode 100644 src/test/java/com/lockton/rpt/services/SabanaBeneficiosLegacyServiceTest.java
+ create mode 100644 src/test/java/com/lockton/rpt/util/ExcelHojaMultipleHomologacionTest.java
+
+Commit de Cobranza aplicado correctamente.
+On branch PRE-MAIN-REPORTS
+Your branch is ahead of 'origin/PRE-MAIN-REPORTS' by 12 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+
+
+PS C:\repo\reportes\APIREPORTS> 
+
+
+------------------------------
+
 $ErrorActionPreference = 'Stop'
 
 Set-Location 'C:\repo\reportes\APIREPORTS'
