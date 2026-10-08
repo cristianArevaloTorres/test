@@ -1,20 +1,36 @@
-Set-Location 'C:\repo\helpsoso\back'
-
-Remove-Item -LiteralPath 'src/main/java/com/lockton/WSBeFlex/POJO/Especiales/DatosConstanciaFiscal.java' -Force
-Remove-Item -LiteralPath 'src/main/java/com/lockton/WSBeFlex/Tools/ConstanciaSATParser.java' -Force
-
-git add -A -- `
-  src/main/java/com/lockton/WSBeFlex/DAO/ArchivosAdjuntos/ProcesaFormatosDAO.java `
-  src/main/java/com/lockton/WSBeFlex/DAO/ArchivosAdjuntos/JDBCProcesaFormatos.java `
-  src/main/java/com/lockton/WSBeFlex/Services/LogicaFfArchivosAdjuntos.java `
-  src/main/java/com/lockton/WSBeFlex/REST/WSArchivosAdjuntos.java `
-  src/main/java/com/lockton/WSBeFlex/POJO/Especiales/DatosConstanciaFiscal.java `
-  src/main/java/com/lockton/WSBeFlex/Tools/ConstanciaSATParser.java
-
-git commit --amend --no-edit
-
-$Branch = (git branch --show-current).Trim()
-git push -u origin $Branch
+PS C:\repo\helpsoso\front> 
+>> $RepoFront = 'C:\repo\helpsoso\front'
+>> Set-Location -LiteralPath $RepoFront
+>> 
+>> if (-not (Test-Path -LiteralPath '.git')) {
+>>     throw "Esta carpeta no es un clon Git: $RepoFront"
+>> }
+>> 
+>> $FrontFiles = @(
+>>   'src/app/services/API-CoE.service.ts',
+>>   'src/app/beflex/master/misdatosfiscalesmaster/misdatosfiscalesmaster.component.ts'
+>> )
+>> 
+>> git status --short
+>> git add -- $FrontFiles
+>> 
+>> 
+>> git commit -m "CORRECCION DE OBSERVACIONES "
+>> 
+>> $Branch = git branch --show-current
+>> git push -u origin $
+ M .vs/VSWorkspaceState.json
+ M .vs/slnx.sqlite
+ M src/app/beflex/master/misdatosfiscalesmaster/misdatosfiscalesmaster.component.ts
+ M src/app/services/API-CoE.service.ts
+?? .vs/front/
+warning: in the working copy of 'src/app/beflex/master/misdatosfiscalesmaster/misdatosfiscalesmaster.component.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/services/API-CoE.service.ts', LF will be replaced by CRLF the next time Git touches it
+[IssueConstancias 8be5ac21] CORRECCION DE OBSERVACIONES
+ 2 files changed, 151 insertions(+), 144 deletions(-)
+error: src refspec $ does not match any
+error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
+PS C:\repo\helpsoso\front> 
 
 
 
