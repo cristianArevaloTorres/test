@@ -1,3 +1,9 @@
+Se actualizaron el frontend y backend del flujo de constancias fiscales. Ahora se valida correctamente el PDF, se extraen y cargan los datos fiscales, la dirección muestra calle y número exterior y, si existen varios regímenes, se toma el primero.
+En el frontend se reemplazó la llamada AJAX de este flujo por HttpClient; esto no recarga la página ni borra los demás valores del formulario, únicamente limpia el archivo seleccionado. En el backend se validan RFC y CURP y se utilizan los 18 parámetros correctos del procedimiento almacenado.
+
+
+
+
 Set-Location 'C:\repo\helpsoso\front'
 
 $Branch = (git branch --show-current).Trim()
