@@ -1,3 +1,13 @@
+Solicitan dos ajustes en BD:
+- Reactivación: conservar la fecha original de alta del empleado.
+- Transferencia: asignar un rol default no administrativo; si no existe, usar el rol no administrativo con menor ID.
+Sólo se modificarían los SP bf_ReactivacionEmpleadosTitular y ff_transferenciaMasivaEmpleado.
+
+
+
+
+
+
 Hola @Guzman, Victor,
  
 Conforme a lo conversado en llamada en días pasados.
