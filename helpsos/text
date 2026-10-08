@@ -1,3 +1,33 @@
+Hola @Guzman, Victor,
+ 
+Conforme a lo conversado en llamada en días pasados.
+ 
+El equipo de beFlex requiere de algunos cambios en los procesos de Reactivación y Transferencia de Empleados que consume el proceso del Middleware.
+ 
+Reactivación:
+SP: bf_ReactivacionEmpleadosTitular
+No actualizar la fecha y hora de alta del registro, se debe mantener la fecha y hora de alta inicial del registro.
+ 
+Transferencia:
+SP: ff_transferenciaMasivaEmpleado
+Asignación de rol por default:
+Buscar el rol por default considerando:
+RODefault = 1
+PEAdministrador = 0
+Si no se encuentra el rol por default, considerar
+PEAdministrador = 0
+Tomar el registro con el menor IDRol si se tiene más de un registro.
+ 
+Cualquier duda, pueden apoyarse con Diego Barron.
+ 
+ 
+Gracias,
+Saludos cordiales
+
+
+
+
+
 Se actualizaron el frontend y backend del flujo de constancias fiscales. Ahora se valida correctamente el PDF, se extraen y cargan los datos fiscales, la dirección muestra calle y número exterior y, si existen varios regímenes, se toma el primero.
 En el frontend se reemplazó la llamada AJAX de este flujo por HttpClient; esto no recarga la página ni borra los demás valores del formulario, únicamente limpia el archivo seleccionado. En el backend se validan RFC y CURP y se utilizan los 18 parámetros correctos del procedimiento almacenado.
 
