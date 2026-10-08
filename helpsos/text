@@ -1,3 +1,55 @@
+PS C:\repo\helpsoso\back> $RepoFront = 'C:\repo\helpsoso\back'
+>> Set-Location -LiteralPath $RepoFront
+>> 
+>> if (-not (Test-Path -LiteralPath '.git')) {
+>>     throw "Esta carpeta no es un clon Git: $RepoFront"
+>> }
+>> 
+>> $FrontFiles = @(
+>>   'src/main/java/com/lockton/WSBeFlex/DAO/ArchivosAdjuntos/ProcesaFormatosDAO.java',
+>>   'src/main/java/com/lockton/WSBeFlex/DAO/ArchivosAdjuntos/JDBCProcesaFormatos.java',
+>>   'src/main/java/com/lockton/WSBeFlex/POJO/Especiales/DatosConstanciaFiscal.java',
+>>   'src/main/java/com/lockton/WSBeFlex/Tools/ConstanciaSATParser.java',
+>>   'src/main/java/com/lockton/WSBeFlex/Services/LogicaFfArchivosAdjuntos.java',
+>>   'src/main/java/com/lockton/WSBeFlex/REST/WSArchivosAdjuntos.java'
+>> )
+>> 
+>> git status --short
+>> git add -- $FrontFiles
+>> 
+>> 
+>> git commit -m "CORRECCION DE OBSERVACIONES "
+>> 
+>> $Branch = git branch --show-current
+>> git push -u origin $
+ M .classpath
+ M .settings/org.eclipse.jdt.core.prefs
+ M src/main/java/com/lockton/WSBeFlex/DAO/ArchivosAdjuntos/JDBCProcesaFormatos.java
+ M src/main/java/com/lockton/WSBeFlex/DAO/ArchivosAdjuntos/ProcesaFormatosDAO.java
+ M src/main/java/com/lockton/WSBeFlex/REST/WSArchivosAdjuntos.java
+ M src/main/java/com/lockton/WSBeFlex/Services/LogicaFfArchivosAdjuntos.java
+?? .vs/
+?? helpsos.code-workspace
+?? src/main/java/com/lockton/WSBeFlex/POJO/Especiales/DatosConstanciaFiscal.java
+?? src/main/java/com/lockton/WSBeFlex/Tools/
+warning: in the working copy of 'src/main/java/com/lockton/WSBeFlex/DAO/ArchivosAdjuntos/JDBCProcesaFormatos.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/com/lockton/WSBeFlex/DAO/ArchivosAdjuntos/ProcesaFormatosDAO.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/com/lockton/WSBeFlex/REST/WSArchivosAdjuntos.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/com/lockton/WSBeFlex/Services/LogicaFfArchivosAdjuntos.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/com/lockton/WSBeFlex/POJO/Especiales/DatosConstanciaFiscal.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main/java/com/lockton/WSBeFlex/Tools/ConstanciaSATParser.java', LF will be replaced by CRLF the next time Git touches it
+[IssueConstancias a1bf6117] CORRECCION DE OBSERVACIONES
+ 6 files changed, 689 insertions(+), 346 deletions(-)
+ create mode 100644 src/main/java/com/lockton/WSBeFlex/POJO/Especiales/DatosConstanciaFiscal.java
+ create mode 100644 src/main/java/com/lockton/WSBeFlex/Tools/ConstanciaSATParser.java
+error: src refspec $ does not match any
+error: failed to push some refs to 'https://github.com/LcktnMX/WSBeFlex-EmpAdm.git'
+PS C:\repo\helpsoso\back> 
+
+
+
+
+
 src\main\java\com\lockton\WSBeFlex\Services\LogicaFfArchivosAdjuntos.java
 src\main\java\com\lockton\WSBeFlex\DAO\ArchivosAdjuntos\JDBCProcesaFormatos.java
 [bf_AltaConstanciaEmpleado]
