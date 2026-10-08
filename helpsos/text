@@ -1,3 +1,95 @@
+[ERROR] COMPILATION ERROR :
+
+[INFO] -------------------------------------------------------------
+
+[ERROR] /C:/Proyectos_Lockton/Produccion/BeFlex3_Admin_API_Reportes/src/test/java/com/lockton/rpt/controllers/WSCobranza
+
+ControllerTest.java:[41,47] cannot find symbol
+
+  symbol:   method readAllBytes()
+
+  location: variable input of type java.io.InputStream
+
+[ERROR] /C:/Proyectos_Lockton/Produccion/BeFlex3_Admin_API_Reportes/src/test/java/com/lockton/rpt/util/ReporteProcesoLog
+
+Test.java:[41,33] cannot find symbol
+
+  symbol:   method readString(java.nio.file.Path,java.nio.charset.Charset)
+
+  location: class java.nio.file.Files
+
+[ERROR] /C:/Proyectos_Lockton/Produccion/BeFlex3_Admin_API_Reportes/src/test/java/com/lockton/rpt/util/ReporteProcesoLog
+
+Test.java:[43,35] cannot find symbol
+
+  symbol:   method readString(java.nio.file.Path,java.nio.charset.Charset)
+
+  location: class java.nio.file.Files
+
+[INFO] 3 errors
+
+[INFO] -------------------------------------------------------------
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] BUILD FAILURE
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] Total time:  6.812 s
+
+[INFO] Finished at: 2026-10-08T16:01:57-06:00
+
+[INFO] ------------------------------------------------------------------------
+
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.7.0:testCompile (default-testCompile) on
+
+project rpt: Compilation failure: Compilation failure:
+
+[ERROR] /C:/Proyectos_Lockton/Produccion/BeFlex3_Admin_API_Reportes/src/test/java/com/lockton/rpt/controllers/WSCobranza
+
+ControllerTest.java:[41,47] cannot find symbol
+
+[ERROR]   symbol:   method readAllBytes()
+
+[ERROR]   location: variable input of type java.io.InputStream
+
+[ERROR] /C:/Proyectos_Lockton/Produccion/BeFlex3_Admin_API_Reportes/src/test/java/com/lockton/rpt/util/ReporteProcesoLog
+
+Test.java:[41,33] cannot find symbol
+
+[ERROR]   symbol:   method readString(java.nio.file.Path,java.nio.charset.Charset)
+
+[ERROR]   location: class java.nio.file.Files
+
+[ERROR] /C:/Proyectos_Lockton/Produccion/BeFlex3_Admin_API_Reportes/src/test/java/com/lockton/rpt/util/ReporteProcesoLog
+
+Test.java:[43,35] cannot find symbol
+
+[ERROR]   symbol:   method readString(java.nio.file.Path,java.nio.charset.Charset)
+
+[ERROR]   location: class java.nio.file.Files
+
+[ERROR] -> [Help 1]
+
+[ERROR]
+
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+
+[ERROR]
+
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+Error: mvn package ha fallado.
+MojoFailureException - Apache Maven - Apache Software Foundation
+ 
+
+
+
 Solicitan dos ajustes en BD:
 - Reactivación: conservar la fecha original de alta del empleado.
 - Transferencia: asignar un rol default no administrativo; si no existe, usar el rol no administrativo con menor ID.
