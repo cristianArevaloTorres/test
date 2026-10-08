@@ -1,3 +1,27 @@
+Set-Location 'C:\repo\helpsoso\back'
+
+Remove-Item -LiteralPath 'src/main/java/com/lockton/WSBeFlex/POJO/Especiales/DatosConstanciaFiscal.java' -Force
+Remove-Item -LiteralPath 'src/main/java/com/lockton/WSBeFlex/Tools/ConstanciaSATParser.java' -Force
+
+git add -A -- `
+  src/main/java/com/lockton/WSBeFlex/DAO/ArchivosAdjuntos/ProcesaFormatosDAO.java `
+  src/main/java/com/lockton/WSBeFlex/DAO/ArchivosAdjuntos/JDBCProcesaFormatos.java `
+  src/main/java/com/lockton/WSBeFlex/Services/LogicaFfArchivosAdjuntos.java `
+  src/main/java/com/lockton/WSBeFlex/REST/WSArchivosAdjuntos.java `
+  src/main/java/com/lockton/WSBeFlex/POJO/Especiales/DatosConstanciaFiscal.java `
+  src/main/java/com/lockton/WSBeFlex/Tools/ConstanciaSATParser.java
+
+git commit --amend --no-edit
+
+$Branch = (git branch --show-current).Trim()
+git push -u origin $Branch
+
+
+
+
+
+
+
 PS C:\repo\helpsoso\back> $RepoFront = 'C:\repo\helpsoso\back'
 >> Set-Location -LiteralPath $RepoFront
 >> 
