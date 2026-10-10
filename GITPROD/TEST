@@ -1,3 +1,170 @@
+[COBRANZA B3] Inicio de instalacion en FlexiForbesv2.
+
+[COBRANZA B3] Ejecutando paso 1/10: 01_INSTALAR_CACHE_Y_REPORTE_B3.sql
+
+INICIO: instalacion completa de cache de Cobranza BF3.
+
+Msg 208, Level 16, State 6, Procedure bf_CobranzaCache_RegistrarEvento, Line 2 [Batch Start Line 188]
+
+Invalid object name 'dbo.bf_CobranzaCache_RegistrarEvento'.
+
+Msg 208, Level 16, State 6, Procedure bf_CobranzaCache_MarcarCargasAbandonadas, Line 2 [Batch Start Line 212]
+
+Invalid object name 'dbo.bf_CobranzaCache_MarcarCargasAbandonadas'.
+
+Msg 208, Level 16, State 6, Procedure tr_bf_CobranzaCache_Log_Contexto, Line 2 [Batch Start Line 648]
+
+Invalid object name 'dbo.tr_bf_CobranzaCache_Log_Contexto'.
+
+Msg 208, Level 16, State 6, Procedure bf_CobranzaCache_MonitoreoV2, Line 2 [Batch Start Line 676]
+
+Invalid object name 'dbo.bf_CobranzaCache_MonitoreoV2'.
+
+Msg 208, Level 16, State 6, Procedure ObtenCobranzaConcentrada_otro_V2_BF3_Cache, Line 3 [Batch Start Line 694]
+
+Invalid object name 'dbo.ObtenCobranzaConcentrada_otro_V2_BF3_Cache'.
+
+Msg 208, Level 16, State 6, Procedure InsertaCobranzaConcentrada_otro_V2_BF3_Cache, Line 2 [Batch Start Line 852]
+
+Invalid object name 'dbo.InsertaCobranzaConcentrada_otro_V2_BF3_Cache'.
+
+Msg 208, Level 16, State 6, Procedure ObtenCobranzaConcentrada_otro_V2_BF3_Cache, Line 2 [Batch Start Line 978]
+
+Invalid object name 'dbo.ObtenCobranzaConcentrada_otro_V2_BF3_Cache'.
+
+Msg 208, Level 16, State 6, Procedure bf_CobranzaCache_CapturaBasesV2, Line 2 [Batch Start Line 1326]
+
+Invalid object name 'dbo.bf_CobranzaCache_CapturaBasesV2'.
+
+Msg 208, Level 16, State 6, Procedure bf_CobranzaCache_CargarUnaV2, Line 2 [Batch Start Line 1509]
+
+Invalid object name 'dbo.bf_CobranzaCache_CargarUnaV2'.
+
+Msg 208, Level 16, State 6, Procedure bf_CobranzaCache_LimpiarVigenciasV2, Line 2 [Batch Start Line 1835]
+
+Invalid object name 'dbo.bf_CobranzaCache_LimpiarVigenciasV2'.
+
+Msg 208, Level 16, State 6, Procedure ObtenCobranzaConcentrada_otro_V2_BF3_Cache, Line 2 [Batch Start Line 1899]
+
+Invalid object name 'dbo.ObtenCobranzaConcentrada_otro_V2_BF3_Cache'.
+
+Msg 51100, Level 16, State 1, Line 2445
+
+Falta dbo.InsertaCobranzaConcentrada_otro_V2_BF3_Cache.
+
+Msg 208, Level 16, State 6, Procedure ReporteCobranzaConcentrada_BF3_Cache, Line 2 [Batch Start Line 2456]
+
+Invalid object name 'dbo.ReporteCobranzaConcentrada_BF3_Cache'.
+
+La instalacion de cache no supero la verificacion: El cargador no incluye @EmitirResultado. | Falta dbo.bf_CobranzaCache_CapturaBasesV2. | Falta dbo.bf_CobranzaCache_CargarUnaV2. | Falta dbo.bf_CobranzaCache_LimpiarVigenciasV2. | Falta dbo.bf_CobranzaCache_MarcarCargasAbandonadas. | Falta dbo.bf_CobranzaCache_MonitoreoV2. | Falta dbo.bf_CobranzaCache_RegistrarEvento. | Falta dbo.InsertaCobranzaConcentrada_otro_V2_BF3_Cache. | Falta dbo.ObtenCobranzaConcentrada_otro_V2_BF3_Cache. | Falta dbo.ReporteCobranzaConcentrada_BF3_Cache. | Falta dbo.tr_bf_CobranzaCache_Log_Contexto.
+
+Msg 51300, Level 16, State 1, Line 3069
+
+La instalacion de cache no supero la verificacion: El cargador no incluye @EmitirResultado. | Falta dbo.bf_CobranzaCache_CapturaBasesV2. | Falta dbo.bf_CobranzaCache_CargarUnaV2. | Falta dbo.bf_CobranzaCache_LimpiarVigenciasV2. | Falta dbo.bf_CobranzaCache_MarcarCargasAbandonadas. | Falta dbo.bf_CobranzaCache_MonitoreoV2. | Falta dbo.bf_CobranzaCache_RegistrarEvento. | Falta dbo.InsertaCobranzaConcentrada_otro_V2_BF3_Cache. | Falta dbo.ObtenCobranzaConcentrada_otro_V2_BF3_Cache. | Falta dbo.ReporteCobranzaConcentrada_BF3_Cache. | Falta dbo.tr_bf_CobranzaCache_Log_Contexto.
+
+[COBRANZA B3] Ejecutando paso 2/10: 02_INDICES_RENDIMIENTO_B3.sql
+
+[COBRANZA B3] Ejecutando paso 3/10: 03_OPTIMIZAR_DESGLOSADA_B3.sql
+
+[COBRANZA B3] Ejecutando paso 4/10: 04_CREAR_RUTAS_LEGACY_OPT_B3.sql
+
+Msg 208, Level 16, State 6, Procedure ObtenCobranzaConcentrada_otro_V2_BF3_LEGACY, Line 1 [Batch Start Line 3565]
+
+Invalid object name 'dbo.ObtenCobranzaConcentrada_otro_V2_BF3_LEGACY'.
+
+[COBRANZA B3] Ejecutando paso 5/10: 05_MOTOR_DIVISION_SET_B3.sql
+
+Msg 208, Level 16, State 6, Procedure ff_ObtenDivisionCtos_Adaptado_bf3_SET, Line 1 [Batch Start Line 3805]
+
+Invalid object name 'dbo.ff_ObtenDivisionCtos_Adaptado_bf3_SET'.
+
+[COBRANZA B3] Ejecutando paso 6/10: 06_DESGLOSADA_ETAPAS_SET_B3.sql
+
+Msg 52641, Level 16, State 1, Line 4285
+
+Ejecute primero 05_MOTOR_DIVISION_SET_B3.sql.
+
+[COBRANZA B3] Ejecutando paso 7/10: 07_CONCENTRADA_ETAPAS_SET_B3.sql
+
+Msg 52680, Level 16, State 1, Line 4558
+
+Falta la rama OPT o Desglosada SET B3.
+
+[COBRANZA B3] Ejecutando paso 8/10: 08_INTEGRAR_FLUJO_UNICO_SET_B3.sql
+
+Msg 52700, Level 16, State 1, Line 4795
+
+Falta instalar la rama SET B3 con los scripts 05, 06 y 07.
+
+[COBRANZA B3] Ejecutando paso 9/10: 10_CORREGIR_FILTRO_DESGLOSADA_CACHE_B3.sql
+
+Msg 53800, Level 16, State 1, Line 4860
+
+No existe el lector de cache B3.
+
+[COBRANZA B3] Ejecutando paso 10/10: 09_VALIDAR_FLUJO_UNICO_B3.sql
+
+[COBRANZA B3] Validacion de tarifas omitida: no se configuro IdVigencia.
+
+Msg 52723, Level 16, State 1, Line 5006
+
+B3 no usa el punto de entrada unico SET.
+
+Msg 53920, Level 16, State 1, Line 5119
+
+La instalacion no termino: faltan objetos funcionales o marcadores B3.
+
+Msg 208, Level 16, State 6, Procedure ReporteCobranzaConcentrada_BF3_Cache, Line 3 [Batch Start Line 5254]
+
+Invalid object name 'dbo.ReporteCobranzaConcentrada_BF3_Cache'.
+
+[COBRANZA B3] Instalacion consolidada finalizada sin ejecutar precargas.
+ 
+Completion time: 2026-10-09T21:55:54.4736078-06:00
+
+ 
+dbo.bf_CobranzaCache_MonitoreoV2
+
+dbo.tr_bf_CobranzaCache_Log_Contexto
+
+dbo.bf_CobranzaCache_RegistrarEvento
+
+dbo.bf_CobranzaCache_MarcarCargasAbandonadas
+
+dbo.bf_CobranzaCache_CapturaBasesV2
+
+dbo.bf_CobranzaCache_CargarUnaV2
+
+dbo.bf_CobranzaCache_LimpiarVigenciasV2
+
+dbo.InsertaCobranzaConcentrada_otro_V2_BF3_Cache
+
+dbo.ObtenCobranzaConcentrada_otro_V2_BF3_Cache
+
+dbo.ObtenCobranzaConcentrada_otro_V2_BF3_Cache_PRE_FILTRO_20260822
+
+dbo.ReporteCobranzaConcentrada_BF3_Cache
+
+dbo.ObtenCobranzaConcentrada_otro_V2_BF3_LEGACY
+
+dbo.ObtenCobranzaConcentrada_otro_V2_BF3_OPT
+
+dbo.ff_ObtenDivisionCtos_Adaptado_bf3_SET
+
+dbo.ff_ObtenCobranzaDesg_Adaptada_bf3_SET
+
+dbo.ObtenCobranzaConcentrada_otro_V2_BF3_SET
+
+dbo.ObtenCobranzaConcentrada_otro_V2_BF3
+
+
+
+
+
+--------------------
+
+
+
 $ErrorActionPreference = 'Stop'
 
 Set-Location 'C:\repo\reportes\APIREPORTS'
