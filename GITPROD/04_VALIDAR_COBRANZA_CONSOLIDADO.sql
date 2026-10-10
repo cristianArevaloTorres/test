@@ -1,4 +1,9 @@
-﻿USE [FlexiForbesv2];
+SELECT TYPE_ID(N'dbo.ListInt') AS TypeId;
+
+
+
+
+USE [FlexiForbesv2];
 GO
 
 SET NOCOUNT ON;
