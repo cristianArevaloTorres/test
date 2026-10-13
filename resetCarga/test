@@ -1,4 +1,70 @@
+$BackendRepo = "C:\RUTA_REAL\WSBeFlex-EmpAdm"
 
+Set-Location $BackendRepo
+
+$RamaActual = (git branch --show-current).Trim()
+
+if ($RamaActual -ne "QA") {
+    throw "Debes partir de QA. Rama actual: $RamaActual"
+}
+
+git switch -c CargaDefaulteo
+
+$BackendFiles = @(
+    "src/main/java/com/lockton/WSBeFlex/AsyncConfig.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/FfCargaMasivaDAO.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java"
+    "src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FfCOpcionesCargaMasiva.java"
+    "src/main/java/com/lockton/WSBeFlex/REST/WSTitularesAdm.java"
+)
+
+git add -- $BackendFiles
+
+$EliminarBackend = @(
+    "database/001_catalogo_y_flujo_carga_masiva.sql"
+    "database/009_infraestructura_cadena_ws_ford.sql"
+    "src/main/java/com/lockton/WSBeFlex/Config/CargaMasivaTraceFilter.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/CargaCadenaWsDAO.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaB2DAO.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaFlujoDAO.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/JDBCCargaMasivaFlujo.java"
+    "src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FFConfiguracionFlujoCargaMasiva.java"
+    "src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaB2.java"
+    "src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaCadenaWs.java"
+    "src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaFlujo.java"
+    "src/main/java/com/lockton/WSBeFlex/Services/CadenaWs"
+    "src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaB2"
+    "src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaFlujoService.java"
+    "src/test/java/com/lockton/WSBeFlex/Config/CargaMasivaTraceFilterTest.java"
+    "src/test/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasivaTest.java"
+    "src/test/java/com/lockton/WSBeFlex/Services/CadenaWs"
+    "src/test/java/com/lockton/WSBeFlex/Services/CargaMasivaB2"
+)
+
+git rm -r -- $EliminarBackend
+
+git branch --show-current
+git diff --cached --check
+git diff --cached --name-status
+
+if ($LASTEXITCODE -ne 0) {
+    throw "La validacion de los cambios fallo. No se realizara el commit."
+}
+
+git commit -m "Reset de carga masiva a la version productiva"
+
+if ($LASTEXITCODE -ne 0) {
+    throw "No fue posible crear el commit."
+}
+
+git push -u origin CargaDefaulteo
+
+if ($LASTEXITCODE -ne 0) {
+    throw "No fue posible enviar la rama CargaDefaulteo."
+}
+
+
+-----------------------------------------------
 
 # Crear la rama correcta conservando el commit actual
 git switch -c CargaDefaulteo
