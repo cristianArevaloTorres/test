@@ -1,160 +1,112 @@
-PS C:\repo\resertCarga\back> $BackendRepo = "C:\repo\resertCarga\back"
->> 
->> 
->> 
->> Set-Location $BackendRepo
->> 
->> $RamaActual = (git branch --show-current).Trim()
->> 
->> if ($RamaActual -eq "QA") {
->>     git switch -c CargaDefaulteo
->> 
->>     if ($LASTEXITCODE -ne 0) {
->>         throw "No fue posible crear la rama CargaDefaulteo."
->>     }
->> }
->> elseif ($RamaActual -ne "CargaDefaulteo") {
->>     throw "Debes estar en QA o CargaDefaulteo. Rama actual: $RamaActual"
->> }
->> 
->> $RamaActual = (git branch --show-current).Trim()
->> 
->> if ($RamaActual -ne "CargaDefaulteo") {
->>     throw "La rama actual no es CargaDefaulteo."
->> }
->> 
->> Write-Host "Rama correcta: $RamaActual" -ForegroundColor Green
->> 
->> $BackendFiles = @(
->>     "src/main/java/com/lockton/WSBeFlex/AsyncConfig.java"
->>     "src/main/java/com/lockton/WSBeFlex/DAO/FfCargaMasivaDAO.java"
->>     "src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java"
->>     "src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FfCOpcionesCargaMasiva.java"
->>     "src/main/java/com/lockton/WSBeFlex/REST/WSTitularesAdm.java"
->> )
->> 
->> git add -- $BackendFiles
->> 
->> if ($LASTEXITCODE -ne 0) {
->>     throw "No fue posible agregar los archivos restaurados."
->> }
->> 
->> $EliminarBackend = @(
->>     "database/001_catalogo_y_flujo_carga_masiva.sql"
->>     "database/009_infraestructura_cadena_ws_ford.sql"
->>     "src/main/java/com/lockton/WSBeFlex/Config/CargaMasivaTraceFilter.java"
->>     "src/main/java/com/lockton/WSBeFlex/DAO/CargaCadenaWsDAO.java"
->>     "src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaB2DAO.java"
->>     "src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaFlujoDAO.java"
->>     "src/main/java/com/lockton/WSBeFlex/DAO/JDBCCargaMasivaFlujo.java"
->>     "src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FFConfiguracionFlujoCargaMasiva.java"
->>     "src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaB2.java"
->>     "src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaCadenaWs.java"
->>     "src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaFlujo.java"
->>     "src/main/java/com/lockton/WSBeFlex/Services/CadenaWs"
->>     "src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaB2"
->>     "src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaFlujoService.java"
->>     "src/test/java/com/lockton/WSBeFlex/Config/CargaMasivaTraceFilterTest.java"
->>     "src/test/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasivaTest.java"
->>     "src/test/java/com/lockton/WSBeFlex/Services/CadenaWs"
->>     "src/test/java/com/lockton/WSBeFlex/Services/CargaMasivaB2"
->> )
->> 
->> git rm -r --ignore-unmatch -- $EliminarBackend
->> 
->> if ($LASTEXITCODE -ne 0) {
->>     throw "No fue posible registrar las eliminaciones del reset."
->> }
->> 
->> git diff --cached --check
->> $ResultadoValidacion = $LASTEXITCODE
->> 
->> git diff --cached --name-status
->> 
->> if ($ResultadoValidacion -ne 0) {
->>     throw "La validacion encontro errores. No se realizara el commit."
->> }
->> 
->> git diff --cached --quiet
->> $ResultadoCambios = $LASTEXITCODE
->> 
->> if ($ResultadoCambios -eq 0) {
->>     throw "No hay cambios preparados para confirmar."
->> }
->> 
->> if ($ResultadoCambios -ne 1) {
->>     throw "No fue posible comprobar los cambios preparados."
->> }
->> 
->> git commit -m "Reset de carga masiva a la version productiva"
->> 
->> if ($LASTEXITCODE -ne 0) {
->>     throw "No fue posible crear el commit."
->> }
->> 
->> git push -u origin CargaDefaulteo
->> 
->> if ($LASTEXITCODE -ne 0) {
->>     throw "No fue posible enviar la rama CargaDefaulteo."
->> }
->> 
->> Write-Host "Cambios enviados correctamente a origin/CargaDefaulteo." -ForegroundColor Green
-Rama correcta: CargaDefaulteo
-warning: in the working copy of 'src/main/java/com/lockton/WSBeFlex/AsyncConfig.java', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'src/main/java/com/lockton/WSBeFlex/DAO/FfCargaMasivaDAO.java', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FfCOpcionesCargaMasiva.java', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'src/main/java/com/lockton/WSBeFlex/REST/WSTitularesAdm.java', LF will be replaced by CRLF the next time Git touches it
-rm 'src/main/java/com/lockton/WSBeFlex/Config/CargaMasivaTraceFilter.java'
-rm 'src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaB2DAO.java'
-rm 'src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaFlujoDAO.java'
-rm 'src/main/java/com/lockton/WSBeFlex/DAO/JDBCCargaMasivaFlujo.java'
-rm 'src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FFConfiguracionFlujoCargaMasiva.java'
-rm 'src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaB2.java'
-rm 'src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaFlujo.java'
-rm 'src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaB2/CargaMasivaB2Service.java'
-rm 'src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaB2/CargaMasivaTxtDocumento.java'
-rm 'src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaB2/CargaMasivaTxtParser.java'
-rm 'src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaFlujoService.java'
-rm 'src/test/java/com/lockton/WSBeFlex/Config/CargaMasivaTraceFilterTest.java'
-rm 'src/test/java/com/lockton/WSBeFlex/Services/CargaMasivaB2/CargaMasivaB2ServiceTest.java'
-rm 'src/test/java/com/lockton/WSBeFlex/Services/CargaMasivaB2/CargaMasivaTxtParserTest.java'
-src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FfCOpcionesCargaMasiva.java:58: trailing whitespace.
-+    
-src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FfCOpcionesCargaMasiva.java:70: trailing whitespace.
-+    
-src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FfCOpcionesCargaMasiva.java:72: trailing whitespace.
-+    
-src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FfCOpcionesCargaMasiva.java:73: trailing whitespace.
-+    
-src/main/java/com/lockton/WSBeFlex/REST/WSTitularesAdm.java:495: trailing whitespace.
-+    
-D       src/main/java/com/lockton/WSBeFlex/Config/CargaMasivaTraceFilter.java
-D       src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaB2DAO.java
-D       src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaFlujoDAO.java
-M       src/main/java/com/lockton/WSBeFlex/DAO/FfCargaMasivaDAO.java
-D       src/main/java/com/lockton/WSBeFlex/DAO/JDBCCargaMasivaFlujo.java
-M       src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java
-D       src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FFConfiguracionFlujoCargaMasiva.java
-M       src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FfCOpcionesCargaMasiva.java
-D       src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaB2.java
-D       src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaFlujo.java
-M       src/main/java/com/lockton/WSBeFlex/REST/WSTitularesAdm.java
-D       src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaB2/CargaMasivaB2Service.java
-D       src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaB2/CargaMasivaTxtDocumento.java
-La validacion encontro errores. No se realizara el commit.
-En línea: 75 Carácter: 5
-+     throw "La validacion encontro errores. No se realizara el commit. ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (La validacion e...zara el commit.:String) [], RuntimeException
-    + FullyQualifiedErrorId : La validacion encontro errores. No se realizara el commit.
- 
-PS C:\repo\resertCarga\back> q
-q : El término 'q' no se reconoce como nombre de un cmdlet, función, archivo de script o programa ejecutable. Compruebe si escribió correctamente el nombre o, si incluyó una ruta de acceso, compruebe que dicha ruta es correcta e inténtelo de nuevo.
-En línea: 1 Carácter: 1
-+ q
-+ ~
-    + CategoryInfo          : ObjectNotFound: (q:String) [], CommandNotFoundException
-    + FullyQualifiedErrorId : CommandNotFoundException
- 
-PS C:\repo\resertCarga\back> 
+$BackendRepo = "C:\repo\resertCarga\back"
+
+Set-Location $BackendRepo
+
+$RamaActual = (git branch --show-current).Trim()
+
+if ($RamaActual -eq "QA") {
+    git switch -c CargaDefaulteo
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "No fue posible crear la rama CargaDefaulteo."
+    }
+}
+elseif ($RamaActual -ne "CargaDefaulteo") {
+    throw "Debes estar en QA o CargaDefaulteo. Rama actual: $RamaActual"
+}
+
+Write-Host "Rama correcta: CargaDefaulteo" -ForegroundColor Green
+
+$BackendFiles = @(
+    "src/main/java/com/lockton/WSBeFlex/AsyncConfig.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/FfCargaMasivaDAO.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java"
+    "src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FfCOpcionesCargaMasiva.java"
+    "src/main/java/com/lockton/WSBeFlex/REST/WSTitularesAdm.java"
+)
+
+$EliminarBackend = @(
+    "database/001_catalogo_y_flujo_carga_masiva.sql"
+    "database/009_infraestructura_cadena_ws_ford.sql"
+    "src/main/java/com/lockton/WSBeFlex/Config/CargaMasivaTraceFilter.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/CargaCadenaWsDAO.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaB2DAO.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaFlujoDAO.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/JDBCCargaMasivaFlujo.java"
+    "src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FFConfiguracionFlujoCargaMasiva.java"
+    "src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaB2.java"
+    "src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaCadenaWs.java"
+    "src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaFlujo.java"
+    "src/main/java/com/lockton/WSBeFlex/Services/CadenaWs"
+    "src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaB2"
+    "src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaFlujoService.java"
+    "src/test/java/com/lockton/WSBeFlex/Config/CargaMasivaTraceFilterTest.java"
+    "src/test/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasivaTest.java"
+    "src/test/java/com/lockton/WSBeFlex/Services/CadenaWs"
+    "src/test/java/com/lockton/WSBeFlex/Services/CargaMasivaB2"
+)
+
+# Agregar los archivos restaurados
+git add -- $BackendFiles
+
+if ($LASTEXITCODE -ne 0) {
+    throw "No fue posible agregar los archivos restaurados."
+}
+
+# Eliminar y registrar los archivos versionados
+git rm -r --ignore-unmatch -- $EliminarBackend
+
+if ($LASTEXITCODE -ne 0) {
+    throw "No fue posible registrar las eliminaciones."
+}
+
+# Eliminar únicamente restos no versionados de esas mismas rutas.
+# Esto evita que Maven los compile localmente aunque no pertenezcan al commit.
+$RestosNoVersionados = @(git clean -nd -- $EliminarBackend)
+
+if ($RestosNoVersionados.Count -gt 0) {
+    Write-Host "Se eliminaran estos restos no versionados:" -ForegroundColor Yellow
+    $RestosNoVersionados | ForEach-Object { Write-Host $_ }
+
+    git clean -fd -- $EliminarBackend
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "No fue posible limpiar los archivos no versionados."
+    }
+}
+
+# Los avisos de espacios son heredados de producción y no bloquean el reset
+git diff --cached --check
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Warning "Hay espacios finales heredados de produccion. Se conservaran para no alterar los archivos originales."
+}
+
+# Mostrar cambios sin abrir paginador
+git --no-pager diff --cached --name-status
+
+# Confirmar que realmente existen cambios preparados
+git diff --cached --quiet
+$ResultadoCambios = $LASTEXITCODE
+
+if ($ResultadoCambios -eq 0) {
+    throw "No hay cambios preparados para confirmar."
+}
+
+if ($ResultadoCambios -ne 1) {
+    throw "No fue posible comprobar los cambios preparados."
+}
+
+git commit -m "Reset de carga masiva a la version productiva"
+
+if ($LASTEXITCODE -ne 0) {
+    throw "No fue posible crear el commit."
+}
+
+git push -u origin CargaDefaulteo
+
+if ($LASTEXITCODE -ne 0) {
+    throw "No fue posible enviar la rama CargaDefaulteo."
+}
+
+Write-Host "Reset enviado correctamente a origin/CargaDefaulteo." -ForegroundColor Green
