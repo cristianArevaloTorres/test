@@ -1,3 +1,17 @@
+ff_Rol y ff_Perfil de la empresa destino:
+- RODefault = 1
+- ROIdEstatus = 1
+- PEAdministrador = 0
+- PEIdEstatus = 1
+- PEIdRolDefault = ROIdRol
+Si hay varios, toma el menor ROIdRol. Si no hay uno default, toma el rol activo no administrativo de menor ID. Ese rol se asigna automáticamente al empleado transferido.
+
+
+
+
+------------------
+
+
 [ERROR] COMPILATION ERROR :
 
 [INFO] -------------------------------------------------------------
