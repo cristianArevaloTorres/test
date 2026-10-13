@@ -1,1 +1,61 @@
 
+$FrontRepo = "C:\RUTA_REAL\BeFlex3-EmpAdm"
+Set-Location $FrontRepo
+
+git status
+git switch -c reset/qa-carga-defaulteo
+
+$archivos = @(
+    "src/app/beflex/cargamasivaadm"
+    "src/app/beflex/adm-reportes/reporte-defaulteo/reporte-defaulteo-casos-especiales"
+    "src/app/beflex/adm-reportes/reporte-defaulteo/tabla-defaulteo-casos-especiales"
+    "src/app/services/titulares.service.ts"
+)
+
+git add -A -- $archivos
+git diff --cached --check
+git diff --cached --name-status
+
+git commit -m "Reset de carga masiva y defaulteo de casos especiales"
+git push -u origin HEAD
+
+
+
+$BackendRepo = "C:\RUTA_REAL\WSBeFlex-EmpAdm"
+Set-Location $BackendRepo
+
+git status
+git switch -c reset/qa-carga-masiva
+
+$archivos = @(
+    "database/001_catalogo_y_flujo_carga_masiva.sql"
+    "database/009_infraestructura_cadena_ws_ford.sql"
+    "src/main/java/com/lockton/WSBeFlex/AsyncConfig.java"
+    "src/main/java/com/lockton/WSBeFlex/Config/CargaMasivaTraceFilter.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/CargaCadenaWsDAO.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaB2DAO.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/CargaMasivaFlujoDAO.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/FfCargaMasivaDAO.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/JDBCCargaMasivaFlujo.java"
+    "src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java"
+    "src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FFConfiguracionFlujoCargaMasiva.java"
+    "src/main/java/com/lockton/WSBeFlex/POJO/Especiales/FfCOpcionesCargaMasiva.java"
+    "src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaB2.java"
+    "src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaCadenaWs.java"
+    "src/main/java/com/lockton/WSBeFlex/REST/WSCargaMasivaFlujo.java"
+    "src/main/java/com/lockton/WSBeFlex/REST/WSTitularesAdm.java"
+    "src/main/java/com/lockton/WSBeFlex/Services/CadenaWs"
+    "src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaB2"
+    "src/main/java/com/lockton/WSBeFlex/Services/CargaMasivaFlujoService.java"
+    "src/test/java/com/lockton/WSBeFlex/Config/CargaMasivaTraceFilterTest.java"
+    "src/test/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasivaTest.java"
+    "src/test/java/com/lockton/WSBeFlex/Services/CadenaWs"
+    "src/test/java/com/lockton/WSBeFlex/Services/CargaMasivaB2"
+)
+
+git add -A -- $archivos
+git diff --cached --check
+git diff --cached --name-status
+
+git commit -m "Reset de carga masiva a la versión productiva"
+git push -u origin HEAD
