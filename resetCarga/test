@@ -57,5 +57,88 @@ git add -A -- $archivos
 git diff --cached --check
 git diff --cached --name-status
 
+
+------------------------
+
+
+PS C:\repo\resertCarga\front> $FrontFiles = @(
+>>     'src/app/beflex/cargamasivaadm',
+>>     'src/app/beflex/adm-reportes/reporte-defaulteo/reporte-defaulteo-casos-especiales',
+>>     'src/app/beflex/adm-reportes/reporte-defaulteo/tabla-defaulteo-casos-especiales',
+>>     'src/app/services/titulares.service.ts'
+>> )
+>> 
+>> git remote -v
+>> git branch --show-current
+>> git status --short
+>> 
+>> git add -- $FrontFiles
+>> 
+>> git commit -m "observaciones issues cobranza sabana"
+>> 
+>> $Branch = git branch --show-current
+>> git push -u origin $Branch
+>> 
+>> 
+>> git push -u origin $Branch
+>> if ($LASTEXITCODE -ne 0) {
+>>     throw "No fue posible enviar la rama $Branch."
+>> }
+>> 
+origin  https://github.com/LcktnMX/BeFlex3-EmpAdm.git (fetch)
+origin  https://github.com/LcktnMX/BeFlex3-EmpAdm.git (push)
+QA
+ M .vs/VSWorkspaceState.json
+ M .vs/slnx.sqlite
+ M src/app/beflex/adm-reportes/reporte-defaulteo/reporte-defaulteo-casos-especiales/reporte-defaulteo-casos-especiales.component.html
+ M src/app/beflex/adm-reportes/reporte-defaulteo/reporte-defaulteo-casos-especiales/reporte-defaulteo-casos-especiales.component.ts
+ M src/app/beflex/adm-reportes/reporte-defaulteo/tabla-defaulteo-casos-especiales/tabla-defaulteo-casos-especiales.component.css
+ M src/app/beflex/adm-reportes/reporte-defaulteo/tabla-defaulteo-casos-especiales/tabla-defaulteo-casos-especiales.component.html
+ M src/app/beflex/adm-reportes/reporte-defaulteo/tabla-defaulteo-casos-especiales/tabla-defaulteo-casos-especiales.component.ts
+ M src/app/beflex/cargamasivaadm/cargamasivaadm.component.css
+ M src/app/beflex/cargamasivaadm/cargamasivaadm.component.html
+ M src/app/beflex/cargamasivaadm/cargamasivaadm.component.ts
+ M src/app/services/titulares.service.ts
+?? .vs/front.slnx/
+?? .vs/front/
+warning: in the working copy of 'src/app/beflex/adm-reportes/reporte-defaulteo/reporte-defaulteo-casos-especiales/reporte-defaulteo-casos-especiales.component.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/adm-reportes/reporte-defaulteo/reporte-defaulteo-casos-especiales/reporte-defaulteo-casos-especiales.component.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/adm-reportes/reporte-defaulteo/tabla-defaulteo-casos-especiales/tabla-defaulteo-casos-especiales.component.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/adm-reportes/reporte-defaulteo/tabla-defaulteo-casos-especiales/tabla-defaulteo-casos-especiales.component.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/adm-reportes/reporte-defaulteo/tabla-defaulteo-casos-especiales/tabla-defaulteo-casos-especiales.component.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/cargamasivaadm/cargamasivaadm.component.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/cargamasivaadm/cargamasivaadm.component.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/beflex/cargamasivaadm/cargamasivaadm.component.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/services/titulares.service.ts', LF will be replaced by CRLF the next time Git touches it
+[QA 5ddecbc1] observaciones issues cobranza sabana
+ 7 files changed, 209 insertions(+), 2228 deletions(-)
+To https://github.com/LcktnMX/BeFlex3-EmpAdm.git
+ ! [rejected]          QA -> QA (fetch first)
+error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+To https://github.com/LcktnMX/BeFlex3-EmpAdm.git
+ ! [rejected]          QA -> QA (fetch first)
+error: failed to push some refs to 'https://github.com/LcktnMX/BeFlex3-EmpAdm.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+No fue posible enviar la rama QA.
+En línea: 22 Carácter: 5
++     throw "No fue posible enviar la rama $Branch."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (No fue posible enviar la rama QA.:String) [], RuntimeException
+    + FullyQualifiedErrorId : No fue posible enviar la rama QA.
+ 
+PS C:\repo\resertCarga\front> 
+
+
+el branch se llama CargaDefaulteo
+
 git commit -m "Reset de carga masiva a la versión productiva"
 git push -u origin HEAD
