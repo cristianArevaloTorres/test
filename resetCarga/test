@@ -1,4 +1,38 @@
 
+
+# Crear la rama correcta conservando el commit actual
+git switch -c CargaDefaulteo
+
+# Eliminar los 3 archivos que también forman parte del reset
+git rm -- `
+  "src/app/beflex/cargamasivaadm/carga-masiva-txt.parser.ts" `
+  "src/app/beflex/cargamasivaadm/carga-masiva-txt.parser.spec.ts" `
+  "src/app/beflex/adm-reportes/reporte-defaulteo/reporte-defaulteo-casos-especiales/reporte-defaulteo-casos-especiales.component.css"
+
+# Corregir el commit anterior e incluir las eliminaciones
+git commit --amend -m "Reset de carga masiva y defaulteo de casos especiales"
+
+# Guardar temporalmente los cambios locales de Visual Studio
+git stash push -u -m "Archivos locales de Visual Studio" -- .vs
+
+# Actualizar la referencia de QA y colocar la rama sobre el QA más reciente
+git fetch origin
+git rebase origin/QA
+
+# Verificar antes de enviar
+git branch --show-current
+git status
+git log -1 --oneline
+
+# Enviar únicamente la rama correcta
+git push -u origin CargaDefaulteo
+
+# Volver a dejar la rama local QA apuntando al QA remoto
+git branch -f QA origin/QA
+
+# Recuperar los archivos locales de Visual Studio
+git stash pop
+---------------------
 $FrontRepo = "C:\RUTA_REAL\BeFlex3-EmpAdm"
 Set-Location $FrontRepo
 
