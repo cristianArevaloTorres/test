@@ -1,3 +1,20 @@
+
+
+
+>> 
+Debes partir de QA. Rama actual: CargaDefaulteo
+En línea: 8 Carácter: 5
++     throw "Debes partir de QA. Rama actual: $RamaActual"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Debes partir de... CargaDefaulteo:String) [], RuntimeException
+    + FullyQualifiedErrorId : Debes partir de QA. Rama actual: CargaDefaulteo
+
+
+
+--------------------
+
+
+
 $BackendRepo = "C:\RUTA_REAL\WSBeFlex-EmpAdm"
 
 Set-Location $BackendRepo
