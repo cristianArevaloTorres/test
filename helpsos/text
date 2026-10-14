@@ -1,3 +1,43 @@
+Asunto: Minuta de acuerdos – Carga Masiva y Defaulteo
+Buen día, equipo:
+Se revisaron dos funcionalidades y se establecieron los siguientes acuerdos:
+Acuerdos
+1. Carga Masiva
+- La mejora gráfica se liberará en una segunda fase.
+- En esta fase se mantendrá la interfaz anterior.
+- La parametrización del SOAP sí requiere liberación.
+- El incidente de Carga Masiva de Poblaciones deberá revisarse antes del cierre.
+2. Defaulteo
+- La mejora gráfica se liberará en una segunda fase.
+- En esta fase se mantendrá la interfaz anterior.
+- Se validará la funcionalidad existente utilizando Costco.
+- Si la validación es satisfactoria, no se requerirá liberación adicional.
+Actividades y estatus
+1. Carga Masiva
+Actividad	Estatus
+Realizar rollback de la mejora gráfica.	Concluido
+Probar la parametrización del SOAP.	Concluido – prueba exitosa
+Revisar el incidente de Carga Masiva de Poblaciones.	Pendiente
+Realizar la liberación de Carga Masiva.	Pendiente de confirmar después de revisar el incidente
+
+
+2. Defaulteo
+Actividad	Estatus
+Realizar rollback de la mejora gráfica.	Concluido
+Validar la funcionalidad con Costco.	Pendiente por parte del usuario
+Confirmar el cierre sin liberación adicional.	Pendiente del resultado de la validación
+
+
+Resumen: únicamente Carga Masiva requiere liberación. Defaulteo solo requiere la validación funcional con Costco.
+Saludos cordiales.
+
+
+
+------------------------------------------------------------------
+
+
+
+
 ff_Rol y ff_Perfil de la empresa destino:
 - RODefault = 1
 - ROIdEstatus = 1
