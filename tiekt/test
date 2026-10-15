@@ -1,3 +1,37 @@
+USE FlexiForbesv2;
+
+SELECT
+    CNE.CNEId,
+    CNE.CNEIdEmpresa,
+    E.EMNombre,
+    E.EMIdCorporativo,
+    CNE.CNEIdTipoNotificacionCorreo,
+    CNE.CNEIdPlantilla,
+    CNE.CNEIdEstatus
+FROM bf_ConfiguracionNotificacionEmpresa CNE
+LEFT JOIN ff_Empresa E
+    ON E.EMIdEmpresa = CNE.CNEIdEmpresa
+WHERE CNE.CNEIdEstatus = 1
+  AND CNE.CNEIdTipoNotificacionCorreo IN (43, 44, 46)
+ORDER BY CNE.CNEIdEmpresa, CNE.CNEIdTipoNotificacionCorreo, CNE.CNEId;
+
+SELECT
+    PCIdCorreo,
+    PCTitulo,
+    PCSujeto,
+    PCContenido,
+    PCIdEstatus
+FROM ff_PlantillaCorreo
+WHERE PCIdCorreo IN (
+    SELECT CNEIdPlantilla
+    FROM bf_ConfiguracionNotificacionEmpresa
+    WHERE CNEIdEstatus = 1
+      AND CNEIdTipoNotificacionCorreo IN (43, 44, 46)
+);
+
+
+---------------------
+
 src\app\beflex\tickets\ticket.component.ts
 src\app\beflex\adm-tickets\adm-tickets.component.ts
  
