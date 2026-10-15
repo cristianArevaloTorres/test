@@ -1,0 +1,59 @@
+﻿1,Cierre sistema,1
+2,Alta nueva,1
+3,Cambio calificado,1
+4,Parentesco edad,1
+5,1era notificación de cierre sistema alta nueva,1
+6,2da notificación de cierre sistema alta nueva,1
+7,1era notificación de cierre sistema cambio calificado,1
+8,2da notificación de cierre sistema cambio calificado,1
+9,Baja titular,1
+10,Alta masiva de titulares,1
+11,Baja masiva de titulares,1
+12,Cotizador de beneficios,1
+13,Alta de movimientos ADN,1
+14,Baja de movimientos ADN,1
+15,Modificación de movimientos ADN,1
+16,Actualización de empleados,1
+17,Generación de descuentos,1
+18,Cierre sistema,1
+19,Alta nueva,1
+20,Cambio calificado,1
+21,Parentesco edad,1
+22,1era notificación de cierre sistema alta nueva,1
+23,2da notificación de cierre sistema alta nueva,1
+24,1era notificación de cierre sistema cambio calificado,1
+25,2da notificación de cierre sistema cambio calificado,1
+26,Baja titular,1
+27,Alta masiva de titulares,1
+28,Baja masiva de titulares,1
+29,Cotizador de beneficios,1
+30,Alta de movimientos ADN,1
+31,Baja de movimientos ADN,1
+32,Modificación de movimientos ADN,1
+33,Actualización de empleados,1
+34,Generación de descuentos,1
+35,Acceso a Beflex,1
+36,Cierre Acceso a Beflex,1
+37,Actualización de empleados,1
+38,Generación de descuentos,1
+39,Decifrar archivo,1
+40,Descuento por comedor,1
+41,Envio de carga inicial a OPERA,1
+42,Envio de mantenimiento a OPERA,1
+43,GeneracionTicket,1
+44,Rechazo Ticket,1
+45,Envio a OPERA,1
+46,Cierre Ticket,1
+47,CheckUp,1
+48,Envio LocktonOne,1
+49,Notificaciones durante el Enrollment,1
+50,AltaRetroactiva,1
+51,BajaRetroactiva,1
+52,CargaMasivaRetroactiva,1
+53,CambioEstatusAltaRetroactiva,1
+54,CambioEstatusBajaRetroactiva,1
+55,ProcesoEnvioDocumentosEmpleado,1
+56,ProcesoEnvioDocumentosAdministrador,1
+57,CompensacionBonoAutoAltaEmpleado,1
+58,CompensacionBonoAutoAltaAdmin,1
+59,CompensacionBonoAutoRenovacionAdmin,1
