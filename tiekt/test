@@ -1,1 +1,31 @@
+src\app\beflex\tickets\ticket.component.ts
+src\app\beflex\adm-tickets\adm-tickets.component.ts
+ 
+ 
+src\app\services\ticket.service.ts
 
+
+----propusta de solucion 
+
+         let result;
+         if(this.identity.idEmpresa = 949){
+      result = await this._ticketService.obtienePlantillaTicket(68);
+ 
+         }else{
+       result = await this._ticketService.obtienePlantillaTicket(81);
+         }
+ 
+select *from bf_ConfiguracionNotificacionEmpresa
+
+where  CNEIdTipoNotificacionCorreo=43
+
+and CNEIdEstatus=1
+
+and CNEIdEmpresa = 948
+
+
+USE FlexiForbesv2
+
+SELECT * FROM ff_plantillacorreo
+
+select *from bf_ConfiguracionNotificacionEmpresawhere  CNEIdEstatus=1and CNEIdEmpresa = 371  -- puede ir el idEmpresa y idCorporativoorder by CNEIdPlantilla--select * from ff_Empresa where emclaveacceso ='ulsa'[bf_TipoNotificacionCorreo]
