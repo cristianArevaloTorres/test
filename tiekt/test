@@ -1,3 +1,27 @@
+SELECT
+    E.EMIdEmpresa AS EmpresaConsultada,
+    E.EMIdCorporativo,
+    C.CNEId AS IdConfiguracion,
+    C.CNEIdEmpresa AS EmpresaConfiguracion,
+    C.CNEIdTipoNotificacionCorreo AS TipoNotificacion,
+    C.CNEIdPlantilla AS IdPlantilla,
+    CASE
+        WHEN C.CNEIdEmpresa = E.EMIdEmpresa THEN 'DIRECTA'
+        ELSE 'CORPORATIVO'
+    END AS OrigenConfiguracion
+FROM dbo.ff_Empresa E
+INNER JOIN dbo.bf_ConfiguracionNotificacionEmpresa C
+    ON C.CNEIdEmpresa IN (E.EMIdEmpresa, E.EMIdCorporativo)
+WHERE E.EMIdEmpresa = @IdEmpresa
+  AND C.CNEIdTipoNotificacionCorreo = @IdTipoNotificacion
+  AND C.CNEIdEstatus = 1
+ORDER BY
+    CASE WHEN C.CNEIdEmpresa = E.EMIdEmpresa THEN 0 ELSE 1 END,
+    C.CNEId DESC;
+-------------------------------
+
+
+
 ff_PlantillaCorreo
 
 USE FlexiForbesv2;
