@@ -20,6 +20,27 @@ Cualquier duda, pueden apoyarse con Diego Barron.
 EMFecha_solicitud_movimiento	EMFecha_ejecucion_movimiento
  
 
+---------------------------------------------------
+
+Hola equipo,
+Dando seguimiento a las pruebas de los ajustes solicitados para los procesos de Reactivación y Transferencia de Empleados consumidos por el Middleware, ¿podrían confirmarnos el estatus y si ya contamos con su visto bueno para liberar los cambios?
+Los puntos por validar son:
+Reactivación – bf_ReactivacionEmpleadosTitular
+- Conservar la fecha y hora de alta original del empleado.
+- No actualizar estos datos durante la reactivación.
+Transferencia – ff_transferenciaMasivaEmpleado
+- Buscar inicialmente el rol predeterminado con:
+  - RODefault = 1
+  - PEAdministrador = 0
+- Si no existe un rol predeterminado, considerar los roles con PEAdministrador = 0.
+- Si existe más de un registro, asignar el que tenga el menor IDRol.
+También agradeceremos confirmar el comportamiento de los campos:
+- EMFecha_solicitud_movimiento
+- EMFecha_ejecucion_movimiento
+Por favor, indíquennos si las pruebas concluyeron satisfactoriamente, si existe alguna observación pendiente o si ya podemos proceder con la liberación.
+En caso de dudas funcionales, pueden apoyarse con Diego Barrón.
+Quedamos atentos a sus comentarios.
+Saludos.
 
 
  --------------------------------------------------
