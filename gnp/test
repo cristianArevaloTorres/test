@@ -1,3 +1,20 @@
+
+System.Data.Entity.Core.EntityCommandExecutionException
+  HResult=0x8013193C
+  Mensaje = Error al ejecutar la definición del comando. Vea la excepción interna para obtener detalles.
+  Origen = <No se puede evaluar el origen de la excepción>
+  Seguimiento de la pila:
+<No se puede evaluar el seguimiento de la pila de excepciones>
+
+Excepción interna 1:
+SqlException: Invalid object name 'dbo.ConfiguracionDomiciliacionGNP'.
+
+
+
+------
+
+
+
 Campo	Texto
 Funcionalidad	GNP – Domiciliación bancaria posterior a la emisión
 Identificador componente	Convenio / Emisión GNP / GNPInfoService
