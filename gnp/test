@@ -1,4 +1,76 @@
+USE FlexiForbesv2;
+GO
 
+DECLARE @IdEmpresa INT = 949; -- Cambiar por la empresa a validar
+
+WITH TiposNotificacion AS
+(
+    SELECT 43 AS IdTipo, 'TICKET NUEVO' AS Tipo
+    UNION ALL
+    SELECT 44, 'TICKET RECHAZADO'
+    UNION ALL
+    SELECT 46, 'TICKET CERRADO'
+),
+EmpresaConsultada AS
+(
+    SELECT EMIdEmpresa, EMIdCorporativo
+    FROM dbo.ff_Empresa
+    WHERE EMIdEmpresa = @IdEmpresa
+),
+Configuraciones AS
+(
+    SELECT
+        E.EMIdEmpresa,
+        E.EMIdCorporativo,
+        T.IdTipo,
+        T.Tipo,
+        C.CNEId,
+        C.CNEIdEmpresa,
+        C.CNEIdPlantilla,
+        ROW_NUMBER() OVER
+        (
+            PARTITION BY E.EMIdEmpresa, T.IdTipo
+            ORDER BY
+                CASE
+                    WHEN C.CNEIdEmpresa = E.EMIdEmpresa THEN 0
+                    ELSE 1
+                END,
+                C.CNEId DESC
+        ) AS NumeroFila
+    FROM EmpresaConsultada E
+    CROSS JOIN TiposNotificacion T
+    LEFT JOIN dbo.bf_ConfiguracionNotificacionEmpresa C
+        ON C.CNEIdTipoNotificacionCorreo = T.IdTipo
+       AND C.CNEIdEstatus = 1
+       AND C.CNEIdEmpresa IN (E.EMIdEmpresa, E.EMIdCorporativo)
+)
+SELECT
+    C.EMIdEmpresa AS EmpresaConsultada,
+    C.EMIdCorporativo,
+    C.IdTipo,
+    C.Tipo,
+    C.CNEId AS IdConfiguracion,
+    C.CNEIdEmpresa AS EmpresaConfiguracion,
+    C.CNEIdPlantilla AS IdPlantilla,
+    P.PCTitulo AS Plantilla,
+    P.PCSujeto AS Asunto,
+    CASE
+        WHEN C.CNEId IS NULL THEN 'SIN CONFIGURACION'
+        WHEN P.PCIdCorreo IS NULL THEN 'PLANTILLA NO EXISTE'
+        WHEN P.PCIdEstatus <> 1 THEN 'PLANTILLA INACTIVA'
+        ELSE 'CONFIGURACION CORRECTA'
+    END AS Resultado,
+    CASE
+        WHEN C.CNEId IS NULL THEN 'NO APLICA'
+        WHEN C.CNEIdEmpresa = C.EMIdEmpresa THEN 'DIRECTA'
+        ELSE 'HEREDADA DEL CORPORATIVO'
+    END AS Origen
+FROM Configuraciones C
+LEFT JOIN dbo.ff_PlantillaCorreo P
+    ON P.PCIdCorreo = C.CNEIdPlantilla
+WHERE C.NumeroFila = 1
+ORDER BY C.IdTipo;
+-------------------------------
 System.Data.Entity.Core.EntityCommandExecutionException
   HResult=0x8013193C
   Mensaje = Error al ejecutar la definición del comando. Vea la excepción interna para obtener detalles.
