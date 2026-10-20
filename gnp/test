@@ -1,7 +1,47 @@
-Mens. 1767, Nivel 16, Estado 0, Línea 4
-Foreign key 'FK_ConfiguracionDomiciliacionGNP_Convenio' references invalid table 'dbo.Convenio'.
-Mens. 1750, Nivel 16, Estado 1, Línea 4
-Could not create constraint or index. See previous errors.
+--CAT: Selecciona explicitamente la base para evitar crear la configuracion o su llave foranea en otra base desde SSMS.
+USE [LocktonOne_DB];
+GO
 
-Hora de finalización: 2026-10-20T00:40:58.6180546-06:00
+SET XACT_ABORT ON;
 
+--CAT: Valida que exista la tabla principal antes de relacionar la configuracion de domiciliacion GNP.
+IF OBJECT_ID(N'dbo.Convenio', N'U') IS NULL
+BEGIN
+    THROW 50001, 'No existe dbo.Convenio en LocktonOne_DB. Verifique la base seleccionada.', 1;
+END;
+
+--CAT: Crea una configuracion independiente por convenio para habilitar la domiciliacion posterior a la emision GNP.
+IF OBJECT_ID(N'dbo.ConfiguracionDomiciliacionGNP', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.ConfiguracionDomiciliacionGNP
+    (
+        Id INT IDENTITY(1, 1) NOT NULL,
+        IdConvenio INT NOT NULL,
+        AplicaDomiciliacionPostEmision BIT NOT NULL
+            CONSTRAINT DF_ConfiguracionDomiciliacionGNP_Aplica DEFAULT (0),
+        FechaCreacion DATETIME NOT NULL
+            CONSTRAINT DF_ConfiguracionDomiciliacionGNP_FechaCreacion DEFAULT (GETDATE()),
+        FechaModificacion DATETIME NULL,
+        IdUsuarioCreacion NVARCHAR(128) NULL,
+        IdUsuarioModificacion NVARCHAR(128) NULL,
+        CONSTRAINT PK_ConfiguracionDomiciliacionGNP PRIMARY KEY CLUSTERED (Id),
+        CONSTRAINT UQ_ConfiguracionDomiciliacionGNP_IdConvenio UNIQUE (IdConvenio)
+    );
+END;
+
+--CAT: Agrega la relacion por separado para que el script siga siendo idempotente si la tabla ya existia sin la llave foranea.
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.foreign_keys
+    WHERE name = N'FK_ConfiguracionDomiciliacionGNP_Convenio'
+      AND parent_object_id = OBJECT_ID(N'dbo.ConfiguracionDomiciliacionGNP')
+)
+BEGIN
+    ALTER TABLE dbo.ConfiguracionDomiciliacionGNP WITH CHECK
+        ADD CONSTRAINT FK_ConfiguracionDomiciliacionGNP_Convenio
+        FOREIGN KEY (IdConvenio) REFERENCES dbo.Convenio (Id);
+
+    ALTER TABLE dbo.ConfiguracionDomiciliacionGNP
+        CHECK CONSTRAINT FK_ConfiguracionDomiciliacionGNP_Convenio;
+END;
