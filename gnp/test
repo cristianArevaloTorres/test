@@ -1,3 +1,17 @@
+Campo	Texto
+Funcionalidad	GNP – Domiciliación bancaria posterior a la emisión
+Identificador componente	Convenio / Emisión GNP / GNPInfoService
+Condiciones de entrada	Usuario autenticado, convenio GNP, forma de pago con tarjeta y opción “Instalar datos bancarios después de emitir” activada.
+Datos de entrada	Cotización válida, convenio GNP, datos bancarios completos y AplicaDomiciliacionPostEmision = 1.
+Resultado esperado	La póliza se emite sin enviar los datos bancarios. Después de una emisión exitosa se ejecuta la domiciliación. Si esta falla, la póliza se conserva y se muestra una advertencia.
+Resultado obtenido	La póliza se emitió correctamente y posteriormente se ejecutó la domiciliación bancaria.
+Resultado de la prueba	Aprobada
+
+
+
+-------------------
+
+
 --CAT: Selecciona explicitamente la base para evitar crear la configuracion o su llave foranea en otra base desde SSMS.
 USE [LocktonOne_DB];
 GO
