@@ -1,1 +1,7 @@
+Mens. 1767, Nivel 16, Estado 0, Línea 4
+Foreign key 'FK_ConfiguracionDomiciliacionGNP_Convenio' references invalid table 'dbo.Convenio'.
+Mens. 1750, Nivel 16, Estado 1, Línea 4
+Could not create constraint or index. See previous errors.
+
+Hora de finalización: 2026-10-20T00:40:58.6180546-06:00
 
