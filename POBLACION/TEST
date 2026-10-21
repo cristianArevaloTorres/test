@@ -1,3 +1,8 @@
+dbo.ff_GetDatosReporteAseguradoB3v2
+dbo.ff_GetDatosReporteAseguradoConSalarioB3v2
+
+
+
 USE [FlexiForbesv2]
 GO
 /****** Objeto: StoredProcedure [dbo].[ff_GetColumnasDinamicasPoblacion] Fecha de script: 21/10/2026 02:08:00 p. m. ******/
