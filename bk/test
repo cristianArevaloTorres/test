@@ -1,1 +1,6 @@
-
+"EjecutarAlIniciar": true,
+"CorreosDestinoPrueba": [
+  "correo1@bankaool.com",
+  "correo2@bankaool.com",
+  "correo3@bankaool.com"
+]
