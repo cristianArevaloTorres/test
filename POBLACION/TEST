@@ -1,1 +1,6 @@
-
+1. ff_orquestadorReportes
+2. ff_Poblacion_BF3
+3. ff_GetDatosReporteAseguradoB3v2
+4. ff_GetDatosReporteAseguradoConSalarioB3v2
+5. ff_GetColumnasDinamicasPoblacion
+Si todos coinciden, revisaremos después ff_CObtenPlantilla
