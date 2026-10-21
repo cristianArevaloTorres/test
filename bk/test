@@ -1,6 +1,130 @@
-"EjecutarAlIniciar": true,
-"CorreosDestinoPrueba": [
-  "correo1@bankaool.com",
-  "correo2@bankaool.com",
-  "correo3@bankaool.com"
-]
+/*
+    CAP-1037 / CAP-1072 - Preparar un registro elegible hoy
+    USAR EXCLUSIVAMENTE EN DEV.
+
+    Sólo debes cambiar @Identificador.
+
+    El script:
+      1. Conserva FechaIngreso y los datos personales.
+      2. Cambia el estatus a Pendiente.
+      3. Coloca FechaVencimiento a las 23:59:59 de hoy en horario de México.
+      4. Elimina únicamente la bitácora ENROLAMIENTO_ULTIMO_DIA del registro,
+         para permitir repetir la prueba.
+      5. Confirma al final si quedó ELEGIBLE HOY.
+*/
+USE [Plataforma];
+GO
+
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+
+/* ÚNICO VALOR QUE DEBES CAMBIAR. */
+DECLARE @Identificador VARCHAR(25) = 'PEGA_AQUI_EL_IDENTIFICADOR';
+
+IF NULLIF(LTRIM(RTRIM(@Identificador)), '') IS NULL
+   OR @Identificador = 'PEGA_AQUI_EL_IDENTIFICADOR'
+BEGIN
+    THROW 50101, 'Escribe un Identificador válido antes de ejecutar el script.', 1;
+END;
+
+IF COL_LENGTH('dbo.tb_NominasMasivas_Control', 'FechaVencimiento') IS NULL
+BEGIN
+    THROW 50102, 'No existe FechaVencimiento. Ejecuta primero 001_CAP-1037_Objetos.sql.', 1;
+END;
+
+IF OBJECT_ID(N'dbo.tb_NominasMasivas_Notificaciones', N'U') IS NULL
+BEGIN
+    THROW 50103, 'No existe tb_NominasMasivas_Notificaciones. Ejecuta primero 001_CAP-1037_Objetos.sql.', 1;
+END;
+
+DECLARE @Coincidencias INT =
+(
+    SELECT COUNT(*)
+    FROM dbo.tb_NominasMasivas_Control
+    WHERE Identificador = @Identificador
+);
+
+IF @Coincidencias = 0
+BEGIN
+    THROW 50104, 'El Identificador no existe en dbo.tb_NominasMasivas_Control.', 1;
+END;
+
+IF @Coincidencias > 1
+BEGIN
+    THROW 50105, 'El Identificador aparece más de una vez; no se realizaron cambios.', 1;
+END;
+
+/*
+    CAP-1072: se usa la fecha actual de México y el registro vence exactamente
+    a las 23:59:59 del mismo día natural.
+*/
+DECLARE @AhoraMexico DATETIMEOFFSET =
+    (SYSUTCDATETIME() AT TIME ZONE 'UTC') AT TIME ZONE 'Central Standard Time (Mexico)';
+DECLARE @FechaProceso DATE = CONVERT(DATE, @AhoraMexico);
+DECLARE @FechaVencimiento DATETIME2(0) =
+    DATEADD(SECOND, -1, DATEADD(DAY, 1, CONVERT(DATETIME2(0), @FechaProceso)));
+
+/* Datos antes de preparar la prueba. */
+SELECT
+    Identificador,
+    Estatus,
+    FechaIngreso,
+    FechaUltimaModificacion,
+    FechaVencimiento
+FROM dbo.tb_NominasMasivas_Control
+WHERE Identificador = @Identificador;
+
+BEGIN TRY
+    BEGIN TRANSACTION;
+
+    /* CAT: Criterios de elegibilidad: día 30 y estatus Pendiente. */
+    UPDATE dbo.tb_NominasMasivas_Control
+    SET Estatus = 'Pendiente',
+        FechaVencimiento = @FechaVencimiento
+    WHERE Identificador = @Identificador;
+
+    /*
+        CAT: Se limpia sólo el control del aviso de último día para permitir
+        repetir la prueba. No se eliminan otras notificaciones del registro.
+    */
+    DELETE dbo.tb_NominasMasivas_Notificaciones
+    WHERE Identificador = @Identificador
+      AND TipoNotificacion = 'ENROLAMIENTO_ULTIMO_DIA';
+
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF XACT_STATE() <> 0
+    BEGIN
+        ROLLBACK TRANSACTION;
+    END;
+
+    THROW;
+END CATCH;
+
+/* Validación final: debe mostrar ELEGIBLE HOY. */
+SELECT
+    C.Identificador,
+    C.Estatus,
+    C.FechaIngreso,
+    C.FechaUltimaModificacion,
+    C.FechaVencimiento,
+    @FechaProceso AS FechaProcesoMexico,
+    CASE
+        WHEN UPPER(LTRIM(RTRIM(C.Estatus))) = 'PENDIENTE'
+         AND C.FechaVencimiento >= CONVERT(DATETIME2(0), @FechaProceso)
+         AND C.FechaVencimiento < DATEADD(DAY, 1, CONVERT(DATETIME2(0), @FechaProceso))
+         AND NOT EXISTS
+         (
+             SELECT 1
+             FROM dbo.tb_NominasMasivas_Notificaciones AS N
+             WHERE N.Identificador = C.Identificador
+               AND N.TipoNotificacion = 'ENROLAMIENTO_ULTIMO_DIA'
+               AND N.EstatusEnvio IN ('PROCESANDO', 'ENVIADO')
+         )
+        THEN 'ELEGIBLE HOY'
+        ELSE 'NO ELEGIBLE: REVISAR DATOS'
+    END AS ResultadoPrueba
+FROM dbo.tb_NominasMasivas_Control AS C
+WHERE C.Identificador = @Identificador;
+GO
