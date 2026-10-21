@@ -1,6 +1,290 @@
-1. ff_orquestadorReportes
-2. ff_Poblacion_BF3
-3. ff_GetDatosReporteAseguradoB3v2
-4. ff_GetDatosReporteAseguradoConSalarioB3v2
-5. ff_GetColumnasDinamicasPoblacion
-Si todos coinciden, revisaremos después ff_CObtenPlantilla
+USE [FlexiForbesv2]
+GO
+/****** Objeto: StoredProcedure [dbo].[ff_GetColumnasDinamicasPoblacion] Fecha de script: 21/10/2026 02:08:00 p. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE [dbo].[ff_GetColumnasDinamicasPoblacion]
+(
+    @admIdEmpresa INT,
+    @admIdPerfil INT,
+    @sueldo BIT,
+    @Columnas NVARCHAR(MAX) OUTPUT
+)
+AS
+/* ==================================================
+  Proyecto: Generación de Reportes en Segundo Plano.
+  Empresa:  DTI
+  Fecha:    08/02/2026
+  Version:  1.0.0.0
+  Objetivo: Obtiene el listado de columnas dinámicas replicando la lógica original en WSBeflex.
+   ================================================== */
+BEGIN
+   CREATE TABLE #ColumnasGenerales (
+			InsertOrder BIGINT IDENTITY(1,1),	PLIdPlantilla INT,		PPIdEmpresa INT,		PPIdPerfil INT,			CAIdCampo INT,		REIdRegla INT,
+			CPIdTitular INT,					CPHabilitado BIT,		CPVisible BIT,			CPEtiqueta NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,
+			CPRequerido BIT,					CPOrden INT,			CPIdEstatus INT,		CPEncriptado BIT,		CPConfirmacion BIT,
+			CANombreCampo NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,				CANombreComponente NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,
+			CADescripcionComponente NVARCHAR(500) COLLATE Modern_Spanish_CI_AI,		CAAyudaCampo NVARCHAR(500) COLLATE Modern_Spanish_CI_AI,
+			CATipoComponente NVARCHAR(100) COLLATE Modern_Spanish_CI_AI,			CATipoDato NVARCHAR(50) COLLATE Modern_Spanish_CI_AI,
+			CALongitud INT,															CACaracteresValidos NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,
+			CACatalogo NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,					PLDescripcion NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,
+			PLDescripcion2 NVARCHAR(255) COLLATE Modern_Spanish_CI_AI
+		);
+		CREATE UNIQUE CLUSTERED INDEX UX_ColumnasGenerales
+		ON #ColumnasGenerales (
+			PLIdPlantilla,		PPIdEmpresa,	PPIdPerfil,		CAIdCampo
+		);
+		-- Resultado individual de cada SP
+		CREATE TABLE #ResultadoSP (
+			PLIdPlantilla INT,					PPIdEmpresa INT,		PPIdPerfil INT,			CAIdCampo INT,			REIdRegla INT,		CPIdTitular INT,
+			CPHabilitado BIT,					CPVisible BIT,			CPEtiqueta NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,
+			CPRequerido BIT,					CPOrden INT,			CPIdEstatus INT,		CPEncriptado BIT,		CPConfirmacion BIT,
+			CANombreCampo NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,				CANombreComponente NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,
+			CADescripcionComponente NVARCHAR(500) COLLATE Modern_Spanish_CI_AI,		CAAyudaCampo NVARCHAR(500) COLLATE Modern_Spanish_CI_AI,
+			CATipoComponente NVARCHAR(100) COLLATE Modern_Spanish_CI_AI,			CATipoDato NVARCHAR(50) COLLATE Modern_Spanish_CI_AI,
+			CALongitud INT,															CACaracteresValidos NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,
+			CACatalogo NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,					PLDescripcion NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,
+			PLDescripcion2 NVARCHAR(255) COLLATE Modern_Spanish_CI_AI
+		);
+
+		CREATE TABLE #Headers (
+			Orden INT IDENTITY(1,1),		KeyName NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,		ValueName NVARCHAR(255) COLLATE Modern_Spanish_CI_AI
+		);
+
+		CREATE TABLE #SortedHeaders (
+			Orden INT IDENTITY(1,1),		KeyName NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,		ValueName NVARCHAR(255) COLLATE Modern_Spanish_CI_AI
+		);
+
+		/* Tabla de pantallas para ciclado de inserciones */
+		DECLARE @Pantallas TABLE (NombrePantalla SYSNAME);
+		INSERT INTO @Pantallas VALUES
+			('ff_Admi_AltaTitulares.aspx'),
+			('ff_Admi_ActualizaTitulares.aspx'),
+			('ff_Admi_BajaTitulares.aspx'),
+			('ff_Admi_Altadependientes.aspx'),
+			('ff_Admi_Consulta.aspx');
+		
+		DECLARE @Pantalla SYSNAME;
+		DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+		SELECT NombrePantalla FROM @Pantallas;
+
+		OPEN cur;
+		FETCH NEXT FROM cur INTO @Pantalla;
+
+		WHILE @@FETCH_STATUS = 0
+		BEGIN
+			TRUNCATE TABLE #ResultadoSP;
+			INSERT INTO #ResultadoSP
+				EXEC ff_CObtenPlantilla	@admIdEmpresa, @admIdPerfil,  @Pantalla;
+
+			INSERT INTO #ColumnasGenerales (
+				PLIdPlantilla,		PPIdEmpresa,		PPIdPerfil,			CAIdCampo,				REIdRegla,					CPIdTitular,
+				CPHabilitado,		CPVisible,			CPEtiqueta,			CPRequerido,			CPOrden,					CPIdEstatus,
+				CPEncriptado,		CPConfirmacion,		CANombreCampo,		CANombreComponente,		CADescripcionComponente,	CAAyudaCampo,
+				CATipoComponente,	CATipoDato,			CALongitud,			CACaracteresValidos,	CACatalogo,					PLDescripcion,
+				PLDescripcion2
+			)
+			SELECT
+				PLIdPlantilla,		PPIdEmpresa,		PPIdPerfil,			CAIdCampo,				REIdRegla,					CPIdTitular,
+				CPHabilitado,		CPVisible,			CPEtiqueta,			CPRequerido,			CPOrden,					CPIdEstatus,
+				CPEncriptado,		CPConfirmacion,		CANombreCampo,		CANombreComponente,		CADescripcionComponente,	CAAyudaCampo,
+				CATipoComponente,	CATipoDato,			CALongitud,			CACaracteresValidos,	CACatalogo,					PLDescripcion,
+				PLDescripcion2
+			FROM (
+				SELECT R.*,
+					   ROW_NUMBER() OVER (
+						   PARTITION BY 
+							   PLIdPlantilla,
+							   PPIdEmpresa,
+							   PPIdPerfil,
+							   CAIdCampo
+						   ORDER BY CPOrden
+					   ) rn
+				FROM #ResultadoSP R
+			) X
+			WHERE rn = 1;
+
+			FETCH NEXT FROM cur INTO @Pantalla;
+		END
+
+		CLOSE cur;
+		DEALLOCATE cur;
+
+		WITH H AS (
+		SELECT
+			LTRIM(RTRIM(CANombreCampo)) AS KeyName,
+			LTRIM(RTRIM(CPEtiqueta))    AS ValueName,
+			ROW_NUMBER() OVER (
+				PARTITION BY LTRIM(RTRIM(CANombreCampo))
+				ORDER BY CPOrden ASC
+			) AS rn
+		FROM #ColumnasGenerales
+		WHERE
+		(
+			(
+				(
+					UPPER(LTRIM(RTRIM(CPEtiqueta))) LIKE '%SUELDO%'
+					OR UPPER(LTRIM(RTRIM(CPEtiqueta))) LIKE '%SALARIO%'
+				)
+				AND @sueldo = 1
+			)
+			OR
+			(
+				UPPER(LTRIM(RTRIM(CPEtiqueta))) NOT LIKE '%SUELDO%'
+				AND UPPER(LTRIM(RTRIM(CPEtiqueta))) NOT LIKE '%SALARIO%'
+			)
+		)
+	)
+	INSERT INTO #Headers (KeyName, ValueName)
+	SELECT KeyName, ValueName
+	FROM H
+	WHERE rn = 1;
+
+
+	DECLARE @HeadersFijos TABLE (
+		KeyName NVARCHAR(255) COLLATE Modern_Spanish_CI_AI,
+		ValueName NVARCHAR(255) COLLATE Modern_Spanish_CI_AI
+	);
+
+	INSERT INTO @HeadersFijos (KeyName, ValueName) VALUES
+		('EMIdEstatus', 'Estatus'),
+		('UsuarioAdd', 'Usuario Agregó'),
+		('EMFechaAdd', 'Fecha Registro Sistema'),
+		('UsuarioMod', 'Usuario Modificó'),
+		('EMFechaUMod', 'Fecha Modificación'),
+		('UsuarioDel', 'Usuario Eliminó'),
+		('EMFechaDel', 'Fecha Baja Sistema');
+
+	MERGE INTO #Headers h
+	USING @HeadersFijos f
+	ON h.KeyName = f.KeyName
+	WHEN MATCHED THEN
+		UPDATE SET h.ValueName = f.ValueName
+	WHEN NOT MATCHED THEN
+		INSERT (KeyName, ValueName)
+		VALUES (f.KeyName, f.ValueName);
+
+
+	INSERT INTO #SortedHeaders (KeyName, ValueName) VALUES
+			('ID del registro/asegurado', 'ID del registro/asegurado'),
+			('ID de la empresa', 'ID de la empresa'),
+			('Nombre de empresa', 'Nombre de empresa');
+
+	
+		CREATE TABLE #EmpleadoCols (
+			Orden INT IDENTITY(1,1),
+			ColumnName NVARCHAR(255) COLLATE Modern_Spanish_CI_AI
+		);
+
+		INSERT INTO #EmpleadoCols (ColumnName)
+		SELECT COLUMN_NAME
+		FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE TABLE_NAME = 'ff_Empleado' AND TABLE_SCHEMA = 'dbo'
+		ORDER BY ORDINAL_POSITION;
+
+	
+		INSERT INTO #SortedHeaders (KeyName, ValueName)
+	SELECT KeyName, ValueName
+	FROM (
+		-- EMUsuarioAdd
+		SELECT
+			ec.Orden,
+			'UsuarioAdd' AS KeyName,
+			(SELECT ValueName FROM #Headers WHERE KeyName = 'UsuarioAdd') AS ValueName
+		FROM #EmpleadoCols ec
+		WHERE ec.ColumnName = 'EMUsuarioAdd'
+		  AND EXISTS (SELECT 1 FROM #Headers WHERE KeyName = 'UsuarioAdd')
+
+		UNION ALL
+
+		SELECT
+			ec.Orden + 0.1,
+			'EMFechaAdd' AS KeyName,
+			(SELECT ValueName FROM #Headers WHERE KeyName = 'EMFechaAdd') AS ValueName
+		FROM #EmpleadoCols ec
+		WHERE ec.ColumnName = 'EMUsuarioAdd'
+		  AND EXISTS (SELECT 1 FROM #Headers WHERE KeyName = 'UsuarioAdd')
+
+		-- EMUsuarioUMod
+		UNION ALL
+
+		SELECT
+			ec.Orden,
+			'UsuarioMod' AS KeyName,
+			(SELECT ValueName FROM #Headers WHERE KeyName = 'UsuarioMod') AS ValueName
+		FROM #EmpleadoCols ec
+		WHERE ec.ColumnName = 'EMUsuarioUMod'
+		  AND EXISTS (SELECT 1 FROM #Headers WHERE KeyName = 'UsuarioMod')
+
+		UNION ALL
+
+		SELECT
+			ec.Orden + 0.1,
+			'EMFechaUMod' AS KeyName,
+			(SELECT ValueName FROM #Headers WHERE KeyName = 'EMFechaUMod') AS ValueName
+		FROM #EmpleadoCols ec
+		WHERE ec.ColumnName = 'EMUsuarioUMod'
+		  AND EXISTS (SELECT 1 FROM #Headers WHERE KeyName = 'UsuarioMod')
+
+		-- EMUsuarioDel
+		UNION ALL
+
+		SELECT
+			ec.Orden,
+			'UsuarioDel' AS KeyName,
+			(SELECT ValueName FROM #Headers WHERE KeyName = 'UsuarioDel') AS ValueName
+		FROM #EmpleadoCols ec
+		WHERE ec.ColumnName = 'EMUsuarioDel'
+		  AND EXISTS (SELECT 1 FROM #Headers WHERE KeyName = 'UsuarioDel')
+
+		UNION ALL
+
+		SELECT
+			ec.Orden + 0.1,
+			'EMFechaDel' AS KeyName,
+			(SELECT ValueName FROM #Headers WHERE KeyName = 'EMFechaDel') AS ValueName
+		FROM #EmpleadoCols ec
+		WHERE ec.ColumnName = 'EMUsuarioDel'
+		  AND EXISTS (SELECT 1 FROM #Headers WHERE KeyName = 'UsuarioDel')
+
+		-- Default (sin fechas especiales)
+		UNION ALL
+
+		SELECT
+			ec.Orden,
+			ec.ColumnName AS KeyName,
+			(SELECT ValueName FROM #Headers WHERE KeyName = ec.ColumnName) AS ValueName
+		FROM #EmpleadoCols ec
+		WHERE ec.ColumnName NOT IN ('EMUsuarioAdd','EMUsuarioUMod','EMUsuarioDel',
+								   'EMFechaAdd','EMFechaUMod','EMFechaDel')
+		  AND EXISTS (SELECT 1 FROM #Headers WHERE KeyName = ec.ColumnName)
+	) X
+	ORDER BY Orden;
+
+
+	SELECT @Columnas =
+    STUFF((
+        SELECT
+            ', B.' + QUOTENAME(KeyName) + ' AS ' + QUOTENAME(ValueName)
+        FROM #SortedHeaders
+        ORDER BY orden
+        FOR XML PATH(''), TYPE
+    ).value('.', 'NVARCHAR(MAX)'), 1, 2, '');
+
+
+	IF @Columnas IS NULL
+	BEGIN
+		RAISERROR('No hay columnas configuradas para la empresa %d', 16, 1, @admIdEmpresa);
+		RETURN;
+	END
+
+	DROP TABLE #ResultadoSP;
+	DROP TABLE #ColumnasGenerales;
+	DROP TABLE #Headers
+	DROP TABLE #SortedHeaders
+	DROP TABLE #EmpleadoCols
+END
+-- EXEC ff_GetColumnasDinamicasPoblacion 616, 2168, 0, ''
