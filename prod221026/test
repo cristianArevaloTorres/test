@@ -1,1 +1,371 @@
 
+# Guía para aplicar commits específicos y publicarlos
+
+Repositorios **Backend** y **Frontend BeFlex 3**  
+Fecha: 22 de octubre de 2026
+
+## 1. Alcance
+
+Este procedimiento:
+
+1. Descarga del servidor los branches origen y destino.
+2. Cambia al branch destino.
+3. Aplica únicamente los commits indicados mediante `cherry-pick`.
+4. Publica el resultado mediante `push`.
+5. Confirma que el branch local y `origin` terminen en el mismo commit.
+
+## 2. Requisitos
+
+- Los commits deben estar publicados en `origin` y pertenecer al branch origen.
+- Los branches origen y destino deben existir en `origin`.
+- El repositorio local debe estar limpio, sin archivos modificados.
+- Los hashes deben registrarse del commit más antiguo al más reciente.
+- Se necesita permiso para hacer `push` al branch destino.
+- Los bloques se ejecutan en PowerShell.
+
+## 3. Backend
+
+Modificar únicamente estas variables:
+
+- `$RepoBack`
+- `$RamaOrigenBack`
+- `$RamaDestinoBack`
+- `$CommitsBack`
+
+Después, ejecutar el bloque completo:
+
+```powershell
+$RepoBack = "C:\RUTA\REPO_BACK"
+$RamaOrigenBack = "BRANCH_ORIGEN_BACK"
+$RamaDestinoBack = "BRANCH_DESTINO_BACK"
+
+# Colocar los commits del más antiguo al más reciente.
+$CommitsBack = @(
+    "HASH_COMMIT_1",
+    "HASH_COMMIT_2"
+)
+
+if (-not (Test-Path -LiteralPath $RepoBack -PathType Container)) {
+    throw "No existe la ruta del repositorio BACK: $RepoBack"
+}
+
+Set-Location -LiteralPath $RepoBack -ErrorAction Stop
+
+$EsRepoBack = git rev-parse --is-inside-work-tree 2>$null
+if ($LASTEXITCODE -ne 0 -or $EsRepoBack -ne "true") {
+    throw "La ruta indicada para BACK no es un repositorio Git."
+}
+
+if (@(git status --porcelain).Count -gt 0) {
+    throw "BACK tiene cambios pendientes. Guárdalos antes de continuar."
+}
+
+git fetch origin --prune
+if ($LASTEXITCODE -ne 0) {
+    throw "Falló git fetch en BACK."
+}
+
+# Descarga explícitamente el branch origen y sus commits.
+git fetch origin "+refs/heads/${RamaOrigenBack}:refs/remotes/origin/${RamaOrigenBack}"
+if ($LASTEXITCODE -ne 0) {
+    throw "No se pudo descargar el branch origen BACK: $RamaOrigenBack"
+}
+
+# Descarga explícitamente el branch destino.
+git fetch origin "+refs/heads/${RamaDestinoBack}:refs/remotes/origin/${RamaDestinoBack}"
+if ($LASTEXITCODE -ne 0) {
+    throw "No se pudo descargar el branch destino BACK: $RamaDestinoBack"
+}
+
+# Utiliza el branch destino local o lo crea siguiendo al remoto.
+git show-ref --verify --quiet "refs/heads/$RamaDestinoBack"
+if ($LASTEXITCODE -eq 0) {
+    git switch $RamaDestinoBack
+} else {
+    git switch --track -c $RamaDestinoBack "origin/$RamaDestinoBack"
+}
+if ($LASTEXITCODE -ne 0) {
+    throw "No se pudo cambiar al branch destino de BACK."
+}
+
+git pull --ff-only origin $RamaDestinoBack
+if ($LASTEXITCODE -ne 0) {
+    throw "No se pudo actualizar el branch destino de BACK."
+}
+
+# Evita publicar commits locales ajenos a los seleccionados.
+$BaseLocalBack = git rev-parse HEAD
+$BaseRemotaBack = git rev-parse "origin/$RamaDestinoBack"
+if ($BaseLocalBack -ne $BaseRemotaBack) {
+    throw "El branch destino local de BACK contiene commits que no están en origin. Revísalos antes de continuar."
+}
+
+foreach ($Commit in $CommitsBack) {
+    git cat-file -e "$Commit^{commit}"
+    if ($LASTEXITCODE -ne 0) {
+        throw "No existe el commit $Commit en BACK."
+    }
+
+    git merge-base --is-ancestor $Commit "origin/$RamaOrigenBack"
+    if ($LASTEXITCODE -ne 0) {
+        throw "El commit $Commit no pertenece al branch origen $RamaOrigenBack."
+    }
+
+    $PartesCommit = (git rev-list --parents -n 1 $Commit) -split '\s+'
+    if ($PartesCommit.Count -ne 2) {
+        throw "El commit $Commit es inicial o merge. Este procedimiento admite commits normales; un merge requiere seleccionar el padre con -m."
+    }
+
+    # Detecta también un cherry-pick previo, aunque su hash haya cambiado.
+    $EstadoParche = @(git cherry HEAD $Commit "$Commit^")
+    if ($LASTEXITCODE -ne 0) {
+        throw "No se pudo comparar el cambio del commit $Commit en BACK."
+    }
+
+    if ($EstadoParche.Count -eq 0 -or $EstadoParche[0].StartsWith("-")) {
+        Write-Host "El cambio del commit $Commit ya está aplicado; se omite." -ForegroundColor Yellow
+        continue
+    }
+
+    git cherry-pick $Commit
+    if ($LASTEXITCODE -ne 0) {
+        throw "Conflicto en $Commit. Resuélvelo y usa git cherry-pick --continue, o cancela con git cherry-pick --abort."
+    }
+}
+
+# Revisión previa al push.
+git status
+git log --oneline "origin/$RamaDestinoBack..HEAD"
+git diff --stat "origin/$RamaDestinoBack..HEAD"
+
+if (@(git status --porcelain).Count -gt 0) {
+    throw "BACK quedó con cambios sin confirmar; no se realizará el push."
+}
+
+# Publicación en el branch destino.
+git push origin $RamaDestinoBack
+if ($LASTEXITCODE -ne 0) {
+    throw "Falló el push del branch destino de BACK."
+}
+
+# Verificación final contra el servidor.
+git fetch origin "+refs/heads/${RamaDestinoBack}:refs/remotes/origin/${RamaDestinoBack}"
+$CommitLocalBack = git rev-parse HEAD
+$CommitRemotoBack = git rev-parse "origin/$RamaDestinoBack"
+
+if ($CommitLocalBack -ne $CommitRemotoBack) {
+    throw "La validación final de BACK falló: local y remoto no apuntan al mismo commit."
+}
+
+Write-Host "BACK terminado y publicado: $RamaDestinoBack -> $CommitRemotoBack" -ForegroundColor Green
+```
+
+## 4. Frontend BeFlex 3
+
+Modificar únicamente estas variables:
+
+- `$RepoFront`
+- `$RamaOrigenFront`
+- `$RamaDestinoFront`
+- `$CommitsFront`
+
+Después, ejecutar el bloque completo:
+
+```powershell
+$RepoFront = "C:\RUTA\REPO_FRONT_BFLEX3"
+$RamaOrigenFront = "BRANCH_ORIGEN_FRONT"
+$RamaDestinoFront = "BRANCH_DESTINO_FRONT"
+
+# Colocar los commits del más antiguo al más reciente.
+$CommitsFront = @(
+    "HASH_COMMIT_1",
+    "HASH_COMMIT_2"
+)
+
+if (-not (Test-Path -LiteralPath $RepoFront -PathType Container)) {
+    throw "No existe la ruta del repositorio FRONT: $RepoFront"
+}
+
+Set-Location -LiteralPath $RepoFront -ErrorAction Stop
+
+$EsRepoFront = git rev-parse --is-inside-work-tree 2>$null
+if ($LASTEXITCODE -ne 0 -or $EsRepoFront -ne "true") {
+    throw "La ruta indicada para FRONT no es un repositorio Git."
+}
+
+if (@(git status --porcelain).Count -gt 0) {
+    throw "FRONT tiene cambios pendientes. Guárdalos antes de continuar."
+}
+
+git fetch origin --prune
+if ($LASTEXITCODE -ne 0) {
+    throw "Falló git fetch en FRONT."
+}
+
+# Descarga explícitamente el branch origen y sus commits.
+git fetch origin "+refs/heads/${RamaOrigenFront}:refs/remotes/origin/${RamaOrigenFront}"
+if ($LASTEXITCODE -ne 0) {
+    throw "No se pudo descargar el branch origen FRONT: $RamaOrigenFront"
+}
+
+# Descarga explícitamente el branch destino.
+git fetch origin "+refs/heads/${RamaDestinoFront}:refs/remotes/origin/${RamaDestinoFront}"
+if ($LASTEXITCODE -ne 0) {
+    throw "No se pudo descargar el branch destino FRONT: $RamaDestinoFront"
+}
+
+# Utiliza el branch destino local o lo crea siguiendo al remoto.
+git show-ref --verify --quiet "refs/heads/$RamaDestinoFront"
+if ($LASTEXITCODE -eq 0) {
+    git switch $RamaDestinoFront
+} else {
+    git switch --track -c $RamaDestinoFront "origin/$RamaDestinoFront"
+}
+if ($LASTEXITCODE -ne 0) {
+    throw "No se pudo cambiar al branch destino de FRONT."
+}
+
+git pull --ff-only origin $RamaDestinoFront
+if ($LASTEXITCODE -ne 0) {
+    throw "No se pudo actualizar el branch destino de FRONT."
+}
+
+# Evita publicar commits locales ajenos a los seleccionados.
+$BaseLocalFront = git rev-parse HEAD
+$BaseRemotaFront = git rev-parse "origin/$RamaDestinoFront"
+if ($BaseLocalFront -ne $BaseRemotaFront) {
+    throw "El branch destino local de FRONT contiene commits que no están en origin. Revísalos antes de continuar."
+}
+
+foreach ($Commit in $CommitsFront) {
+    git cat-file -e "$Commit^{commit}"
+    if ($LASTEXITCODE -ne 0) {
+        throw "No existe el commit $Commit en FRONT."
+    }
+
+    git merge-base --is-ancestor $Commit "origin/$RamaOrigenFront"
+    if ($LASTEXITCODE -ne 0) {
+        throw "El commit $Commit no pertenece al branch origen $RamaOrigenFront."
+    }
+
+    $PartesCommit = (git rev-list --parents -n 1 $Commit) -split '\s+'
+    if ($PartesCommit.Count -ne 2) {
+        throw "El commit $Commit es inicial o merge. Este procedimiento admite commits normales; un merge requiere seleccionar el padre con -m."
+    }
+
+    # Detecta también un cherry-pick previo, aunque su hash haya cambiado.
+    $EstadoParche = @(git cherry HEAD $Commit "$Commit^")
+    if ($LASTEXITCODE -ne 0) {
+        throw "No se pudo comparar el cambio del commit $Commit en FRONT."
+    }
+
+    if ($EstadoParche.Count -eq 0 -or $EstadoParche[0].StartsWith("-")) {
+        Write-Host "El cambio del commit $Commit ya está aplicado; se omite." -ForegroundColor Yellow
+        continue
+    }
+
+    git cherry-pick $Commit
+    if ($LASTEXITCODE -ne 0) {
+        throw "Conflicto en $Commit. Resuélvelo y usa git cherry-pick --continue, o cancela con git cherry-pick --abort."
+    }
+}
+
+# Revisión previa al push.
+git status
+git log --oneline "origin/$RamaDestinoFront..HEAD"
+git diff --stat "origin/$RamaDestinoFront..HEAD"
+
+if (@(git status --porcelain).Count -gt 0) {
+    throw "FRONT quedó con cambios sin confirmar; no se realizará el push."
+}
+
+# Publicación en el branch destino.
+git push origin $RamaDestinoFront
+if ($LASTEXITCODE -ne 0) {
+    throw "Falló el push del branch destino de FRONT."
+}
+
+# Verificación final contra el servidor.
+git fetch origin "+refs/heads/${RamaDestinoFront}:refs/remotes/origin/${RamaDestinoFront}"
+$CommitLocalFront = git rev-parse HEAD
+$CommitRemotoFront = git rev-parse "origin/$RamaDestinoFront"
+
+if ($CommitLocalFront -ne $CommitRemotoFront) {
+    throw "La validación final de FRONT falló: local y remoto no apuntan al mismo commit."
+}
+
+Write-Host "FRONT terminado y publicado: $RamaDestinoFront -> $CommitRemotoFront" -ForegroundColor Green
+```
+
+## 5. Si ocurre un conflicto
+
+El script se detendrá antes de realizar el `push`.
+
+Revisar los archivos afectados:
+
+```powershell
+git status
+```
+
+Después de corregirlos:
+
+```powershell
+git add RUTA_DEL_ARCHIVO_CORREGIDO
+git cherry-pick --continue
+```
+
+Una vez concluido `git cherry-pick --continue`, aplicar en orden solamente los
+hashes que aún falten:
+
+```powershell
+git cherry-pick HASH_SIGUIENTE
+git cherry-pick HASH_POSTERIOR
+```
+
+Cuando ya no falte ninguno, publicar el branch actual. Indicar el branch
+destino correspondiente a BACK o FRONT:
+
+```powershell
+$RamaDestino = "BRANCH_DESTINO"
+
+if (@(git status --porcelain).Count -gt 0) {
+    throw "Existen cambios pendientes; no se realizará el push."
+}
+
+git push origin "HEAD:refs/heads/$RamaDestino"
+if ($LASTEXITCODE -ne 0) {
+    throw "Falló el push al branch destino."
+}
+
+git fetch origin "+refs/heads/${RamaDestino}:refs/remotes/origin/${RamaDestino}"
+$CommitLocal = git rev-parse HEAD
+$CommitRemoto = git rev-parse "origin/$RamaDestino"
+
+if ($CommitLocal -ne $CommitRemoto) {
+    throw "La validación final falló: local y remoto no apuntan al mismo commit."
+}
+
+Write-Host "Proceso terminado y publicado: $RamaDestino -> $CommitRemoto" -ForegroundColor Green
+```
+
+Para cancelar el `cherry-pick` actual:
+
+```powershell
+git cherry-pick --abort
+```
+
+## 6. Resultado esperado
+
+Cada bloque debe terminar mostrando un mensaje verde similar a:
+
+```text
+BACK terminado y publicado: BRANCH_DESTINO_BACK -> HASH_REMOTO
+```
+
+o:
+
+```text
+FRONT terminado y publicado: BRANCH_DESTINO_FRONT -> HASH_REMOTO
+```
+
+Esto confirma que los commits seleccionados quedaron aplicados y publicados en el branch destino.
