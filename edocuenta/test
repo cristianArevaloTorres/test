@@ -1,514 +1,84 @@
+/*
+  Ejecutar en PlataformaPlus, en la misma instancia configurada para el worker.
+  Solo consulta SAF y PlataformaPlus; no ejecuta los SP ni modifica datos de negocio.
+  La consulta de SAF reproduce la rama TipoGeneracion = 'F' del SP exportado de DEV.
+  Antes de usarla como referencia definitiva, confirmar que el SP instalado
+  dbo.Sp_Saf_ObtenerCuentasComprobanteFiscalFacturacionXPeriodo no haya cambiado.
+  Acotar el rango de anios para evitar leer todo el historico del linked server.
+*/
 USE [PlataformaPlus];
 GO
 
-------::::::::::::::::: SE USAN LINKS  A LA TABLAS DE  -T MES  COMO ::   ((((((IMPORTANTE PARA PRODUCCION ))))))
---:::::::::::::::: [BBD03].[SAFMES]
----::::::::::::::: [BBD03].[PLATAFORMAMES]
+SET NOCOUNT ON;
+
+DECLARE @AnioDesde int = 2025;
+DECLARE @AnioHasta int = 2026;
+
+IF @AnioDesde > @AnioHasta
+BEGIN
+    RAISERROR('AnioDesde debe ser menor o igual que AnioHasta.', 16, 1);
+    RETURN;
+END;
+
+IF OBJECT_ID('tempdb..#CuentasConInsumo') IS NOT NULL
+    DROP TABLE #CuentasConInsumo;
+
+-- El SP cruza CC_SALDOS_MES y CC_CUENTA solo por NUM_CUENTA. El worker
+-- elimina duplicados y recorta espacios al leer la primera columna.
+SELECT DISTINCT
+       M.ANIO_CORTE AS Anio,
+       M.MES_CORTE AS Mes,
+       LTRIM(RTRIM(CONVERT(varchar(200), M.NUM_CUENTA))) COLLATE DATABASE_DEFAULT AS NumeroCuenta
+INTO #CuentasConInsumo
+FROM [BDESBDPPL01\SAFBD].[SAF].[CC].[CC_SALDOS_MES] AS M
+INNER JOIN [BDESBDPPL01\SAFBD].[SAF].[CC].[CC_CUENTA] AS C
+        ON M.NUM_CUENTA = C.NUM_CUENTA
+WHERE M.Cod_Empresa = 'AKALA'
+  AND M.ANIO_CORTE BETWEEN @AnioDesde AND @AnioHasta
+  AND M.MES_CORTE BETWEEN 1 AND 12
+  AND M.IND_ESTADO IN ('A', 'B', 'T')
+  AND (M.SAL_TOTAL_CUENTA > 0 OR M.SAL_PROMEDIO > 0)
+OPTION (RECOMPILE);
+
+;WITH Encabezados AS
+(
+    SELECT H.Anio,
+           H.Mes,
+           H.NumeroCuentaCredito,
+           COUNT_BIG(*) AS Cantidad,
+           MAX(H.FechaGeneracion) AS FechaGeneracion,
+           MAX(CONVERT(int, H.Adenda)) AS Adenda
+    FROM dbo.tb_FacturacionLayout AS H
+    WHERE H.Sistema = 'CUENTAS'
+      AND H.Anio BETWEEN @AnioDesde AND @AnioHasta
+    GROUP BY H.Anio, H.Mes, H.NumeroCuentaCredito
+)
+SELECT I.Anio,
+       I.Mes,
+       COUNT_BIG(*) AS CuentasConInsumoSAF,
+       SUM(CASE WHEN LEN(I.NumeroCuenta) NOT BETWEEN 1 AND 15 THEN 1 ELSE 0 END) AS CuentasInvalidasParaWorker,
+       SUM(CASE WHEN H.Cantidad IS NULL THEN 1 ELSE 0 END) AS SinEncabezadoCUENTAS,
+       SUM(CASE WHEN H.Cantidad = 1 AND H.FechaGeneracion IS NULL THEN 1 ELSE 0 END) AS EncabezadoSinFecha,
+       SUM(CASE WHEN H.Cantidad > 1 THEN 1 ELSE 0 END) AS EncabezadoDuplicado,
+       SUM(CASE WHEN H.Cantidad = 1
+                     AND H.FechaGeneracion IS NOT NULL
+                     AND ISNULL(H.Adenda, 0) = 0
+                     AND LEN(I.NumeroCuenta) BETWEEN 1 AND 15
+                THEN 1 ELSE 0 END) AS CandidatasConEncabezadoSinAdenda,
+       SUM(CASE WHEN H.Cantidad = 1 AND H.Adenda = 1 THEN 1 ELSE 0 END) AS EncabezadoConAdendaMarcada
+FROM #CuentasConInsumo AS I
+LEFT JOIN Encabezados AS H
+       ON H.Anio = I.Anio
+      AND H.Mes = I.Mes
+      AND H.NumeroCuentaCredito = I.NumeroCuenta
+GROUP BY I.Anio, I.Mes
+ORDER BY I.Anio DESC, I.Mes DESC
+OPTION (RECOMPILE);
 
 /*
-=====================================================================================
- REFACTORIZACION  Sp_Saf_GenerarComprobanteFiscalFacturacionXCuenta
-=====================================================================================
- Resumen de cambios (el layout generado debe ser el mismo que el del original):
-  1. Se eliminan los 3 cursores (DP, comisiones/IVA, ISR) -> INSERT ... SELECT por conjuntos.
-  2. Se elimina el cursor remoto de depositos: ahora es una sola consulta con IN (semi-join).
-  3. tb_FacturacionRegla se lee UNA vez (#Reglas) en lugar de ~12 veces.
-  4. tb_FacturacionDatosComprobante y tb_FacturacionTipoImpuesto: 1 lectura cada una
-     en lugar de 17.
-  5. Se elimina codigo muerto (agregados que nunca se usaban: ComisionesCobradas, IDE,
-     ChequesPagados, ManejoCuenta, Anualidad, etc.).
-  6. Filtro de mes sargable (rango de fechas) en lugar de DATEPART sobre la columna.
-  7. Llamadas remotas: 3 -> 2 (+1 opcional DP). Se evita consultar dos veces la cuenta/cliente.
-  8. Todas las escrituras locales (folio + layout) ocurren al final, en UNA transaccion
-     corta y UN solo INSERT. Antes, un error a mitad dejaba lineas parciales.
-  9. Las llamadas remotas (OPENQUERY) quedan FUERA de la transaccion (evita escalar a DTC).
-=====================================================================================
+  CuentasConInsumoSAF indica los meses/anios que el SP de periodo podria devolver.
+  CandidatasConEncabezadoSinAdenda NO descarta layouts 11-18 ya existentes;
+  el worker hace esa validacion adicional y tambien puede limitar MaxCuentas.
+  Si el linked server no existe con este nombre, consultar la definicion del
+  SP instalado para usar el nombre de servidor correspondiente a ese ambiente.
 */
--- NO APLICA pasar @SqlCliente, @SqlMov o @SqlDP directamente a OPENQUERY:
--- su segundo argumento debe ser un literal (maximo 8 KB). Por eso se arma
--- el literal con valores escapados y se ejecuta mediante sp_executesql.
--- NO APLICA conservar los parametros OUTPUT de EXEC AT en OPENQUERY:
--- OPENQUERY devuelve filas; CodigoCliente y RFC se asignan localmente.
--- NO APLICA OPENQUERY a Plataforma.dbo.* ni a dbo.*: esas tablas se consultan
--- o actualizan en esta instancia, no en el servidor vinculado.
--- Requiere que [BCCBDPPL01\SAFBD] exista y permita DATA ACCESS en esta instancia.
--- Documentacion Microsoft: https://learn.microsoft.com/es-es/sql/t-sql/functions/openquery-transact-sql?view=sql-server-ver16
-ALTER PROCEDURE [dbo].[Sp_Saf_GenerarComprobanteFiscalFacturacionXCuenta]
-    @IdEmisor        int,
-    @Anio            int,
-    @Mes             int,
-    @PeriodoInicio   datetime,
-    @NumeroCuenta    varchar(15),
-    @PeriodoFinal    datetime,
-    @FechaGeneracion datetime,
-    @IdError         int          OUTPUT,
-    @MensajeError    varchar(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET @IdError = 0;
-
-    DECLARE @Empresa  varchar(5) = 'AKALA';
-    DECLARE @OwnsTran bit        = CASE WHEN @@TRANCOUNT = 0 THEN 1 ELSE 0 END;
-
-    BEGIN TRY
-
-        ---------------------------------------------------------------------------
-        -- 1) SAF (remoto): codigo de cliente y RFC de la cuenta
-        --    (reemplaza la consulta por 4 partes + la parte de cliente de la 2a llamada)
-        ---------------------------------------------------------------------------
-        DECLARE @CodigoCliente varchar(30) = '';
-        DECLARE @RFC           varchar(30) = '';
-
-        DECLARE @LitEmpresa nvarchar(258) =
-            CASE WHEN @Empresa IS NULL THEN N'NULL' ELSE QUOTENAME(@Empresa, '''') END;
-        DECLARE @LitCuenta nvarchar(258) =
-            CASE WHEN @NumeroCuenta IS NULL THEN N'NULL' ELSE QUOTENAME(@NumeroCuenta, '''') END;
-        DECLARE @SqlLocal nvarchar(max);
-
-        DECLARE @SqlCliente nvarchar(max) = N'
-SELECT TOP (1)
-       CONVERT(varchar(30), cu.COD_CLIENTE) AS CodigoCliente,
-       CONVERT(varchar(30), ISNULL(i.NUM_ID, '''')) AS RFC
-FROM   [SAF].[CC].[CC_CUENTA] cu WITH (NOLOCK)
-LEFT   JOIN [SAF].[CL].[CL_ID_CLIENTES] i WITH (NOLOCK)
-       ON  i.COD_EMPRESA = cu.COD_EMPRESA
-       AND i.COD_CLIENTE = cu.COD_CLIENTE
-       AND i.COD_TIPO_ID IN (''REF-M'', ''RFC'')
-WHERE  cu.COD_EMPRESA = ' + @LitEmpresa + N'
-  AND  cu.NUM_CUENTA  = ' + @LitCuenta + N';';
-
-        SET @SqlLocal = N'SELECT @CodigoCliente = q.CodigoCliente,
-                                 @RFC = q.RFC
-                          FROM OPENQUERY([BCCBDPPL01\SAFBD], '''
-            + REPLACE(@SqlCliente, N'''', N'''''') + N''') AS q;';
-        EXEC sys.sp_executesql @SqlLocal,
-            N'@CodigoCliente varchar(30) OUTPUT, @RFC varchar(30) OUTPUT',
-            @CodigoCliente = @CodigoCliente OUTPUT,
-            @RFC = @RFC OUTPUT;
-
-        SET @CodigoCliente = ISNULL(@CodigoCliente, '');
-        SET @RFC           = ISNULL(@RFC, '');
-
-        -- Sin cliente no existe solicitante ni constancia: no se timbra (igual que el original)
-        IF @CodigoCliente = '' RETURN;
-
-        ---------------------------------------------------------------------------
-        -- 2) Plataforma: solicitante y constancia de situacion fiscal
-        --    (antes: 2 lecturas de PLD_SOLICITANTE + EXISTS + TOP 1 de la constancia)
-        ---------------------------------------------------------------------------
-        DECLARE @CodigoSolicitante varchar(50) = '';
-        DECLARE @TipoSolicitante   varchar(50) = '';
-
-        SELECT @CodigoSolicitante = COD_SOLICITANTE,
-               @TipoSolicitante   = TIPPERSTE
-        FROM   Plataforma.dbo.PLD_SOLICITANTE WITH (NOLOCK)
-        WHERE  COD_EMPRESA = @Empresa
-          AND  COD_SISSAF  = @CodigoCliente;
-
-        DECLARE @TieneConstancia bit          = 0;
-        DECLARE @NombreCliente   varchar(254);
-        DECLARE @CodigoPostal    varchar(50)  = '33000';
-        DECLARE @CodigoRegimen   varchar(50)  = '';
-
-        SELECT TOP (1)
-               @TieneConstancia = 1,
-               @NombreCliente   = REPLACE(REPLACE(LTRIM(RTRIM(NombreRazonSocial)), CHAR(10), ''), CHAR(13), ''),
-               @CodigoPostal    = ISNULL(NULLIF(LTRIM(RTRIM(CodigoPostal)), ''), '33000'),
-               @CodigoRegimen   = CodigoRegimen
-        FROM   Plataforma.dbo.PLD_CONSTANCIA_SITUACIONFISCAL WITH (NOLOCK)
-        WHERE  CodigoEmpresa     = @Empresa
-          AND  CodigoSolicitante = @CodigoSolicitante;
-
-        -- IF principal del original: si no hay constancia no se va a timbrar
-        IF @TieneConstancia = 0 RETURN;
-
-        -- Regimen SAT (con valores por defecto 616 persona fisica / 601 resto)
-        DECLARE @RegimenSAT varchar(50);
-
-        SELECT TOP (1) @RegimenSAT = CODIGO_REGIMEN_SAT
-        FROM   Plataforma.dbo.PLD_REGIMEN_FISCAL
-        WHERE  CODIGO_REGIMEN = @CodigoRegimen;
-
-        IF ISNULL(@RegimenSAT, '') = ''
-            SET @RegimenSAT = CASE WHEN @TipoSolicitante = 'F' THEN '616' ELSE '601' END;
-
-        -- Uso de CFDI (los conjuntos de regimenes son disjuntos, un CASE equivale a los IF en cadena)
-        DECLARE @UsoCFDI varchar(10);
-
-        SET @UsoCFDI = CASE
-            WHEN @TipoSolicitante = 'F' AND @RegimenSAT IN ('606','612','621','625')                         THEN 'G03'
-            WHEN @TipoSolicitante = 'J' AND @RegimenSAT IN ('601','603','620','622','623','624')             THEN 'G03'
-            WHEN @TipoSolicitante = 'F' AND @RegimenSAT IN ('605','607','608','611','614','615','616')       THEN 'S01'
-            WHEN @RegimenSAT = '610'                                                                         THEN 'S01'
-            WHEN @RegimenSAT = '626'                                                                         THEN 'G03'
-            ELSE ''
-        END;
-
-        ---------------------------------------------------------------------------
-        -- 3) Parametros del comprobante (1 lectura por tabla en vez de 17)
-        ---------------------------------------------------------------------------
-        DECLARE @ImpuestoIVA varchar(3), @TasaIVA varchar(10), @FactorIVA varchar(10);
-        DECLARE @ImpuestoISR varchar(3), @TasaISR varchar(10), @FactorISR varchar(10);
-
-        SELECT @ImpuestoIVA = MAX(CASE WHEN Nombre = 'IVA' THEN impuesto   END),
-               @TasaIVA     = MAX(CASE WHEN Nombre = 'IVA' THEN TasaOCuota END),
-               @FactorIVA   = MAX(CASE WHEN Nombre = 'IVA' THEN TipoFactor END),
-               @ImpuestoISR = MAX(CASE WHEN Nombre = 'ISR' THEN impuesto   END),
-               @TasaISR     = MAX(CASE WHEN Nombre = 'ISR' THEN TasaOCuota END),
-               @FactorISR   = MAX(CASE WHEN Nombre = 'ISR' THEN TipoFactor END)
-        FROM   dbo.tb_FacturacionTipoImpuesto
-        WHERE  Nombre IN ('IVA', 'ISR');
-
-        DECLARE @Version varchar(100), @Serie varchar(100), @FormaDePago varchar(100),
-                @NoCertificado varchar(100), @Moneda varchar(100), @LugarExpedicion varchar(100),
-                @CondicionesDePago varchar(100), @TipoComprobante varchar(100),
-                @MetodoDePago varchar(100), @Exportacion varchar(100), @ObjetoImp varchar(10);
-
-        SELECT @Version           = MAX(CASE ATRIBUTO WHEN 'Version'           THEN ValorDefault END),
-               @Serie             = MAX(CASE ATRIBUTO WHEN 'Serie'             THEN ValorDefault END),
-               @FormaDePago       = MAX(CASE ATRIBUTO WHEN 'FormaDePago'       THEN ValorDefault END),
-               @NoCertificado     = MAX(CASE ATRIBUTO WHEN 'NoCertificado'     THEN ValorDefault END),
- @Moneda            = MAX(CASE ATRIBUTO WHEN 'Moneda'            THEN ValorDefault END),
-               @LugarExpedicion   = MAX(CASE ATRIBUTO WHEN 'LugarExpedicion'   THEN ValorDefault END),
-               @CondicionesDePago = MAX(CASE ATRIBUTO WHEN 'CondicionesDePago' THEN ValorDefault END),
-               @TipoComprobante   = MAX(CASE ATRIBUTO WHEN 'TipoComprobante'   THEN ValorDefault END),
-               @MetodoDePago      = MAX(CASE ATRIBUTO WHEN 'MetodoDePago'      THEN ValorDefault END),
-               @Exportacion       = MAX(CASE ATRIBUTO WHEN 'Exportacion'       THEN ValorDefault END),
-               @ObjetoImp         = MAX(CASE ATRIBUTO WHEN 'ObjetoImp'         THEN ValorDefault END)
-        FROM   dbo.tb_FacturacionDatosComprobante
-        WHERE  ATRIBUTO IN ('Version','Serie','FormaDePago','NoCertificado','Moneda','LugarExpedicion',
-                            'CondicionesDePago','TipoComprobante','MetodoDePago','Exportacion','ObjetoImp');
-
-        ---------------------------------------------------------------------------
-        -- 4) Reglas de facturacion: una sola lectura
-        ---------------------------------------------------------------------------
-        SELECT Seccion, IdTipoImpuesto, Transaccion, Subtransaccion
-        INTO   #Reglas
-        FROM   dbo.tb_FacturacionRegla
-        WHERE  IdEmisor = @IdEmisor
-          AND  IdEstado = 1
-          AND  (   (Seccion = 'CC' AND IdTipoImpuesto IN (1, 2))
-                OR (Seccion = 'IR' AND IdTipoImpuesto = 1)
-                OR (Seccion = 'DP' AND IdTipoImpuesto = 1) );
-
-        DECLARE @AplicaISRDP bit =
-            CASE WHEN EXISTS (SELECT 1 FROM #Reglas WHERE Seccion = 'DP') THEN 1 ELSE 0 END;
-
-        ---------------------------------------------------------------------------
-        -- 5) Tablas de trabajo
-        --    COLLATE DATABASE_DEFAULT para evitar conflictos de collation con tempdb
-        ---------------------------------------------------------------------------
-        CREATE TABLE #Mov (
-            Id              int IDENTITY(1,1) PRIMARY KEY,
-            Tip_Transaccion varchar(5)   COLLATE DATABASE_DEFAULT NULL,
-            Subtip_Transac  varchar(5)   COLLATE DATABASE_DEFAULT NULL,
-            Mon_Movimiento  numeric(16,2) NULL,
-            Des_Movimiento  varchar(200) COLLATE DATABASE_DEFAULT NULL
-        );
-
-        CREATE TABLE #MovDP (
-            Id          int IDENTITY(1,1) PRIMARY KEY,
-            NumDeposito numeric(10,0)  NULL,
-            Referencia  varchar(100)   COLLATE DATABASE_DEFAULT NULL,
-            Abono       numeric(18,4)  NULL,
-            Saldo       numeric(18,4)  NULL
-        );
-
-        CREATE TABLE #Layout (
-            Orden       int IDENTITY(1,1) PRIMARY KEY,   -- conserva el orden de insercion del original
-            IdSecuencia int NOT NULL,
-            Linea       varchar(max) NULL
-        );
-
-        ---------------------------------------------------------------------------
-        -- 6) SAF (remoto): movimientos del mes de la cuenta
-        --    Filtro de mes SARGABLE: [inicio de mes, inicio del mes siguiente)
-        ---------------------------------------------------------------------------
-        DECLARE @MesInicio datetime = CONVERT(datetime, CONVERT(char(8), @Anio * 10000 + @Mes * 100 + 1), 112);
-        DECLARE @MesFin    datetime = DATEADD(MONTH, 1, @MesInicio);
-
-        DECLARE @LitMesInicio nvarchar(80) =
-            CASE WHEN @MesInicio IS NULL THEN N'NULL'
-                 ELSE N'CONVERT(datetime, ''' + CONVERT(nvarchar(23), @MesInicio, 126) + N''', 126)' END;
-        DECLARE @LitMesFin nvarchar(80) =
-            CASE WHEN @MesFin IS NULL THEN N'NULL'
-                 ELSE N'CONVERT(datetime, ''' + CONVERT(nvarchar(23), @MesFin, 126) + N''', 126)' END;
-
-        DECLARE @SqlMov nvarchar(max) = N'
-SELECT Tip_Transaccion, Subtip_Transac, Mon_Movimiento,
-       REPLACE(Des_Movimiento, ''|'', ''-'') AS Des_Movimiento
-FROM   [SAF].[CC].[CC_MOVIMIENTO_ENC] WITH (NOLOCK)
-WHERE  cod_empresa     = ' + @LitEmpresa + N'
-  AND  num_cuenta      = ' + @LitCuenta + N'
-  AND  FEC_MOVIMIENTO >= ' + @LitMesInicio + N'
-  AND  FEC_MOVIMIENTO <  ' + @LitMesFin + N'
-  AND  Est_Movimiento  = ''A'';';
-
-        SET @SqlLocal = N'INSERT INTO #Mov
-                              (Tip_Transaccion, Subtip_Transac, Mon_Movimiento, Des_Movimiento)
-                          SELECT q.Tip_Transaccion, q.Subtip_Transac,
-                                 q.Mon_Movimiento, q.Des_Movimiento
-                          FROM OPENQUERY([BCCBDPPL01\SAFBD], '''
-            + REPLACE(@SqlMov, N'''', N'''''') + N''') AS q;';
-        EXEC sys.sp_executesql @SqlLocal;
-
-        -- Limpieza de caracteres no permitidos en el layout (una sola vez, antes se repetia en 2 cursores)
-        UPDATE #Mov
-        SET Des_Movimiento =
-            REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
-                Des_Movimiento,
-                '>', ''), '<', ''), '''', ''), '"', ''), '&', 'Y'), '}', ''), '{', ''), '?', ''), '#', ''),
-                CHAR(10), ''), CHAR(9), ''), CHAR(13), '');
-
-        ---------------------------------------------------------------------------
-        -- 7) SAF (remoto): cupones de depositos a plazo (solo si aplica ISR DP)
-        --    Antes: cursor remoto + tabla temporal + agregados que nunca se devolvian.
-        --    Ahora: una consulta. El IN conserva la semantica original (los depositos se
-        --    ubican por cuenta/fechas, y los cupones se cruzan por empresa+agencia+numero).
-        --
-        --    NOTA: el filtro de traslape de fechas (4 condiciones OR) se reduce a
-        --          EMISION <= Final AND VENCIMIENTO >= Inicio, que es equivalente
-        --          siempre que FEC_EMISION <= FEC_VENCIMIENTO.
-        ---------------------------------------------------------------------------
-        IF @AplicaISRDP = 1
-        BEGIN
-            DECLARE @LitPeriodoInicio nvarchar(80) =
-                CASE WHEN @PeriodoInicio IS NULL THEN N'NULL'
-                     ELSE N'CONVERT(datetime, ''' + CONVERT(nvarchar(23), @PeriodoInicio, 126) + N''', 126)' END;
-            DECLARE @LitPeriodoFinal nvarchar(80) =
-                CASE WHEN @PeriodoFinal IS NULL THEN N'NULL'
-                     ELSE N'CONVERT(datetime, ''' + CONVERT(nvarchar(23), @PeriodoFinal, 126) + N''', 126)' END;
-
-            DECLARE @SqlDP nvarchar(max) = N'
-SELECT DISTINCT
-       d.NUM_DEPOSITO,
-       ''CUPON '' + CAST(NUM_CUPON AS varchar(10)) + ''-'' + CONVERT(varchar, c.NUM_DEPOSITO) AS REFERENCIA,
-       MON_BRUTO AS ABONO,
-       CASE WHEN (MON_BRUTO - MON_NETO) > 0.01
-            THEN (MON_BRUTO - MON_NETO)
-            ELSE (MON_NETO * 100.0 / (100 - 0.60)) * 0.60 / 100.0
-       END AS SALDO
-FROM   [SAF].[DP].[DP_CUPONES]   c WITH (NOLOCK)
-JOIN   [SAF].[DP].[DP_DEPOSITOS] d WITH (NOLOCK)
-       ON  d.COD_EMPRESA  = c.COD_EMPRESA
-       AND d.COD_AGENCIA  = c.COD_AGENCIA
-       AND d.NUM_DEPOSITO = c.NUM_DEPOSITO
-WHERE  c.COD_EMPRESA      = ' + @LitEmpresa + N'
-  AND  c.IND_ESTADO      <> ''N''
-  AND  d.IND_ESTADO      <> ''N''
-  AND  c.FEC_VENCIMIENTO >= ' + @LitPeriodoInicio + N'
-  AND  c.FEC_VENCIMIENTO <= ' + @LitPeriodoFinal + N'
-  AND  c.NUM_DEPOSITO IN (
-         SELECT x.NUM_DEPOSITO
-         FROM   [SAF].[DP].[DP_DEPOSITOS] x WITH (NOLOCK)
-         WHERE  x.COD_EMPRESA = ' + @LitEmpresa + N'
-           AND  x.IND_ESTADO <> ''N''
-           AND  (   x.CTA_LIQUID_PRINCIPAL = ' + @LitCuenta + N'
-                 OR x.CTA_LIQUID_INTERESES = ' + @LitCuenta + N'
-                 OR x.CTA_CAPTA_PRINCIPAL  = ' + @LitCuenta + N' )
-           AND  x.FEC_EMISION     <= ' + @LitPeriodoFinal + N'
-           AND  x.FEC_VENCIMIENTO >= ' + @LitPeriodoInicio + N' )
-ORDER BY d.NUM_DEPOSITO;';
-
-            SET @SqlLocal = N'INSERT INTO #MovDP (NumDeposito, Referencia, Abono, Saldo)
-                              SELECT q.NUM_DEPOSITO, q.REFERENCIA, q.ABONO, q.SALDO
-                              FROM OPENQUERY([BCCBDPPL01\SAFBD], '''
-                + REPLACE(@SqlDP, N'''', N'''''') + N''') AS q
-                              ORDER BY q.NUM_DEPOSITO;';
-            EXEC sys.sp_executesql @SqlLocal;
-        END;
-
-        ---------------------------------------------------------------------------
-        -- 8) Armado del layout en #Layout (sin tocar tb_FacturacionXCuenta todavia)
-        ---------------------------------------------------------------------------
-        DECLARE @TotalTraslados        numeric(18,2) = 0.00;
-        DECLARE @TotalRetenciones      numeric(18,2) = 0.00;
-        DECLARE @SubtotalGeneral       decimal(18,2) = 0.00;
-        DECLARE @TotalConceptoTraslado decimal(18,2) = 0.00;
-        DECLARE @Descuento             numeric(18,2) = 0.00;
-
-        -- 8.1) Emisor (secuencia 2)
-        INSERT INTO #Layout (IdSecuencia, Linea)
-        SELECT 2, 'ComprobanteEmisor|' + RFC + '|' + Regimen + '||'
-        FROM   dbo.tb_FacturacionEmisor
-        WHERE  IdEstado = 1 AND IdFacturacionEmisor = 1;
-
-        -- 8.2) Receptor (secuencia 3)
-        INSERT INTO #Layout (IdSecuencia, Linea)
-        VALUES (3, 'ComprobanteReceptor|' + @RFC + '|' + @NombreCliente + '|' + @CodigoPostal
-                   + '|||' + @RegimenSAT + '|' + @UsoCFDI + '|');
-
-        -- 8.3) Comisiones + IVA (secuencia 4): reemplaza el cursor COMISIONES_IVA
-        SELECT m.Id,
-               ISNULL(NULLIF(LEFT(m.Des_Movimiento, 100), ''), 'OPERACION')              AS Descripcion,
-               CAST(m.Mon_Movimiento AS numeric(18,2))                                   AS Monto,
-               CAST(ROUND(CAST(m.Mon_Movimiento AS numeric(18,2)) * 0.16, 2, 1) AS numeric(18,2)) AS Iva
-        INTO   #Com
-        FROM   #Mov m
-        JOIN   #Reglas r
-               ON  r.Seccion = 'CC' AND r.IdTipoImpuesto = 2
-               AND r.Transaccion    = m.Tip_Transaccion
-               AND r.Subtransaccion = m.Subtip_Transac
-        WHERE  m.Mon_Movimiento >= 0.09;
-
-        INSERT INTO #Layout (IdSecuencia, Linea)
-        SELECT 4, v.Linea
-        FROM   #Com c
-        CROSS APPLY (VALUES
-            (1, 'ComprobanteConceptosConcepto|84121501||1.00|E48|Servicio|' + c.Descripcion + '|'
-                + CAST(c.Monto AS varchar(100)) + '|' + CAST(c.Monto AS varchar(100)) + '||' + @ObjetoImp + '|'),
-            (2, 'ComprobanteConceptosConceptoImpuestosTrasladosTraslado|' + CAST(c.Monto AS varchar(20)) + '|'
-                + @ImpuestoIVA + '|' + @FactorIVA + '|0.160000|' + CAST(c.Iva AS varchar(20)) + '|')
-        ) v (Sub, Linea)
-        ORDER BY c.Id, v.Sub;
-
-        SELECT @TotalTraslados = ISNULL(SUM(Iva), 0),
-               @SubtotalGeneral = ISNULL(SUM(Monto), 0)
-        FROM   #Com;
-
-        SET @TotalConceptoTraslado = @SubtotalGeneral;
-
-        -- 8.4) ISR cobrado al cliente (secuencia 6): reemplaza el cursor ISRP
-        --      El ISR retenido del estado de cuenta es el mismo para todas las filas,
-        --      por eso se calcula una sola vez (antes se recalculaba en cada iteracion).
-        DECLARE @ISRCobradoEdoCuenta numeric(18,2) =
-            ISNULL((SELECT TOP (1) m.Mon_Movimiento
-                    FROM   #Mov m
-                    JOIN   #Reglas r
-                           ON  r.Seccion = 'IR' AND r.IdTipoImpuesto = 1
-                           AND r.Transaccion    = m.Tip_Transaccion
-                           AND r.Subtransaccion = m.Subtip_Transac
-                    ORDER BY m.Id), 0);
-
-        IF @ISRCobradoEdoCuenta > 0
-        BEGIN
-            SELECT m.Id,
-                   LEFT(m.Des_Movimiento, 100)             AS Descripcion,
-                   CAST(m.Mon_Movimiento AS numeric(18,2)) AS Monto
-            INTO   #ISRP
-            FROM   #Mov m
-            JOIN   #Reglas r
-                   ON  r.Seccion = 'CC' AND r.IdTipoImpuesto = 1
-                   AND r.Transaccion    = m.Tip_Transaccion
-                   AND r.Subtransaccion = m.Subtip_Transac
-            WHERE  m.Mon_Movimiento >= 0.02;
-
-            INSERT INTO #Layout (IdSecuencia, Linea)
-            SELECT 6, v.Linea
-            FROM   #ISRP p
-            CROSS APPLY (VALUES
-                (1, 'ComprobanteConceptosConcepto|84121501||1.00|E48|Servicio|' + p.Descripcion + '|'
-                    + CAST(p.Monto AS varchar(100)) + '|' + CAST(p.Monto AS varchar(100)) + '||' + @ObjetoImp + '|'),
-                (2, 'ComprobanteConceptosConceptoImpuestosRetencionesRetencion|'
-                    + CAST(CAST((@ISRCobradoEdoCuenta * 100) / CAST(@TasaISR AS decimal(18,4)) AS decimal(18,2)) AS varchar(30))
-                    + '|' + @ImpuestoISR + '|' + @FactorISR + '|0.005000|'
-                    + CAST(@ISRCobradoEdoCuenta AS varchar(20)) + '|')
-            ) v (Sub, Linea)
-            ORDER BY p.Id, v.Sub;
-
-            SELECT @TotalRetenciones = @TotalRetenciones + COUNT(*) * @ISRCobradoEdoCuenta,
-                   @SubtotalGeneral  = @SubtotalGeneral  + ISNULL(SUM(Monto), 0)
-            FROM   #ISRP;
-        END;
-
-        -- 8.5) ISR de depositos a plazo (secuencia 7): reemplaza el cursor ISR_DP
-        IF @AplicaISRDP = 1 AND EXISTS (SELECT 1 FROM #MovDP)
-        BEGIN
-  SELECT Id,
-                   LEFT(' INTERESES PLAZO -' + CAST(NumDeposito AS varchar(10)) + ' ' + Referencia, 100) AS Descripcion,
-                   CAST(Abono AS numeric(18,2)) AS Abono,
-                   CAST(Saldo AS numeric(18,2)) AS Saldo
-            INTO   #ISRDP
-            FROM   #MovDP;
-
-            INSERT INTO #Layout (IdSecuencia, Linea)
-            SELECT 7, v.Linea
-            FROM   #ISRDP d
-            CROSS APPLY (VALUES
-                (1, 'ComprobanteConceptosConcepto|84121501||1.00|E48|Servicio|' + d.Descripcion + '|'
-                    + CAST(d.Abono AS varchar(100)) + '|' + CAST(d.Abono AS varchar(100)) + '||' + @ObjetoImp + '|'),
-                (2, 'ComprobanteConceptosConceptoImpuestosRetencionesRetencion|'
-                    + CAST(CAST(ISNULL(d.Saldo, 0) / 0.0015 AS decimal(18,2)) AS varchar(30))
-                    + '|' + @ImpuestoISR + '|' + @FactorISR + '|0.0050|' + CAST(d.Saldo AS varchar(20)) + '|')
-            ) v (Sub, Linea)
-            ORDER BY d.Id, v.Sub;
-
-            SELECT @TotalRetenciones = @TotalRetenciones + ISNULL(SUM(Saldo), 0),
-                   @SubtotalGeneral  = @SubtotalGeneral  + ISNULL(SUM(Abono), 0)
-            FROM   #ISRDP;
-        END;
-
-        -- 8.6) Totales de impuestos (secuencia 8)
-        --      (VARCHAR(20) en lugar de VARCHAR(10): con 10 se desbordaba por encima de 9,999,999.99)
-        INSERT INTO #Layout (IdSecuencia, Linea)
-        VALUES (8, 'ComprobanteImpuestos|'
-                   + CASE WHEN @TotalRetenciones = 0 THEN '' ELSE CAST(@TotalRetenciones AS varchar(20)) END + '|'
-                   + CASE WHEN @TotalTraslados   = 0 THEN '' ELSE CAST(@TotalTraslados   AS varchar(20)) END + '|');
-
-        -- 8.7) Concepto de relleno cuando no hay retenciones ni traslados (secuencia 7)
-        IF @TotalRetenciones = 0 AND @TotalTraslados = 0
-        BEGIN
-            INSERT INTO #Layout (IdSecuencia, Linea)
-            VALUES (7, 'ComprobanteConceptosConcepto|84121501||1.00|E48|Servicio|SERVICIOS DE FACTURACION|0.01|0.01|0.01|03|');
-
-            SET @Descuento       = 0.01;
-            SET @SubtotalGeneral = @SubtotalGeneral + @Descuento;
-        END;
-
-        -- 8.8) Detalle de retenciones y traslados (secuencias 9 y 10)
-        IF @TotalRetenciones <> 0
-            INSERT INTO #Layout (IdSecuencia, Linea)
-            VALUES (9, 'ComprobanteImpuestosRetencionesRetencion|' + @ImpuestoISR + '|'
-                       + CAST(@TotalRetenciones AS varchar(20)) + '|');
-
-        IF @TotalTraslados <> 0
-            INSERT INTO #Layout (IdSecuencia, Linea)
-            VALUES (10, 'ComprobanteImpuestosTrasladosTraslado|' + CAST(@TotalConceptoTraslado AS varchar(20)) + '|'
-                        + @ImpuestoIVA + '|' + @FactorIVA + '|' + CAST(@TasaIVA AS varchar(20)) + '|'
-                        + CAST(@TotalTraslados AS varchar(20)) + '|');
-
-        ---------------------------------------------------------------------------
-        -- 9) Escritura final: folio + encabezado + layout en UNA transaccion corta
-        ---------------------------------------------------------------------------
-        DECLARE @DescuentosTxt varchar(100) = CASE WHEN @Descuento > 0 THEN CAST(@Descuento AS varchar(100)) ELSE '' END;
-        DECLARE @Folio         numeric(18,0) = 0;
-
-        IF @OwnsTran = 1 BEGIN TRAN;
-
-        UPDATE dbo.tb_FacturacionFolio
-        SET    @Folio = FolioSiguiente,
-               FolioSiguiente = FolioSiguiente + 1
-        WHERE  CodigoFolio = 'SerieComp';
-
-        -- Encabezado del comprobante (secuencia 1), siempre al final como en el original
-        INSERT INTO #Layout (IdSecuencia, Linea)
-        VALUES (1, 'Comprobante|' + @Version + '|' + @Serie + '_' + @NumeroCuenta + '_'
-                   + CAST(@Mes AS varchar(2)) + '_' + CAST(@Anio AS varchar(4))
-                   + '|' + CAST(@Folio AS varchar(40))
-                   + '|' + @FormaDePago + '|' + @NoCertificado + '|' + @CondicionesDePago
-                   + '|' + CAST(@SubtotalGeneral AS varchar(100))
-                   + '|' + @DescuentosTxt
-                   + '|' + @Moneda + '||'
-                   + CAST(@SubtotalGeneral + @TotalTraslados - @TotalRetenciones - @Descuento AS varchar(100))
-                   + '|' + @TipoComprobante + '|' + @Exportacion + '|' + @MetodoDePago
-                   + '|' + @LugarExpedicion + '||');
-
-        -- NO APLICA OPENQUERY al INSERT final: tb_FacturacionXCuenta1 es el destino local.
-        -- Verificar que exista en esta BD; se conserva el nombre del SP recibido de QA.
-        -- Recomendado: agregar la lista explicita de columnas del destino (INSERT dbo.tb_FacturacionXCuenta (col1, ...))
-        INSERT INTO dbo.tb_FacturacionXCuenta1
-        SELECT @FechaGeneracion, @Anio, @Mes, IdSecuencia, @NumeroCuenta, Linea
-        FROM   #Layout
-        ORDER BY Orden;
-
-        IF @OwnsTran = 1 COMMIT TRAN;
-
-    END TRY
-    BEGIN CATCH
-        IF @OwnsTran = 1 AND XACT_STATE() <> 0 ROLLBACK TRAN;
-
-        SET @IdError      = -1;
-        SET @MensajeError = LEFT(ERROR_MESSAGE() + ' LINEA: ' + CAST(ERROR_LINE() AS varchar(20)), 500);
-    END CATCH
-END
