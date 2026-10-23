@@ -1,1 +1,165 @@
+sunto: QA - Sincronización AXALTA - Proceso finalizado con errores
+
+ATENCIÓN:Este mensaje proviene de una dirección de correo externa aLockton Mexico. No abras enlaces o archivos adjuntos a menos que conozcas al destinatario de la cuenta y estés seguro que el contenido es seguro
+
+Se detectaron registros que no pudieron sincronizarse correctamente. Favor de revisar el detalle mostrado en el resumen de la sincronización y realizar las acciones correspondientes para continuar con el proceso.
+
+Resumen de sincronización:
+
+ID
+
+Proceso
+
+Total Registros
+
+Exitosos
+
+Error
+
+Mensaje
+
+Detalle
+
+Envío de Titulares de BFS a beFlex
+
+8
+
+2
+
+6
+
+Detalle
+
+Envío de Coberturas Seleccionadas a beFlex
+
+0
+
+0
+
+0
+
+No se encontraron movimientos para procesar en la carga del día.
+
+Proceso
+
+Movimiento
+
+Estatus
+
+Num Empleado
+
+Descripcion
+
+Envío de Titulares de BFS a beFlex
+
+Alta
+
+Error
+
+testdb2209261
+
+Ocurrió un error en el proceso, código: 112, mensaje: Error al insertar el registro. Violation of PRIMARY KEY constraint 'PK_ff_CompensacionEmpleado'. Cannot insert duplicate key in object 'dbo.ff_CompensacionEmpleado'. The duplicate key value is (6587011).
+
+Envío de Titulares de BFS a beFlex
+
+Alta
+
+Error
+
+testdb2209266
+
+Ocurrió un error en el proceso, código: 112, mensaje: Error al insertar el registro. Violation of PRIMARY KEY constraint 'PK_ff_CompensacionEmpleado'. Cannot insert duplicate key in object 'dbo.ff_CompensacionEmpleado'. The duplicate key value is (6587011).
+
+Envío de Titulares de BFS a beFlex
+
+Alta
+
+Error
+
+testdb2209265
+
+Ocurrió un error en el proceso, código: 112, mensaje: Error al insertar el registro. Violation of PRIMARY KEY constraint 'PK_ff_CompensacionEmpleado'. Cannot insert duplicate key in object 'dbo.ff_CompensacionEmpleado'. The duplicate key value is (6587011).
+
+Envío de Titulares de BFS a beFlex
+
+Alta
+
+Error
+
+testdb2209268
+
+Ocurrió un error en el proceso, código: 100, mensaje: Debe proporcionar los datos requeridos BeFlex Empresa ID es requerido.
+
+Envío de Titulares de BFS a beFlex
+
+Alta
+
+Error
+
+testdb2209262
+
+Ocurrió un error en el proceso, código: 100, mensaje: Debe proporcionar los datos requeridos BeFlex Empresa ID es requerido.
+
+Envío de Titulares de BFS a beFlex
+
+Alta
+
+Error
+
+testdb2209267
+
+Ocurrió un error en el proceso, código: 100, mensaje: Debe proporcionar los datos requeridos Perfil es requerido.
+
+
+
+
+
+
+
+
+
+
+Subject: RE: QA - Sincronización AXALTA - Proceso finalizado con errores
+Hola Victor, espero te encuentres bien.
+
+Por favor de tu apoyo, durante las pruebas de sincronización de titulares de beFlex Solutions hacia beFlex 3, Lockton One y coberturas, identificamos un comportamiento que agradeceré nos ayudes a revisar. En el resultado de la sincronización se presentó el siguiente mensaje de error para diversos registros: "Ocurrió un error en el proceso, código: 112, mensaje: Error al insertar el registro. Violation of PRIMARY KEY constraint 'PK_ff_CompensacionEmpleado'. Cannot insert duplicate key in object 'dbo.ff_CompensacionEmpleado'. The duplicate key value is (6587011)."
+
+El error se presentó durante el proceso "Envío de Titulares de BFS a beFlex" para distintos empleados de prueba, todos apuntan al mismo valor de llave duplicada(6587011). ¿Nos ayudas por favor a revisar el motivo de este comportamiento y validar si pudiera estar relacionado con algún cambio o ajuste que actualmente estén trabajando en conjunto con el equipo de DTI?. - El proceso está tomando la empresa cero (0) correspondiente al proceso de carga masiva para la carga de compensaciones, está considerando un mismo identificador de titular para distintos registros, provocando el intento de inserción de una llave primaria ya existente.
+
+
+
+Asunto: Re: QA - Sincronización AXALTA - Proceso finalizado con errores
+Hola buenas noches,
+Para poder revisar a detalle los errores reportados en la sincronización de AXALTA, ¿nos pueden apoyar compartiendo la información que se intentó sincronizar desde beFlex Solutions hacia beFlex 3 para los registros que presentaron error?
+En particular, necesitamos validar los datos enviados para los casos relacionados con la empresa 0 y el identificador de titular duplicado, a fin de revisar cómo está recibiendo y procesando la información beFlex 3.
+Por otro lado, para los errores que correspondan al Middleware, José Alejandro nos apoyará con la revisión técnica y el seguimiento correspondiente.
+Quedamos atentos a la información para continuar con el análisis.
+Gracias.
+Saludos,
+
+Asunto: RE: QA - Sincronización AXALTA - Proceso finalizado con errores
+Buenas tardes, estos son los datos enviados en la cadena para las transacciones con error:
+Error:
+Ocurrió un error en el proceso, código: 112, mensaje: Error al insertar el registro. Violation of PRIMARY KEY constraint 'PK_ff_CompensacionEmpleado'. Cannot insert duplicate key in object 'dbo.ff_CompensacionEmpleado'. The duplicate key value is (6587011).
+Estos 3 registros mostraron el mismo error:
+"cadena": "290|*|AXALTA|*|0|*||*|testdb2209261|*|testdb2209261|*|testdb2209261|*|Diego|*||*|Barbaro|*|Deberás|*|testdb2209261@lm.com|*||*|08/09/1995|*|Male|*|Empleado|*||*|0|*|15/09/2026|*||*|01/09/2026|*|0|*||*||*||*||*||*||*||*||*||*||*|45000.0|*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*|0|*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*|80156|*|4766",
+ 
+"cadena": "290|*|AXALTA|*|0|*||*|testdb2209266|*|testdb2209266|*|testdb2209266|*|Maritza|*||*|Hernandez|*|Mendoza|*|testdb2209266@lm.com|*||*|08/09/1995|*|Male|*|Empleado|*||*|0|*|15/09/2026|*||*|01/09/2026|*|0|*||*||*||*||*||*||*||*||*||*||*|45000.0004|*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*|0|*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*|80161|*|4766",
+ 
+"cadena": "290|*|AXALTA|*|0|*||*|testdb2209265|*|testdb2209265|*|testdb2209265|*|Ana Karen|*||*|Cervantes|*|Sosa|*|testdb2209265@lm.com|*||*|08/09/1995|*|Male|*|Empleado|*||*|0|*|15/09/2026|*||*|01/09/2026|*|0|*||*||*||*||*||*||*||*||*||*||*|45000.0003|*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*|0|*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*|80160|*|4766",
+ 
+Para el otro error de la empresa = 0:
+Ocurrió un error en el proceso, código: 100, mensaje: Debe proporcionar los datos requeridos BeFlex Empresa ID es requerido.
+ 
+Al parecer si se envío sin el valor requerido:
+ 
+"cadena": "0|*|AXALTA|*|0|*||*|testdb2209268|*|testdb2209268|*|testdb2209268|*|Luisa Jenny|*||*|Trejo|*|Zamudio|*|testdb2209268@lm.com|*||*|08/09/1995|*|Male|*|Empleado|*||*|0|*|15/09/2026|*||*|01/09/2026|*|0|*||*||*||*||*||*||*||*||*||*||*|45000.0006|*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*|0|*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*||*|80163|*|4766",
+ 
+Quedamos al pendiente.
+ 
+Saludos!
+ 
+José Alejandro.
+
+
 
