@@ -1,3 +1,7 @@
+
+        private const string DeloitteBf2StoredProcedure = "ff_XCMTitularesAltaCMDeloitte";
+        private const string DeloitteBf3StoredProcedure = "ff_XCMTitularesAltaCMM_BF3";
+
 [COBRANZA B3] Inicio de instalacion en FlexiForbesv2.
 
 [COBRANZA B3] Ejecutando paso 1/10: 01_INSTALAR_CACHE_Y_REPORTE_B3.sql
