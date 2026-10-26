@@ -1,1 +1,35 @@
 •	Defaulteo – En revisión. En la sesión de hoy, se identificó que actualiza el grupo parentesco al agregar dependientes, pero falla al eliminar dependientes, Cristian revisa los escenarios compartidos.
+
+
+
+Hola equipo,
+
+
+Dando seguimiento a las pruebas de los ajustes solicitados para los procesos de Reactivación y Transferencia de Empleados, ¿podrían confirmarnos el estatus y si ya contamos con su visto bueno para liberar los cambios?
+Los puntos por validar son:
+
+Reactivación – bf_ReactivacionEmpleadosTitular
+
+- Conservar la fecha y hora de alta original del empleado.
+- No actualizar estos datos durante la reactivación.
+
+Transferencia – ff_transferenciaMasivaEmpleado
+
+- Buscar inicialmente el rol predeterminado con:
+  - RODefault = 1
+  - PEAdministrador = 0
+
+
+
+¡Hola equipo, buenas tardes!
+
+Respondo el correo adjunto sobre el presente para no perder el hilo de seguimiento, en las pruebas realizadas del pasado martes 13/10 se identificó una incidencia donde no se obtiene el mismo resultado de asignación de rol en proceso individual y por carga masiva en módulos de beFlex 3. ¿Nos podrían confirmar si esta incidencia ya fue corregida y se encuentra disponible para validación por parte de negocio? En caso afirmativo, agradeceremos nos compartan las evidencias de las pruebas unitarias realizadas dentro de la matriz de pruebas.
+
+También tal como comentó Joselo en el correo previo, los resultados de las pruebas estaban programados para compartirse el 20/10. Sin embargo, es necesario confirmar primero la corrección de la incidencia antes de reanudar las validaciones. Una vez que contemos con la corrección, podremos definir y compartir una fecha actualizada para la conclusión de las pruebas.
+
+Gracias y quedamos al pendiente de sus comentarios.
+
+Saludos.
+
+
+
