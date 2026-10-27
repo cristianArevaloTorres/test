@@ -1,3 +1,31 @@
+SELECT
+    cp.PLIdPlantilla,
+    ROW_NUMBER() OVER (
+        PARTITION BY cp.PLIdPlantilla
+        ORDER BY cp.CPIdConfiguracionPlantilla
+    ) AS Posicion,
+    cp.CPIdConfiguracionPlantilla,
+    RTRIM(c.CANombreCampo) AS NombreCampo,
+    c.CADescripcionCampo,
+    c.CATipoDato,
+    c.CALongitud,
+    c.CATipoValor,
+    c.CACaracteresValidos,
+    cp.CPRangoValores,
+    cp.CPRequerido,
+    cp.CPEncriptado,
+    cp.CPIdEstatus,
+    c.CAIdEstatus
+FROM ff_ConfiguracionPlantilla cp
+INNER JOIN ff_Campo c
+    ON c.CAIdCampo = cp.CAIdCampo
+WHERE cp.PLIdPlantilla IN (8470, 12062)
+ORDER BY
+    cp.PLIdPlantilla,
+    cp.CPIdConfiguracionPlantilla;
+
+
+
 1718|201|0000201A|ALMANZA|ARTEAGA|IKER|JULIO|8223|F|1980-10-22||2026-01-01|2025-12-03|||ZMZ03SRO42|||||||
  
  
