@@ -1,3 +1,37 @@
+Correo 1 — Reactivación y Transferencia
+Asunto: Ajustes disponibles en QA – Reactivación y Transferencia de Empleados
+
+Hola equipo, buenas tardes:
+
+Les confirmamos que los ajustes de Reactivación y Transferencia de Empleados ya se encuentran desplegados en QA y listos para validación funcional.
+- Reactivación: conserva la fecha y hora de alta original del empleado.
+- Transferencia: homologa la asignación del rol entre el proceso individual y la carga masiva.
+Adjuntamos la matriz con los escenarios de prueba. Agradeceremos compartir los resultados y evidencias correspondientes.
+
+Saludos.
+Correo 2 — Defaulteo de Casos Especiales
+Asunto: Ajuste disponible en QA – Defaulteo de Casos Especiales
+
+Hola equipo, buenas tardes:
+
+Les confirmamos que el ajuste de Defaulteo de Casos Especiales ya se encuentra desplegado en QA y listo para validación funcional.
+
+El proceso ahora debe:
+- Actualizar correctamente los familiares al agregar o eliminar dependientes.
+- Recalcular el grupo parentesco y los costos.
+- Conservar los planes que continúen disponibles.
+- Evitar duplicar familiares o selecciones al reprocesar.
+Adjuntamos la matriz con los escenarios y espacios para incorporar las evidencias de prueba.
+
+Quedamos atentos a sus resultados y comentarios.
+
+Saludos.
+
+
+
+
+
+
 •	Defaulteo – En revisión. En la sesión de hoy, se identificó que actualiza el grupo parentesco al agregar dependientes, pero falla al eliminar dependientes, Cristian revisa los escenarios compartidos.
 
 
