@@ -1,3 +1,45 @@
+# Mensaje para Teams
+
+Hola equipo. Revisamos la cadena enviada para la empresa `1718`, operación `2`. El servicio utiliza la plantilla `12062` y asigna cada valor por posición.
+
+Pueden consultar el orden esperado con:
+
+```sql
+EXEC ff_CCMOperacionPropiedades
+    @IdOperacion = 2,
+    @IdEmpresa = 1718;
+
+EXEC ff_CPlantillaCampos
+    @IdPlantilla = 12062;
+```
+
+La plantilla espera:
+
+```text
+EMIdEmpresa | EMIdPerfil | EMIdSexo | EMNumeroEmpleado | EMApellidoPaterno | ...
+```
+
+Actualmente se envía:
+
+```text
+1718 | 201 | 0000201A | ALMANZA | ARTEAGA | ...
+```
+
+Por eso el servicio intenta validar `0000201A` como sexo. En la base confirmamos que el perfil correcto es `8223` (`OPERATIVOS`), por lo que el inicio debería ser:
+
+```text
+1718 | 8223 | FEMENINO | 201 | ALMANZA | ARTEAGA | ...
+```
+
+¿Nos ayudan a revisar el orden en el objeto o consulta que construye la cadena? También falta confirmar el salario base y el significado de `ZMZ03SRO42`.
+
+
+
+
+
+
+---------------------
+
 SELECT
     cp.PLIdPlantilla,
     ROW_NUMBER() OVER (
