@@ -1,33 +1,35 @@
 /*
-    Configura el orden de campos de la plantilla 12062.
+    Configuracion final de la plantilla 12062.
 
-    IMPORTANTE:
-    - Ejecutar primero en QA.
-    - Cambiar @Usuario por el identificador del usuario que aplica el cambio.
-    - El script desactiva en la plantilla 12062 los campos que no aparecen
-      en @ConfiguracionDeseada.
-    - No modifica las definiciones globales de ff_Campo; las valida y aborta
-      si no coinciden con la configuracion solicitada.
-    - ff_CPlantillaCampos actualmente ordena por CPIdConfiguracionPlantilla.
-      El script lo ajusta para ordenar por CPOrden solamente en la plantilla
-      12062 y conserva el comportamiento anterior para las demas plantillas.
+    - Configura 23 campos activos en el orden solicitado.
+    - Agrega automaticamente relaciones faltantes en
+      ff_ConfiguracionPlantilla.
+    - Reactiva configuraciones existentes.
+    - Desactiva campos que no pertenecen al nuevo layout.
+    - Desactiva configuraciones duplicadas dentro de la plantilla.
+    - Conserva MASCULINO y FEMENINO mediante ff_CMCSexo_BF3.
+    - Hace que ff_CPlantillaCampos use CPOrden solamente para la plantilla
+      12062.
+    - No crea ni utiliza tablas BAK_.
+
+    Ejecutar primero en QA y cambiar @Usuario si corresponde.
 */
 
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
 DECLARE @IdPlantilla INT = 12062;
-DECLARE @Usuario INT = 5; -- TODO: sustituir por el usuario que aplica el cambio.
+DECLARE @Usuario INT = 5;
 
 DECLARE @ConfiguracionDeseada TABLE
 (
-    IdCampo        INT          NOT NULL PRIMARY KEY,
-    CANombreCampo  VARCHAR(100) NOT NULL,
-    CPEtiqueta     VARCHAR(50)  NOT NULL,
-    CPOrden        INT          NOT NULL UNIQUE,
-    CALongitud     VARCHAR(100) NOT NULL,
-    CATipoDato     CHAR(1)      NOT NULL,
-    CPRequerido    CHAR(1)      NOT NULL
+    IdCampo       INT          NOT NULL PRIMARY KEY,
+    CANombreCampo VARCHAR(100) NOT NULL UNIQUE,
+    CPEtiqueta    VARCHAR(50)  NOT NULL,
+    CPOrden       INT          NOT NULL UNIQUE,
+    CALongitud    VARCHAR(100) NOT NULL,
+    CATipoDato    CHAR(1)      NOT NULL,
+    CPRequerido   CHAR(1)      NOT NULL
 );
 
 INSERT INTO @ConfiguracionDeseada
@@ -41,31 +43,45 @@ INSERT INTO @ConfiguracionDeseada
     CPRequerido
 )
 VALUES
-    ( 82, 'EMIdEmpresa',                'Empresa',                   1, '10',  'E', '1'),
-    ( 88, 'EMNumeroEmpleado',           'Numero de Empleado',        2, '20',  'T', '1'),
-    ( 89, 'EMCertificado',              'Certificado',               3, '20',  'T', '1'),
-    ( 90, 'EMApellidoPaterno',          'Apellido Paterno',          4, '30',  'T', '0'),
-    ( 91, 'EMApellidoMaterno',          'Apellido Materno',          5, '30',  'T', '0'),
-    ( 92, 'EMNombre1',                  'Primer Nombre',             6, '70',  'T', '1'),
-    ( 93, 'EMNombre2',                  'Segundo Nombre',            7, '30',  'T', '0'),
-    ( 83, 'EMIdPerfil',                 'Perfil',                    8, '10',  'E', '1'),
-    ( 84, 'EMIdSexo',                   'Sexo',                      9, '10',  'E', '1'),
-    ( 94, 'EMFechaNacimiento',          'Fecha de Nacimiento',      10, '23',  'D', '1'),
-    ( 95, 'EMFechaIngresoEmpresa',      'Fecha de Ingreso',         11, '23',  'D', '0'),
-    (183, 'EMFechaAlta',                'Fecha de Alta',            12, '23',  'D', '0'),
-    (171, 'EMFechaAntiguedadGMM',       'FechaAntiguedadGMM',       13, '23',  'D', '0'),
-    ( 99, 'EMOficina',                  'Oficina',                  14, '10',  'E', '0'),
-    (101, 'EMcurp',                     'CURP',                     15, '50',  'T', '0'),
-    (100, 'EMrfc',                      'RFC',                      16, '20',  'T', '0'),
-    (107, 'EMSalarioBase',              'Salario Base',             17, '19',  'M', '0'),
-    (121, 'EMBeneficioMaximoM',         'Beneficio Maximo Mensual', 25, '19',  'M', '0'),
-    (131, 'EMidCentroCostos',           'Centro de Costos',         26, '10',  'E', '0'),
-    ( 98, 'EMArea',                     'Area',                     27, '10',  'E', '0'),
-    ( 97, 'EMPuesto',                   'Puesto',                   28, '100', 'T', '0'),
-    (125, 'EMCorreoElectronico',        'Correo electronico',       29, '500', 'T', '0'),
-    (186, 'EMObservaciones',            'Observaciones',            30, '16',  'T', '0');
+    ( 82, 'EMIdEmpresa',           'Empresa',                   1, '10',  'E', '1'),
+    ( 88, 'EMNumeroEmpleado',      'Numero de Empleado',        2, '20',  'T', '1'),
+    ( 89, 'EMCertificado',         'Certificado',               3, '20',  'T', '1'),
+    ( 90, 'EMApellidoPaterno',     'Apellido Paterno',          4, '30',  'T', '0'),
+    ( 91, 'EMApellidoMaterno',     'Apellido Materno',          5, '30',  'T', '0'),
+    ( 92, 'EMNombre1',             'Primer Nombre',             6, '70',  'T', '1'),
+    ( 93, 'EMNombre2',             'Segundo Nombre',            7, '30',  'T', '0'),
+    ( 83, 'EMIdPerfil',            'Perfil',                    8, '10',  'E', '1'),
+    ( 84, 'EMIdSexo',              'Sexo',                      9, '10',  'E', '1'),
+    ( 94, 'EMFechaNacimiento',     'Fecha de Nacimiento',      10, '23',  'D', '1'),
+    ( 95, 'EMFechaIngresoEmpresa', 'Fecha de Ingreso',         11, '23',  'D', '0'),
+    (183, 'EMFechaAlta',           'Fecha de Alta',            12, '23',  'D', '0'),
+    (171, 'EMFechaAntiguedadGMM',  'FechaAntiguedadGMM',       13, '23',  'D', '0'),
+    ( 99, 'EMOficina',             'Oficina',                  14, '10',  'E', '0'),
+    (101, 'EMcurp',                'CURP',                     15, '50',  'T', '0'),
+    (100, 'EMrfc',                 'RFC',                      16, '20',  'T', '0'),
+    (107, 'EMSalarioBase',         'Salario Base',             17, '19',  'M', '0'),
+    (121, 'EMBeneficioMaximoM',    'Beneficio Maximo Mensual', 25, '19',  'M', '0'),
+    (131, 'EMidCentroCostos',      'Centro de Costos',         26, '10',  'E', '0'),
+    ( 98, 'EMArea',                'Area',                     27, '10',  'E', '0'),
+    ( 97, 'EMPuesto',              'Puesto',                   28, '100', 'T', '0'),
+    (125, 'EMCorreoElectronico',   'Correo electronico',       29, '500', 'T', '0'),
+    (186, 'EMObservaciones',       'Observaciones',            30, '16',  'T', '0');
 
-/* Mostrar diferencias de catalogo antes de modificar datos. */
+/* ================================================================
+   VALIDACIONES PREVIAS. No modifican datos.
+   ================================================================ */
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM dbo.ff_Plantilla
+    WHERE PLIdPlantilla = @IdPlantilla
+)
+BEGIN
+    THROW 50000, 'No existe la plantilla 12062 en ff_Plantilla.', 1;
+END;
+
+/* Mostrar cualquier diferencia encontrada en el catalogo de campos. */
 SELECT
     d.IdCampo,
     d.CANombreCampo AS NombreEsperado,
@@ -80,7 +96,8 @@ LEFT JOIN dbo.ff_Campo c
 WHERE c.CAIdCampo IS NULL
    OR RTRIM(c.CANombreCampo) <> d.CANombreCampo
    OR LTRIM(RTRIM(c.CALongitud)) <> d.CALongitud
-   OR c.CATipoDato <> d.CATipoDato;
+   OR c.CATipoDato <> d.CATipoDato
+   OR c.CAIdEstatus <> 1;
 
 IF EXISTS
 (
@@ -92,24 +109,27 @@ IF EXISTS
        OR RTRIM(c.CANombreCampo) <> d.CANombreCampo
        OR LTRIM(RTRIM(c.CALongitud)) <> d.CALongitud
        OR c.CATipoDato <> d.CATipoDato
+       OR c.CAIdEstatus <> 1
 )
 BEGIN
     THROW 50001,
-          'Los IdCampo, nombres, longitudes o tipos no coinciden con ff_Campo. No se aplicaron cambios.',
+          'Los campos requeridos no coinciden con ff_Campo. No se aplicaron cambios.',
           1;
 END;
 
-/* Mostrar los campos que todavia no estan relacionados con la plantilla. */
-SELECT
-    d.IdCampo,
-    d.CANombreCampo AS CampoFaltante
-FROM @ConfiguracionDeseada d
-LEFT JOIN dbo.ff_ConfiguracionPlantilla cp
-    ON cp.PLIdPlantilla = @IdPlantilla
-   AND cp.CAIdCampo = d.IdCampo
-WHERE cp.CPIdConfiguracionPlantilla IS NULL;
+IF OBJECT_ID(N'dbo.ff_CPlantillaCampos', N'P') IS NULL
+BEGIN
+    THROW 50002, 'No existe el procedimiento dbo.ff_CPlantillaCampos.', 1;
+END;
 
-/* Confirmar que el catalogo de sexo conserva los valores requeridos. */
+IF OBJECT_ID(N'dbo.ff_CMCSexo_BF3', N'P') IS NULL
+BEGIN
+    THROW 50003, 'No existe el procedimiento dbo.ff_CMCSexo_BF3.', 1;
+END;
+
+IF OBJECT_ID(N'tempdb..#SexoBF3', N'U') IS NOT NULL
+    DROP TABLE #SexoBF3;
+
 CREATE TABLE #SexoBF3
 (
     Clave VARCHAR(100),
@@ -122,45 +142,28 @@ EXEC dbo.ff_CMCSexo_BF3;
 IF NOT EXISTS (SELECT 1 FROM #SexoBF3 WHERE UPPER(Clave) = 'MASCULINO')
    OR NOT EXISTS (SELECT 1 FROM #SexoBF3 WHERE UPPER(Clave) = 'FEMENINO')
 BEGIN
-    THROW 50003,
-          'ff_CMCSexo_BF3 no contiene MASCULINO y FEMENINO. No se aplicaron cambios.',
+    DROP TABLE #SexoBF3;
+    THROW 50004,
+          'ff_CMCSexo_BF3 debe contener MASCULINO y FEMENINO.',
           1;
 END;
 
 BEGIN TRY
     BEGIN TRANSACTION;
 
-    /* Respaldos persistentes previos al cambio. */
-    IF OBJECT_ID(N'dbo.BAK_ff_ConfiguracionPlantilla_12062_20261027', N'U') IS NOT NULL
-    BEGIN
-        THROW 50004,
-              'Ya existe el respaldo BAK_ff_ConfiguracionPlantilla_12062_20261027. Revise antes de continuar.',
-              1;
-    END;
+    DECLARE @CPIdTitular INT =
+        ISNULL
+        (
+            (
+                SELECT TOP (1) CPIdTitular
+                FROM dbo.ff_ConfiguracionPlantilla
+                WHERE PLIdPlantilla = @IdPlantilla
+                ORDER BY CPIdConfiguracionPlantilla
+            ),
+            1
+        );
 
-    SELECT
-        SYSDATETIME() AS FechaRespaldo,
-        cp.*
-    INTO dbo.BAK_ff_ConfiguracionPlantilla_12062_20261027
-    FROM dbo.ff_ConfiguracionPlantilla cp
-    WHERE cp.PLIdPlantilla = @IdPlantilla;
-
-    IF OBJECT_ID(N'dbo.BAK_ff_CPlantillaCampos_20261027', N'U') IS NOT NULL
-    BEGIN
-        THROW 50005,
-              'Ya existe el respaldo BAK_ff_CPlantillaCampos_20261027. Revise antes de continuar.',
-              1;
-    END;
-
-    SELECT
-        SYSDATETIME() AS FechaRespaldo,
-        OBJECT_DEFINITION(OBJECT_ID(N'dbo.ff_CPlantillaCampos')) AS Definicion
-    INTO dbo.BAK_ff_CPlantillaCampos_20261027;
-
-    /*
-       Agregar a la plantilla los campos que existen en ff_Campo pero que
-       todavia no tienen una fila en ff_ConfiguracionPlantilla.
-    */
+    /* Agregar relaciones que todavia no existen en la plantilla. */
     INSERT INTO dbo.ff_ConfiguracionPlantilla
     (
         PLIdPlantilla,
@@ -187,10 +190,10 @@ BEGIN TRY
     SELECT
         @IdPlantilla,
         d.IdCampo,
-        0,                              -- REIdRegla
-        1,                              -- CPIdTitular
-        1,                              -- CPHabilitado
-        1,                              -- CPVisible
+        0,
+        @CPIdTitular,
+        1,
+        1,
         d.CPEtiqueta,
         d.CPRequerido,
         CASE
@@ -199,8 +202,8 @@ BEGIN TRY
             ELSE NULL
         END,
         d.CPOrden,
-        0,                              -- CPEncriptado
-        1,                              -- CPIdEstatus
+        0,
+        1,
         GETDATE(),
         @Usuario,
         GETDATE(),
@@ -208,7 +211,7 @@ BEGIN TRY
         GETDATE(),
         NULL,
         NULL,
-        0                               -- CPConfirmacion
+        0
     FROM @ConfiguracionDeseada d
     WHERE NOT EXISTS
     (
@@ -218,53 +221,65 @@ BEGIN TRY
           AND cp.CAIdCampo = d.IdCampo
     );
 
-    /* Confirmar que todos los campos ya quedaron relacionados. */
-    IF EXISTS
-    (
-        SELECT 1
-        FROM @ConfiguracionDeseada d
-        LEFT JOIN dbo.ff_ConfiguracionPlantilla cp
-            ON cp.PLIdPlantilla = @IdPlantilla
-           AND cp.CAIdCampo = d.IdCampo
-        WHERE cp.CPIdConfiguracionPlantilla IS NULL
-    )
-    BEGIN
-        THROW 50002,
-              'No fue posible agregar todos los campos a la plantilla 12062.',
-              1;
-    END;
-
-    /* Activar y configurar los campos solicitados. */
+    /* Configurar y reactivar los campos solicitados. */
     UPDATE cp
-       SET cp.CPEtiqueta    = d.CPEtiqueta,
-           cp.CPOrden       = d.CPOrden,
-           cp.CPRequerido   = d.CPRequerido,
-           cp.CPHabilitado  = 1,
-           cp.CPVisible     = 1,
+       SET cp.CPEtiqueta = d.CPEtiqueta,
+           cp.CPOrden = d.CPOrden,
+           cp.CPRequerido = d.CPRequerido,
+           cp.CPHabilitado = 1,
+           cp.CPVisible = 1,
            cp.CPRangoValores = CASE
                                    WHEN d.CANombreCampo = 'EMIdSexo'
                                        THEN 'ff_CMCSexo_BF3:'
                                    ELSE cp.CPRangoValores
                                END,
-           cp.CPIdEstatus   = 1,
+           cp.CPEncriptado = 0,
+           cp.CPIdEstatus = 1,
            cp.CPFechaEstatus = GETDATE(),
            cp.CPUsuarioUMod = @Usuario,
-           cp.CPFechaUMod   = GETDATE(),
-           cp.CPUsuarioDel  = NULL,
-           cp.CPFechaDel    = NULL
+           cp.CPFechaUMod = GETDATE(),
+           cp.CPUsuarioDel = NULL,
+           cp.CPFechaDel = NULL
     FROM dbo.ff_ConfiguracionPlantilla cp
     INNER JOIN @ConfiguracionDeseada d
         ON d.IdCampo = cp.CAIdCampo
     WHERE cp.PLIdPlantilla = @IdPlantilla;
 
-    /* Desactivar los campos que no forman parte del nuevo layout. */
+    /* Conservar solamente una configuracion por campo. */
+    ;WITH ConfiguracionesDuplicadas AS
+    (
+        SELECT
+            cp.CPIdConfiguracionPlantilla,
+            ROW_NUMBER() OVER
+            (
+                PARTITION BY cp.CAIdCampo
+                ORDER BY cp.CPIdConfiguracionPlantilla
+            ) AS NumeroFila
+        FROM dbo.ff_ConfiguracionPlantilla cp
+        INNER JOIN @ConfiguracionDeseada d
+            ON d.IdCampo = cp.CAIdCampo
+        WHERE cp.PLIdPlantilla = @IdPlantilla
+    )
     UPDATE cp
-       SET cp.CPIdEstatus   = 2,
+       SET cp.CPIdEstatus = 2,
            cp.CPFechaEstatus = GETDATE(),
            cp.CPUsuarioUMod = @Usuario,
-           cp.CPFechaUMod   = GETDATE(),
-           cp.CPUsuarioDel  = @Usuario,
-           cp.CPFechaDel    = GETDATE()
+           cp.CPFechaUMod = GETDATE(),
+           cp.CPUsuarioDel = @Usuario,
+           cp.CPFechaDel = GETDATE()
+    FROM dbo.ff_ConfiguracionPlantilla cp
+    INNER JOIN ConfiguracionesDuplicadas d
+        ON d.CPIdConfiguracionPlantilla = cp.CPIdConfiguracionPlantilla
+    WHERE d.NumeroFila > 1;
+
+    /* Desactivar campos que no pertenecen al nuevo layout. */
+    UPDATE cp
+       SET cp.CPIdEstatus = 2,
+           cp.CPFechaEstatus = GETDATE(),
+           cp.CPUsuarioUMod = @Usuario,
+           cp.CPFechaUMod = GETDATE(),
+           cp.CPUsuarioDel = @Usuario,
+           cp.CPFechaDel = GETDATE()
     FROM dbo.ff_ConfiguracionPlantilla cp
     WHERE cp.PLIdPlantilla = @IdPlantilla
       AND NOT EXISTS
@@ -275,8 +290,8 @@ BEGIN TRY
           );
 
     /*
-       El servicio consume ff_CPlantillaCampos y actualmente este SP ignora
-       CPOrden. Se cambia el orden solo para la plantilla 12062.
+       Para la plantilla 12062 se usa CPOrden. Las demas plantillas conservan
+       el orden anterior por CPIdConfiguracionPlantilla.
     */
     EXEC sys.sp_executesql N'
 ALTER PROCEDURE dbo.ff_CPlantillaCampos
@@ -314,15 +329,19 @@ BEGIN
         cp.CPIdConfiguracionPlantilla;
 END;';
 
-    /* Validaciones previas al COMMIT. */
-    IF (SELECT COUNT(*)
+    /* Validar antes de confirmar la transaccion. */
+    IF
+    (
+        SELECT COUNT(*)
         FROM dbo.ff_ConfiguracionPlantilla cp
-        INNER JOIN dbo.ff_Campo c ON c.CAIdCampo = cp.CAIdCampo
+        INNER JOIN dbo.ff_Campo c
+            ON c.CAIdCampo = cp.CAIdCampo
         WHERE cp.PLIdPlantilla = @IdPlantilla
           AND cp.CPIdEstatus = 1
-          AND c.CAIdEstatus = 1) <> 23
+          AND c.CAIdEstatus = 1
+    ) <> 23
     BEGIN
-        THROW 50006,
+        THROW 50005,
               'La plantilla no quedo con los 23 campos activos esperados.',
               1;
     END;
@@ -331,13 +350,16 @@ END;';
     (
         SELECT cp.CPOrden
         FROM dbo.ff_ConfiguracionPlantilla cp
+        INNER JOIN dbo.ff_Campo c
+            ON c.CAIdCampo = cp.CAIdCampo
         WHERE cp.PLIdPlantilla = @IdPlantilla
           AND cp.CPIdEstatus = 1
+          AND c.CAIdEstatus = 1
         GROUP BY cp.CPOrden
         HAVING COUNT(*) > 1
     )
     BEGIN
-        THROW 50007,
+        THROW 50006,
               'La plantilla contiene valores CPOrden duplicados.',
               1;
     END;
@@ -348,11 +370,14 @@ BEGIN CATCH
     IF @@TRANCOUNT > 0
         ROLLBACK TRANSACTION;
 
+    IF OBJECT_ID(N'tempdb..#SexoBF3', N'U') IS NOT NULL
+        DROP TABLE #SexoBF3;
+
     THROW;
 END CATCH;
 
 /* ================================================================
-   RESULTADOS DE VERIFICACION
+   VERIFICACION FINAL
    ================================================================ */
 
 SELECT
@@ -370,217 +395,16 @@ INNER JOIN dbo.ff_Campo c
     ON c.CAIdCampo = cp.CAIdCampo
 WHERE cp.PLIdPlantilla = @IdPlantilla
   AND cp.CPIdEstatus = 1
+  AND c.CAIdEstatus = 1
 ORDER BY cp.CPOrden;
 
-/* Este es exactamente el orden que recibira el servicio. */
+/* Este es el orden que recibira el servicio. */
 EXEC dbo.ff_CPlantillaCampos @IdPlantilla = 12062;
 
 /* Debe devolver MASCULINO y FEMENINO. */
-EXEC dbo.ff_CMCSexo_BF3;
-
-
-
-
--------------------------
-
-
-
-
-64|16|2|BARRIOS|CISNEROS|MAXIMILIANO||64|FEMENINO|24/02/1998|01/10/2026|01/10/2026|01/10/2026|||BOT28FIA82|0.0000|||||
-64|16|2|BARRIOS|CISNEROS|MAXIMILIANO||64|FEMENINO|24/02/1998||01/10/2026|01/10/2026|||BOT28FIA82|0.0000||||||
-
-
-1718|201|0000201A|ALMANZA|ARTEAGA|IKER|JULIO|8223|FEMENINO|1980-10-22|2025-12-03|2026-01-01|2025-12-03|||ZMZ03SRO42|15000|||||
-
-
-
-
-
-
-
-Id campo	CANombreCampo	CPEtiqueta	CPOrden	CALongitud	CATipoDato	CPRequerido
-82	EMIdEmpresa                                                                                         	Empresa                                           	1	10	E	1
-88	EMNumeroEmpleado                                                                                   	Numero de Empleado                               	2	20	T	1
-89	EMCertificado                                                                                       	Certificado                                       	3	20	T	1
-90	EMApellidoPaterno                                                                                   	Apellido Paterno                                 	4	30	T	1
-91	EMApellidoMaterno                                                                                   	Apellido Materno                                 	5	30	T	0
-92	EMNombre1                                                                                           	Primer Nombre                                     	6	70	T	1
-93	EMNombre2                                                                                           	Segundo Nombre                                   	7	30	T	0
-83	EMIdPerfil                                                                                         	Perfil                                           	8	10	E	1
-84	EMIdSexo                                                                                           	Sexo                                             	9	10	E	1
-94	EMFechaNacimiento                                                                                   	Fecha de Nacimiento                               	10	23	D	1
-95	EMFechaIngresoEmpresa                                                                               	Fecha de Ingreso                                 	11	23	D	1
-183	EMFechaAlta                                                                                         	Fecha de Alta                                     	12	23	D	1
-171	EMFechaAntiguedadGMM                                                                               	FechaAntiguedadGMM                               	13	23	D	0
-99	EMOficina                                                                                           	Oficina                                           	14	10	E	0
-101	EMcurp                                                                                             	CURP                                             	15	50	T	0
-100	EMrfc                                                                                               	RFC                                               	16	20	T	0
-107	EMSalarioBase                                                                                       	Salario Base                                     	17	19	M	1
-121	EMBeneficioMaximoM                                                                                 	Beneficio Máximo Mensual                         	25	19	M	0
-131	EMidCentroCostos                                                                                   	Centro de Costos                                 	26	10	E	0
-98	EMArea                                                                                             	Area                                             	27	10	E	0
-97	EMPuesto                                                                                           	Puesto                                           	28	100	T	0
-125	EMCorreoElectronico                                                                                 	Correo electrónico                               	29	500	T	0
-
-
-
-
-
-
-# Mensaje para Teams
-
-Hola equipo. Revisamos la cadena enviada para la empresa `1718`, operación `2`. El servicio utiliza la plantilla `12062` y asigna cada valor por posición.
-
-Pueden consultar el orden esperado con:
-
-```sql
-EXEC ff_CCMOperacionPropiedades
-    @IdOperacion = 2,
-    @IdEmpresa = 1718;
-
-EXEC ff_CPlantillaCampos
-    @IdPlantilla = 12062;
-```
-
-La plantilla espera:
-
-```text
-EMIdEmpresa | EMIdPerfil | EMIdSexo | EMNumeroEmpleado | EMApellidoPaterno | ...
-```
-
-Actualmente se envía:
-
-```text
-1718 | 201 | 0000201A | ALMANZA | ARTEAGA | ...
-```
-
-Por eso el servicio intenta validar `0000201A` como sexo. En la base confirmamos que el perfil correcto es `8223` (`OPERATIVOS`), por lo que el inicio debería ser:
-
-```text
-1718 | 8223 | FEMENINO | 201 | ALMANZA | ARTEAGA | ...
-```
-
-¿Nos ayudan a revisar el orden en el objeto o consulta que construye la cadena? También falta confirmar el salario base y el significado de `ZMZ03SRO42`.
-
-
-
-
-
-
----------------------
-
-SELECT
-    cp.PLIdPlantilla,
-    ROW_NUMBER() OVER (
-        PARTITION BY cp.PLIdPlantilla
-        ORDER BY cp.CPIdConfiguracionPlantilla
-    ) AS Posicion,
-    cp.CPIdConfiguracionPlantilla,
-    RTRIM(c.CANombreCampo) AS NombreCampo,
-    c.CADescripcionCampo,
-    c.CATipoDato,
-    c.CALongitud,
-    c.CATipoValor,
-    c.CACaracteresValidos,
-    cp.CPRangoValores,
-    cp.CPRequerido,
-    cp.CPEncriptado,
-    cp.CPIdEstatus,
-    c.CAIdEstatus
-FROM ff_ConfiguracionPlantilla cp
-INNER JOIN ff_Campo c
-    ON c.CAIdCampo = cp.CAIdCampo
-WHERE cp.PLIdPlantilla IN (8470, 12062)
-ORDER BY
-    cp.PLIdPlantilla,
-    cp.CPIdConfiguracionPlantilla;
-
-
-
-1718|201|0000201A|ALMANZA|ARTEAGA|IKER|JULIO|8223|F|1980-10-22||2026-01-01|2025-12-03|||ZMZ03SRO42|||||||
- 
- 
-MODIFICADA
-1718|201|0000201A|ALMANZA|ARTEAGA|IKER|JULIO|8223|F|1980-10-22||2026-01-01|2025-12-03|2025-12-03||ZMZ03SRO42|||||||||
-
-SELECT
-    CEIdOperacionEmpresa,
-    CEIdEmpresa,
-    CEIdOperacion,
-    CEIdPlantilla,
-    CEStoredProc,
-    CEIdEstatus
-FROM ff_CargaMasivaOperacionEmpresa
-
-
-
-
-Correo 1 — Reactivación y Transferencia
-Asunto: Ajustes disponibles en QA – Reactivación y Transferencia de Empleados
-
-Hola equipo, buenas tardes:
-
-Les confirmamos que los ajustes de Reactivación y Transferencia de Empleados ya se encuentran desplegados en QA y listos para validación funcional.
-- Reactivación: conserva la fecha y hora de alta original del empleado.
-- Transferencia: homologa la asignación del rol entre el proceso individual y la carga masiva.
-Adjuntamos la matriz con los escenarios de prueba. Agradeceremos compartir los resultados y evidencias correspondientes.
-
-Saludos.
-Correo 2 — Defaulteo de Casos Especiales
-Asunto: Ajuste disponible en QA – Defaulteo de Casos Especiales
-
-Hola equipo, buenas tardes:
-
-Les confirmamos que el ajuste de Defaulteo de Casos Especiales ya se encuentra desplegado en QA y listo para validación funcional.
-
-El proceso ahora debe:
-- Actualizar correctamente los familiares al agregar o eliminar dependientes.
-- Recalcular el grupo parentesco y los costos.
-- Conservar los planes que continúen disponibles.
-- Evitar duplicar familiares o selecciones al reprocesar.
-Adjuntamos la matriz con los escenarios y espacios para incorporar las evidencias de prueba.
-
-Quedamos atentos a sus resultados y comentarios.
-
-Saludos.
-
-
-
-
-
-
-•	Defaulteo – En revisión. En la sesión de hoy, se identificó que actualiza el grupo parentesco al agregar dependientes, pero falla al eliminar dependientes, Cristian revisa los escenarios compartidos.
-
-
-
-Hola equipo,
-
-
-Dando seguimiento a las pruebas de los ajustes solicitados para los procesos de Reactivación y Transferencia de Empleados, ¿podrían confirmarnos el estatus y si ya contamos con su visto bueno para liberar los cambios?
-Los puntos por validar son:
-
-Reactivación – bf_ReactivacionEmpleadosTitular
-
-- Conservar la fecha y hora de alta original del empleado.
-- No actualizar estos datos durante la reactivación.
-
-Transferencia – ff_transferenciaMasivaEmpleado
-
-- Buscar inicialmente el rol predeterminado con:
-  - RODefault = 1
-  - PEAdministrador = 0
-
-
-
-¡Hola equipo, buenas tardes!
-
-Respondo el correo adjunto sobre el presente para no perder el hilo de seguimiento, en las pruebas realizadas del pasado martes 13/10 se identificó una incidencia donde no se obtiene el mismo resultado de asignación de rol en proceso individual y por carga masiva en módulos de beFlex 3. ¿Nos podrían confirmar si esta incidencia ya fue corregida y se encuentra disponible para validación por parte de negocio? En caso afirmativo, agradeceremos nos compartan las evidencias de las pruebas unitarias realizadas dentro de la matriz de pruebas.
-
-También tal como comentó Joselo en el correo previo, los resultados de las pruebas estaban programados para compartirse el 20/10. Sin embargo, es necesario confirmar primero la corrección de la incidencia antes de reanudar las validaciones. Una vez que contemos con la corrección, podremos definir y compartir una fecha actualizada para la conclusión de las pruebas.
-
-Gracias y quedamos al pendiente de sus comentarios.
-
-Saludos.
-
-
+SELECT Clave, Valor
+FROM #SexoBF3
+ORDER BY Valor;
+
+DROP TABLE #SexoBF3;
 
