@@ -99,7 +99,7 @@ BEGIN
           1;
 END;
 
-/* Todos los campos solicitados deben existir ya en la plantilla. */
+/* Mostrar los campos que todavia no estan relacionados con la plantilla. */
 SELECT
     d.IdCampo,
     d.CANombreCampo AS CampoFaltante
@@ -108,21 +108,6 @@ LEFT JOIN dbo.ff_ConfiguracionPlantilla cp
     ON cp.PLIdPlantilla = @IdPlantilla
    AND cp.CAIdCampo = d.IdCampo
 WHERE cp.CPIdConfiguracionPlantilla IS NULL;
-
-IF EXISTS
-(
-    SELECT 1
-    FROM @ConfiguracionDeseada d
-    LEFT JOIN dbo.ff_ConfiguracionPlantilla cp
-        ON cp.PLIdPlantilla = @IdPlantilla
-       AND cp.CAIdCampo = d.IdCampo
-    WHERE cp.CPIdConfiguracionPlantilla IS NULL
-)
-BEGIN
-    THROW 50002,
-          'Hay campos solicitados que no existen en la plantilla 12062. No se aplicaron cambios.',
-          1;
-END;
 
 /* Confirmar que el catalogo de sexo conserva los valores requeridos. */
 CREATE TABLE #SexoBF3
@@ -171,6 +156,83 @@ BEGIN TRY
         SYSDATETIME() AS FechaRespaldo,
         OBJECT_DEFINITION(OBJECT_ID(N'dbo.ff_CPlantillaCampos')) AS Definicion
     INTO dbo.BAK_ff_CPlantillaCampos_20261027;
+
+    /*
+       Agregar a la plantilla los campos que existen en ff_Campo pero que
+       todavia no tienen una fila en ff_ConfiguracionPlantilla.
+    */
+    INSERT INTO dbo.ff_ConfiguracionPlantilla
+    (
+        PLIdPlantilla,
+        CAIdCampo,
+        REIdRegla,
+        CPIdTitular,
+        CPHabilitado,
+        CPVisible,
+        CPEtiqueta,
+        CPRequerido,
+        CPRangoValores,
+        CPOrden,
+        CPEncriptado,
+        CPIdEstatus,
+        CPFechaEstatus,
+        CPUsuarioAdd,
+        CPFechaAdd,
+        CPUsuarioUMod,
+        CPFechaUMod,
+        CPUsuarioDel,
+        CPFechaDel,
+        CPConfirmacion
+    )
+    SELECT
+        @IdPlantilla,
+        d.IdCampo,
+        0,                              -- REIdRegla
+        1,                              -- CPIdTitular
+        1,                              -- CPHabilitado
+        1,                              -- CPVisible
+        d.CPEtiqueta,
+        d.CPRequerido,
+        CASE
+            WHEN d.CANombreCampo = 'EMIdSexo'
+                THEN 'ff_CMCSexo_BF3:'
+            ELSE NULL
+        END,
+        d.CPOrden,
+        0,                              -- CPEncriptado
+        1,                              -- CPIdEstatus
+        GETDATE(),
+        @Usuario,
+        GETDATE(),
+        @Usuario,
+        GETDATE(),
+        NULL,
+        NULL,
+        0                               -- CPConfirmacion
+    FROM @ConfiguracionDeseada d
+    WHERE NOT EXISTS
+    (
+        SELECT 1
+        FROM dbo.ff_ConfiguracionPlantilla cp
+        WHERE cp.PLIdPlantilla = @IdPlantilla
+          AND cp.CAIdCampo = d.IdCampo
+    );
+
+    /* Confirmar que todos los campos ya quedaron relacionados. */
+    IF EXISTS
+    (
+        SELECT 1
+        FROM @ConfiguracionDeseada d
+        LEFT JOIN dbo.ff_ConfiguracionPlantilla cp
+            ON cp.PLIdPlantilla = @IdPlantilla
+           AND cp.CAIdCampo = d.IdCampo
+        WHERE cp.CPIdConfiguracionPlantilla IS NULL
+    )
+    BEGIN
+        THROW 50002,
+              'No fue posible agregar todos los campos a la plantilla 12062.',
+              1;
+    END;
 
     /* Activar y configurar los campos solicitados. */
     UPDATE cp
@@ -319,8 +381,7 @@ EXEC dbo.ff_CMCSexo_BF3;
 
 
 
-
-
+-------------------------
 
 
 
