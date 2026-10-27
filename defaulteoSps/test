@@ -1,3 +1,32 @@
+Id campo	CANombreCampo	CPEtiqueta	CPOrden	CALongitud	CATipoDato	CPRequerido
+82	EMIdEmpresa                                                                                         	Empresa                                           	1	10	E	1
+88	EMNumeroEmpleado                                                                                   	Numero de Empleado                               	2	20	T	1
+89	EMCertificado                                                                                       	Certificado                                       	3	20	T	1
+90	EMApellidoPaterno                                                                                   	Apellido Paterno                                 	4	30	T	1
+91	EMApellidoMaterno                                                                                   	Apellido Materno                                 	5	30	T	0
+92	EMNombre1                                                                                           	Primer Nombre                                     	6	70	T	1
+93	EMNombre2                                                                                           	Segundo Nombre                                   	7	30	T	0
+83	EMIdPerfil                                                                                         	Perfil                                           	8	10	E	1
+84	EMIdSexo                                                                                           	Sexo                                             	9	10	E	1
+94	EMFechaNacimiento                                                                                   	Fecha de Nacimiento                               	10	23	D	1
+95	EMFechaIngresoEmpresa                                                                               	Fecha de Ingreso                                 	11	23	D	1
+183	EMFechaAlta                                                                                         	Fecha de Alta                                     	12	23	D	1
+171	EMFechaAntiguedadGMM                                                                               	FechaAntiguedadGMM                               	13	23	D	0
+99	EMOficina                                                                                           	Oficina                                           	14	10	E	0
+101	EMcurp                                                                                             	CURP                                             	15	50	T	0
+100	EMrfc                                                                                               	RFC                                               	16	20	T	0
+107	EMSalarioBase                                                                                       	Salario Base                                     	17	19	M	1
+121	EMBeneficioMaximoM                                                                                 	Beneficio Máximo Mensual                         	25	19	M	0
+131	EMidCentroCostos                                                                                   	Centro de Costos                                 	26	10	E	0
+98	EMArea                                                                                             	Area                                             	27	10	E	0
+97	EMPuesto                                                                                           	Puesto                                           	28	100	T	0
+125	EMCorreoElectronico                                                                                 	Correo electrónico                               	29	500	T	0
+
+
+
+
+
+
 # Mensaje para Teams
 
 Hola equipo. Revisamos la cadena enviada para la empresa `1718`, operación `2`. El servicio utiliza la plantilla `12062` y asigna cada valor por posición.
