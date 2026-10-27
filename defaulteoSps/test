@@ -1,3 +1,11 @@
+1718|201|0000201A|ALMANZA|ARTEAGA|IKER|JULIO|8223|FEMENINO|1980-10-22|2025-12-03|2026-01-01|2025-12-03|||ZMZ03SRO42|15000|||||
+
+
+
+
+
+
+
 Id campo	CANombreCampo	CPEtiqueta	CPOrden	CALongitud	CATipoDato	CPRequerido
 82	EMIdEmpresa                                                                                         	Empresa                                           	1	10	E	1
 88	EMNumeroEmpleado                                                                                   	Numero de Empleado                               	2	20	T	1
