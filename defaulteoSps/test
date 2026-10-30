@@ -1,3 +1,21 @@
+DECLARE @IdEmpresa INT = 0; -- Colocar empresa de la prueba
+
+SELECT
+    E.EMIdEmpresa,
+    E.EMNombre,
+    ISNULL(P.Activo, 0) AS ActivoV32,
+    CASE
+        WHEN ISNULL(P.Activo, 0) = 1
+            THEN 'USA MOTOR V3.2 - NO CUBIERTO POR LA CORRECCION ACTUAL'
+        ELSE 'USA LOS SP CORREGIDOS'
+    END AS MotorUtilizado
+FROM dbo.ff_Empresa E
+LEFT JOIN dbo.ff_PlanesPerfilScript P
+    ON P.EMIdEmpresa = E.EMIdEmpresa
+WHERE E.EMIdEmpresa = @IdEmpresa;
+
+
+
 Buen día
 
                 Haciendo pruebas nuevamente se presenta la incidencia en donde al momento de hacer el defaulteo con un alta nueva de dependiente esta poniendo los planes básicos y no lo que traía en la solicitud anterior
