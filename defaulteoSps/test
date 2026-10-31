@@ -1,3 +1,8 @@
+"CadenaBeFlex": "1718|45003|0045003A|SALDIVAR|MARTINEZ|JOSE||8223|MASCULINO|19/03/1966||01/01/2026|01/01/2009|||SAXJ660319|0.0000||||||"
+    },
+
+
+
 DECLARE @IdEmpresa INT = 0; -- Colocar empresa de la prueba
 
 SELECT
