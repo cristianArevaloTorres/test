@@ -1,3 +1,84 @@
+Application: LocktonOneProcess.exe
+
+Framework Version: v4.0.30319
+
+Description: The process was terminated due to an unhandled exception.
+
+Exception Info: System.Reflection.TargetException
+
+   at System.Reflection.RuntimeMethodInfo.CheckConsistency(System.Object)
+
+   at System.Reflection.RuntimeMethodInfo.InvokeArgumentsCheck(System.Object, System.Reflection.BindingFlags, System.Reflection.Binder, System.Object[], System.Globalization.CultureInfo)
+
+   at System.Reflection.RuntimeMethodInfo.Invoke(System.Object, System.Reflection.BindingFlags, System.Reflection.Binder, System.Object[], System.Globalization.CultureInfo)
+
+   at System.Reflection.RuntimePropertyInfo.GetValue(System.Object, System.Reflection.BindingFlags, System.Reflection.Binder, System.Object[], System.Globalization.CultureInfo)
+
+   at System.Reflection.RuntimePropertyInfo.GetValue(System.Object, System.Object[])
+
+   at System.Data.Entity.Core.Objects.ELinq.QueryParameterExpression.TryGetFieldOrPropertyValue(System.Linq.Expressions.MemberExpression, System.Object, System.Object ByRef)
+
+   at System.Data.Entity.Core.Objects.ELinq.QueryParameterExpression.TryEvaluatePath(System.Linq.Expressions.Expression, System.Linq.Expressions.ConstantExpression ByRef)
+
+   at System.Data.Entity.Core.Objects.ELinq.QueryParameterExpression.EvaluateParameter(System.Object[])
+
+   at System.Data.Entity.Core.Objects.ELinq.ELinqQueryState.GetExecutionPlan(System.Nullable`1<System.Data.Entity.Core.Objects.MergeOption>)
+
+   at System.Data.Entity.Core.Objects.ObjectQuery`1+<>c__DisplayClass7[[System.__Canon, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]].<GetResults>b__6()
+
+   at System.Data.Entity.Core.Objects.ObjectContext.ExecuteInTransaction[[System.__Canon, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]](System.Func`1<System.__Canon>, System.Data.Entity.Infrastructure.IDbExecutionStrategy, Boolean, Boolean)
+
+   at System.Data.Entity.Core.Objects.ObjectQuery`1+<>c__DisplayClass7[[System.__Canon, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]].<GetResults>b__5()
+
+   at System.Data.Entity.SqlServer.DefaultSqlExecutionStrategy.Execute[[System.__Canon, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]](System.Func`1<System.__Canon>)
+
+   at System.Data.Entity.Core.Objects.ObjectQuery`1[[System.__Canon, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]].GetResults(System.Nullable`1<System.Data.Entity.Core.Objects.MergeOption>)
+
+   at System.Data.Entity.Core.Objects.ObjectQuery`1[[System.__Canon, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]].<System.Collections.Generic.IEnumerable<T>.GetEnumerator>b__0()
+
+   at System.Data.Entity.Internal.LazyEnumerator`1[[System.__Canon, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]].MoveNext()
+
+   at System.Linq.Enumerable.FirstOrDefault[[System.__Canon, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]](System.Collections.Generic.IEnumerable`1<System.__Canon>)
+
+   at System.Data.Entity.Core.Objects.ELinq.ObjectQueryProvider.<GetElementFunction>b__1[[System.__Canon, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]](System.Collections.Generic.IEnumerable`1<System.__Canon>)
+
+   at System.Data.Entity.Core.Objects.ELinq.ObjectQueryProvider.ExecuteSingle[[System.__Canon, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]](System.Collections.Generic.IEnumerable`1<System.__Canon>, System.Linq.Expressions.Expression)
+
+   at System.Data.Entity.Core.Objects.ELinq.ObjectQueryProvider.System.Linq.IQueryProvider.Execute[[System.__Canon, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]](System.Linq.Expressions.Expression)
+
+   at System.Data.Entity.Internal.Linq.DbQueryProvider.Execute[[System.__Canon, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]](System.Linq.Expressions.Expression)
+
+   at System.Linq.Queryable.FirstOrDefault[[System.__Canon, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]](System.Linq.IQueryable`1<System.__Canon>, System.Linq.Expressions.Expression`1<System.Func`2<System.__Canon,Boolean>>)
+
+   at LocktonOneProcess.Mascotas.ProcessMascotas.Derivacion()
+
+   at LocktonOneProcess.Program.Main(System.String[])
+ 
+ 
+Faulting application name: LocktonOneProcess.exe, version: 1.0.0.0, time stamp: 0xd190826a
+
+Faulting module name: KERNELBASE.dll, version: 10.0.14393.9611, time stamp: 0x6ac8d34e
+
+Exception code: 0xe0434352
+
+Fault offset: 0x000dda82
+
+Faulting process id: 0x4d30
+
+Faulting application start time: 0x01dd6b9b671d8efd
+
+Faulting application path: W:\LocktonOneProcess\LocktonOneProcess.exe
+
+Faulting module path: C:\Windows\System32\KERNELBASE.dll
+
+Report Id: c5cac03c-42be-430e-b670-8d928e4c4f6e
+
+Faulting package full name: 
+
+Faulting package-relative application ID:
+
+
+
 
 
 @afermin@qualitas.com.mx solicito de su apoyo para revisar el siguiente caso.
