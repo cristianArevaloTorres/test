@@ -1,3 +1,68 @@
+DECLARE @Corporativos TABLE (IdCorporativo INT PRIMARY KEY);
+
+INSERT INTO @Corporativos (IdCorporativo)
+VALUES
+(721),
+(727),
+(1082),
+(1095),
+(1115),
+(1182),
+(1328),
+(1383),
+(1398),
+(1886),
+(1926),
+(1930),
+(1932),
+(1934),
+(1943),
+(1974),
+(1983),
+(2003),
+(2008),
+(2291),
+(2320),
+(2332),
+(2338),
+(2340),
+(2362),
+(2390),
+(2537),
+(2563),
+(2577),
+(2587),
+(2591),
+(2612),
+(2623),
+(2800)
+
+SELECT
+    c.IdCorporativo,
+    TienePlantilla12062 = CASE
+        WHEN cfg.CEIdPlantilla = 12062 THEN 'SI'
+        ELSE 'NO'
+    END,
+    PlantillaConfigurada = cfg.CEIdPlantilla,
+    ProcedimientoConfigurado = cfg.CEStoredProc
+FROM @Corporativos c
+OUTER APPLY
+(
+    SELECT TOP (1)
+        ce.CEIdPlantilla,
+        ce.CEStoredProc
+    FROM dbo.ff_CargaMasivaOperacionEmpresa ce
+    WHERE ce.CEIdEmpresa = c.IdCorporativo
+      AND ce.CEIdOperacion = 2
+      AND ce.CEIdEstatus = 1
+    ORDER BY ce.CEIdOperacionEmpresa DESC
+) cfg
+ORDER BY c.IdCorporativo;
+
+
+
+------------
+
 /* Agregar aqui todos los IDs de corporativos que se quieran revisar. */
 DECLARE @Corporativos TABLE (IdCorporativo INT PRIMARY KEY);
 
