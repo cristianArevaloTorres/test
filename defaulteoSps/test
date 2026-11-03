@@ -1,10 +1,10 @@
-
+DECLARE @IdCorporativo INT = 1718; -- Cambiar aquí
 DECLARE @PlantillaActual INT;
 
 SELECT TOP (1)
     @PlantillaActual = CEIdPlantilla
 FROM dbo.ff_CargaMasivaOperacionEmpresa
-WHERE CEIdEmpresa = 1718
+WHERE CEIdEmpresa = @IdCorporativo
   AND CEIdOperacion = 2
   AND CEIdEstatus = 1;
 
@@ -12,7 +12,6 @@ SELECT
     TienePlantilla12062 =
         CASE WHEN @PlantillaActual = 12062 THEN 'SI' ELSE 'NO' END,
     PlantillaConfigurada = @PlantillaActual;
-
 
 
 "CadenaBeFlex": "1718|45003|0045003A|SALDIVAR|MARTINEZ|JOSE||8223|MASCULINO|19/03/1966||01/01/2026|01/01/2009|||SAXJ660319|0.0000||||||"
