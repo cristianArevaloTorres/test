@@ -1,3 +1,38 @@
+/* Agregar aqui todos los IDs de corporativos que se quieran revisar. */
+DECLARE @Corporativos TABLE (IdCorporativo INT PRIMARY KEY);
+
+INSERT INTO @Corporativos (IdCorporativo)
+VALUES
+    (1718),
+    (64),
+    (1725);
+
+SELECT
+    c.IdCorporativo,
+    TienePlantilla12062 = CASE
+        WHEN cfg.CEIdPlantilla = 12062 THEN 'SI'
+        ELSE 'NO'
+    END,
+    PlantillaConfigurada = cfg.CEIdPlantilla,
+    ProcedimientoConfigurado = cfg.CEStoredProc
+FROM @Corporativos c
+OUTER APPLY
+(
+    SELECT TOP (1)
+        ce.CEIdPlantilla,
+        ce.CEStoredProc
+    FROM dbo.ff_CargaMasivaOperacionEmpresa ce
+    WHERE ce.CEIdEmpresa = c.IdCorporativo
+      AND ce.CEIdOperacion = 2
+      AND ce.CEIdEstatus = 1
+    ORDER BY ce.CEIdOperacionEmpresa DESC
+) cfg
+ORDER BY c.IdCorporativo;
+
+
+
+
+
 DECLARE @IdCorporativo INT = 1718; -- Cambiar aquí
 DECLARE @PlantillaActual INT;
 
