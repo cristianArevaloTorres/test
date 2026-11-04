@@ -1,3 +1,59 @@
+# Carga masiva de poblaciones BF3
+
+## Como funciona
+
+```text
+Excel -> Angular BF3 -> API Java -> Stored Procedure -> Resultado
+```
+
+1. El usuario selecciona una operacion y carga el Excel.
+2. Angular valida el archivo y envia **cada fila** al backend mediante `POST`.
+3. Java valida el usuario y la operacion solicitada.
+4. Java ejecuta `ff_cargaMasivaGen`, que llama al SP configurado.
+5. La pantalla muestra el resultado de cada registro.
+
+> El Excel no se envia completo: Angular lo procesa fila por fila.
+
+## Archivos principales
+
+| Capa | Archivo | Funcion |
+|---|---|---|
+| Front | [cargamasivaadm.component.ts](C:/REPOS/CARGADEFAULTEO/BeFlex3-EmpAdm-defaulteoCargaMaisva/BeFlex3-EmpAdm-defaulteoCargaMaisva/src/app/beflex/cargamasivaadm/cargamasivaadm.component.ts#L1055) | Lee el Excel y dirige cada operacion. |
+| Front | [titulares.service.ts](C:/REPOS/CARGADEFAULTEO/BeFlex3-EmpAdm-defaulteoCargaMaisva/BeFlex3-EmpAdm-defaulteoCargaMaisva/src/app/services/titulares.service.ts#L206) | Envia las solicitudes al backend. |
+| Back | [WSTitularesAdm.java](C:/REPOS/CARGADEFAULTEO/WSBeFlex-EmpAdm-defaulteoCargaMaisva/WSBeFlex-EmpAdm-defaulteoCargaMaisva/src/main/java/com/lockton/WSBeFlex/REST/WSTitularesAdm.java#L99) | Recibe y valida las solicitudes REST. |
+| Back | [JDBCFfCargaMasiva.java](C:/REPOS/CARGADEFAULTEO/WSBeFlex-EmpAdm-defaulteoCargaMaisva/WSBeFlex-EmpAdm-defaulteoCargaMaisva/src/main/java/com/lockton/WSBeFlex/DAO/JDBCFfCargaMasiva.java#L59) | Ejecuta la operacion en base de datos. |
+
+## Comunicacion front-back
+
+URL base:
+
+```text
+https://belocktonha.com/WSBeFlex/beflex/
+```
+
+Ejemplo para consultar las operaciones de la empresa `186`:
+
+```http
+POST https://belocktonha.com/WSBeFlex/beflex/titulares/op-masiva?idEmpresa=186
+authorization: TOKEN_DEL_USUARIO
+```
+
+Pantalla:
+
+```text
+https://belocktonha.com/#/pages/administracion/cargamasivapoblaciones
+```
+
+## Deloitte
+
+- Plantilla BF2 `507`: permanece activa para el SOAP.
+- Plantilla BF3 `12062`: se utiliza en la pantalla de carga masiva.
+
+La pantalla BF3 consume directamente el API Java; **no consume el SOAP**.
+
+----
+
+
 DECLARE @Corporativos TABLE (IdCorporativo INT PRIMARY KEY);
 
 INSERT INTO @Corporativos (IdCorporativo)
