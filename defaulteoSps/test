@@ -1,3 +1,83 @@
+Todas tienen 23 posiciones y utilizan un perfil activo de la base local.
+
+| Corporativo | Empresa hija | Perfil |
+|---:|---:|---:|
+| 59 | 191 | 689 |
+| 658 | 659 | 2331 |
+| 718 | 719 | 2465 |
+| 718 | 720 | 5677 |
+| 721 | 722 | 2471 |
+| 723 | 724 | 2468 |
+| 723 | 744 | 2517 |
+| 727 | 728 | 2473 |
+| 752 | 753 | 2546 |
+| 756 | 757 | 2553 |
+
+
+
+DECLARE @IdCorporativo INT = 1717;
+
+SELECT
+    e.EMidCorporativo,
+    e.EMidEmpresa,
+    e.EMNombre,
+    ce.CEIdPlantilla,
+    ce.CEStoredProc,
+    CASE
+        WHEN ce.CEIdPlantilla IS NULL THEN 'SIN PLANTILLA'
+        ELSE 'CONFIGURADA'
+    END AS Resultado
+FROM dbo.ff_Empresa e
+LEFT JOIN dbo.ff_CargaMasivaOperacionEmpresa ce
+    ON ce.CEIdEmpresa = e.EMidEmpresa
+   AND ce.CEIdOperacion = 2
+   AND ce.CEIdEstatus = 1
+WHERE e.EMidCorporativo = @IdCorporativo
+  AND e.EMidEstatus = 1
+ORDER BY e.EMidEmpresa;
+2. Administradores autorizados por empresa
+DECLARE @IdEmpresa INT = 1718;
+
+SELECT
+    ae.AEIdEmpresa,
+    ad.ADClaveAcceso AS Usuario,
+    ad.ADContraseña AS PasswordCifradoBD,
+    ae.AEContrasenasEncriptada
+FROM dbo.ff_AdministradorEmpresa ae
+INNER JOIN dbo.ff_Administrador ad
+    ON ad.ADIdAdministrador = ae.ADIdAdministrador
+WHERE ae.AEIdEmpresa = @IdEmpresa
+  AND ae.AEIdEstatus = 1
+  AND ad.ADIdEstatus = 1;
+
+
+
+
+
+
+
+191|QA20261105191|QA20261105191A|PRUEBA|MVP|EMPLEADO||689|MASCULINO|15/06/1990||05/11/2026|05/11/2026||||0.0000||||||
+
+659|QA20261105659|QA20261105659A|PRUEBA|MVP|EMPLEADO||2331|MASCULINO|15/06/1990||05/11/2026|05/11/2026||||0.0000||||||
+
+719|QA20261105719|QA20261105719A|PRUEBA|MVP|EMPLEADO||2465|MASCULINO|15/06/1990||05/11/2026|05/11/2026||||0.0000||||||
+
+720|QA20261105720|QA20261105720A|PRUEBA|MVP|EMPLEADO||5677|MASCULINO|15/06/1990||05/11/2026|05/11/2026||||0.0000||||||
+
+722|QA20261105722|QA20261105722A|PRUEBA|MVP|EMPLEADO||2471|MASCULINO|15/06/1990||05/11/2026|05/11/2026||||0.0000||||||
+
+724|QA20261105724|QA20261105724A|PRUEBA|MVP|EMPLEADO||2468|MASCULINO|15/06/1990||05/11/2026|05/11/2026||||0.0000||||||
+
+744|QA20261105744|QA20261105744A|PRUEBA|MVP|EMPLEADO||2517|MASCULINO|15/06/1990||05/11/2026|05/11/2026||||0.0000||||||
+
+728|QA20261105728|QA20261105728A|PRUEBA|MVP|EMPLEADO||2473|MASCULINO|15/06/1990||05/11/2026|05/11/2026||||0.0000||||||
+
+753|QA20261105753|QA20261105753A|PRUEBA|MVP|EMPLEADO||2546|MASCULINO|15/06/1990||05/11/2026|05/11/2026||||0.0000||||||
+
+757|QA20261105757|QA20261105757A|PRUEBA|MVP|EMPLEADO||2553|MASCULINO|15/06/1990||05/11/2026|05/11/2026||||0.0000||||||
+
+
+
 Plantilla 12062
 → ff_XCMTitularesAltaCMM_BF3
 → ff_XCMTitularesAlta_Base_BF3
