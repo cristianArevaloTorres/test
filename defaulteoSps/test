@@ -1,3 +1,17 @@
+Hola equipo. Les comparto el set de pruebas y el nuevo extracto.
+
+Confirmamos que la cadena nueva no funciona con la plantilla anterior `153`, porque espera un layout diferente. Con la plantilla `12062/BF3` sí procesa correctamente y el alta se refleja en el reporte de titulares activos.
+
+El extracto anterior incluía por error cabeceras corporativas. El nuevo ya contiene únicamente empresas hijas. UNICCO `720` se mantiene porque corresponde a UniCCo Individuales, empresa hija del corporativo `718`, y cuenta con un perfil válido.
+
+¿Nos ayudan a definir si la plantilla `153` dejará de utilizarse? De ser así, proponemos reemplazarla por la `12062/BF3` en las empresas hijas, sin duplicar configuraciones.
+
+
+
+
+
+
+
 DECLARE @Empresas TABLE
 (
     IdCorporativo INT,
