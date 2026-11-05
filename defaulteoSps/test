@@ -1,3 +1,11 @@
+Plantilla 12062
+→ ff_XCMTitularesAltaCMM_BF3
+→ ff_XCMTitularesAlta_Base_BF3
+Plantilla 153
+→ ff_XCMTitularesAltaCMM
+→ ff_XCMTitularesAlta_Base
+
+
 SELECT
     ce.CEIdOperacion,
     o.CONombre AS Operacion,
