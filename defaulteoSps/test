@@ -1,3 +1,24 @@
+SELECT
+    ce.CEIdOperacion,
+    o.CONombre AS Operacion,
+    o.CODescripcion,
+    ce.CEIdPlantilla,
+    ce.CEStoredProc,
+    COUNT(DISTINCT ce.CEIdEmpresa) AS Empresas
+FROM dbo.ff_CargaMasivaOperacionEmpresa ce
+INNER JOIN dbo.ff_CargaMasivaOperacion o
+    ON o.COIdOperacion = ce.CEIdOperacion
+WHERE ce.CEIdPlantilla IN (153, 12062)
+  AND ce.CEIdEstatus = 1
+GROUP BY
+    ce.CEIdOperacion,
+    o.CONombre,
+    o.CODescripcion,
+    ce.CEIdPlantilla,
+    ce.CEStoredProc
+ORDER BY ce.CEIdPlantilla;
+
+
 Buen día
 
                 Probando el defaulteo al hacer una baja y defaultear regresa a los planes básicos 
