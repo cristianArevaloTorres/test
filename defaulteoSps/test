@@ -1,3 +1,76 @@
+DECLARE @Empresas TABLE
+(
+    IdCorporativo INT,
+    IdEmpresa     INT,
+    IdPerfil      INT
+);
+
+INSERT INTO @Empresas
+VALUES
+    ( 59, 191,  689),
+    (658, 659, 2331),
+    (718, 719, 2465),
+    (718, 720, 5677),
+    (721, 722, 2471),
+    (723, 724, 2468),
+    (723, 744, 2517),
+    (727, 728, 2473),
+    (752, 753, 2546),
+    (756, 757, 2553);
+
+SELECT
+    x.IdCorporativo,
+    x.IdEmpresa,
+    Empresa = e.EMNombre,
+    EsEmpresaHija = CASE
+        WHEN e.EMidCorporativo = x.IdCorporativo
+         AND e.EMNivel = 1 THEN 'SI'
+        ELSE 'NO'
+    END,
+    x.IdPerfil,
+    Perfil = p.PENombre,
+    PerfilValido = CASE
+        WHEN p.PEIdPerfil IS NOT NULL
+         AND p.PEIdEstatus = 1
+         AND ISNULL(p.PEAdministrador, 0) = 0 THEN 'SI'
+        ELSE 'NO'
+    END,
+    cfg.ConfiguracionesActivas,
+    cfg.CEIdPlantilla AS Plantilla,
+    cfg.CEStoredProc AS Procedimiento,
+    Resultado = CASE
+        WHEN e.EMidEmpresa IS NULL THEN 'EMPRESA NO EXISTE'
+        WHEN p.PEIdPerfil IS NULL THEN 'PERFIL NO EXISTE'
+        WHEN p.PEIdEstatus <> 1 THEN 'PERFIL INACTIVO'
+        WHEN ISNULL(p.PEAdministrador, 0) <> 0 THEN 'PERFIL ADMINISTRADOR'
+        WHEN cfg.ConfiguracionesActivas = 0 THEN 'SIN PLANTILLA'
+        WHEN cfg.ConfiguracionesActivas > 1 THEN 'CONFLICTO: VARIAS PLANTILLAS'
+        ELSE 'OK'
+    END
+FROM @Empresas x
+LEFT JOIN dbo.ff_Empresa e
+    ON e.EMidEmpresa = x.IdEmpresa
+LEFT JOIN dbo.ff_Perfil p
+    ON p.PEIdEmpresa = x.IdEmpresa
+   AND p.PEIdPerfil = x.IdPerfil
+OUTER APPLY
+(
+    SELECT
+        ConfiguracionesActivas = COUNT(*),
+        CEIdPlantilla = MAX(ce.CEIdPlantilla),
+        CEStoredProc = MAX(ce.CEStoredProc)
+    FROM dbo.ff_CargaMasivaOperacionEmpresa ce
+    WHERE ce.CEIdEmpresa = x.IdEmpresa
+      AND ce.CEIdOperacion = 2
+      AND ce.CEIdEstatus = 1
+) cfg
+ORDER BY x.IdCorporativo, x.IdEmpresa;
+
+
+-----------------
+
+
+
 Todas tienen 23 posiciones y utilizan un perfil activo de la base local.
 
 | Corporativo | Empresa hija | Perfil |
