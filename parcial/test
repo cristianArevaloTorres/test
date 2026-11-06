@@ -1,1 +1,20 @@
 
+De: Pita, Ramiro <Ramiro.Pita@lockton.com> 
+Enviado el: lunes, 26 de octubre de 2026 09:54 a. m.
+Para: Arlen Fermin [ejec. de cuenta sr.] <afermin@qualitas.com.mx>; Erik Lopez [ejec. de cuenta sr.] <erlopez@qualitas.com.mx>; Marco Tecuatl [ejec. cuenta jr.] <mtecuatl@qualitas.com.mx>
+CC: Guzman, Victor <Victor.Guzman@lockton.com>; Asymmetrics 8, Consultor (Oscar Vivar) <con_asymmetrics8@mx.lockton.com>; TI 40, Consultor <Consultor.TI40@lockton.com>
+Asunto: Error en cotización Gastos de Transporte por Pérdida Parcial
+ 
+Hola, buen día.
+ 
+@Arlen Fermin [ejec. de cuenta sr.], ¿me puedes apoyar con la siguiente consulta, por favor?
+Al momento de cotizar, enviamos la cobertura 28 - Gastos de Transporte por Pérdida Parcial, con un tipo de suma 15, el cual corresponde a 15 días. Sin embargo, en la respuesta que recibimos por parte de Quálitas, dicha cobertura regresa con un Tipo suma de 2.
+ 
+¿Nos podrían indicar por qué ocurre este comportamiento? ¿Existe alguna regla de negocio o validación que esté modificando este valor?
+Lo anterior nos genera una inconsistencia, ya que esperamos recibir el mismo valor que enviamos en la cotización. Al regresar un valor diferente, este ya no coincide con la configuración que tenemos parametrizada en nuestro sistema.
+ 
+Adjunto un XML de ejemplo para su revisión.
+ 
+Quedamos atentos a sus comentarios.
+ 
+Saludos…
