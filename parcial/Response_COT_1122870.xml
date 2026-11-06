@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Movimientos>
+	<Movimiento TipoMovimiento="2" NoNegocio="3780" NoPoliza="" NoCotizacion="1235088282" NoEndoso="" TipoEndoso="21" NoOTra="3344696276P">
+		<DatosAsegurado NoAsegurado="">
+			<Nombre>ISAEL GARCIA ARENAZA</Nombre>
+			<Direccion>AV STA FE 481 INT P19 CUAJIMALPA DE MORELOS CP 05349</Direccion>
+			<Colonia>SANTA FE CUAJIMALPA</Colonia>
+			<Poblacion>AV STA FE</Poblacion>
+			<Estado>9</Estado>
+			<CodigoPostal>5000</CodigoPostal>
+			<NoEmpleado>1538</NoEmpleado>
+			<Agrupador />
+		</DatosAsegurado>
+		<DatosVehiculo NoInciso="0001">
+			<ClaveAmis>22527</ClaveAmis>
+			<Modelo>2022</Modelo>
+			<DescripcionVehiculo>FORD ESCAPE TITANIUM 5P L4 2.5L HEV ABS BA AC NAVI AUT 5 OCUP</DescripcionVehiculo>
+			<Uso>1</Uso>
+			<Servicio>1</Servicio>
+			<Paquete>1</Paquete>
+			<Motor />
+			<Serie />
+			<Coberturas NoCobertura="1">
+				<SumaAsegurada>436560</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>0003</Deducible>
+				<Prima>9694.34</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="3">
+				<SumaAsegurada>436560</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>00005</Deducible>
+				<Prima>1207.96</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="4">
+				<SumaAsegurada>5000000</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>0</Deducible>
+				<Prima>5571.84</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="5">
+				<SumaAsegurada>500000</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>0</Deducible>
+				<Prima>823.15</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="6">
+				<SumaAsegurada>100000</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>0</Deducible>
+				<Prima>129.8</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="7">
+				<SumaAsegurada>3000000</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>0</Deducible>
+				<Prima>464</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="11">
+				<SumaAsegurada>5000000</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>0</Deducible>
+				<Prima>382.2</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="12">
+				<SumaAsegurada>0</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>0</Deducible>
+				<Prima>894.99</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="14">
+				<SumaAsegurada>20000</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>0</Deducible>
+				<Prima>746.05</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="15">
+				<SumaAsegurada>65484</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>00025</Deducible>
+				<Prima>2723.55</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="17">
+				<SumaAsegurada>20000</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>0</Deducible>
+				<Prima>721.14</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="22">
+				<SumaAsegurada>1000000</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>0</Deducible>
+				<Prima>132.25</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="28">
+				<SumaAsegurada>9750</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible />
+				<Prima>610.38</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="34">
+				<SumaAsegurada>1200000</SumaAsegurada>
+				<TipoSuma>3</TipoSuma>
+				<Deducible />
+				<Prima>0</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="40">
+				<SumaAsegurada>0</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>0</Deducible>
+				<Prima>463.53</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="47">
+				<SumaAsegurada>5000000</SumaAsegurada>
+				<TipoSuma>14</TipoSuma>
+				<Deducible>0</Deducible>
+				<Prima>579.47</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="47">
+				<SumaAsegurada>5000000</SumaAsegurada>
+				<TipoSuma>15</TipoSuma>
+				<Deducible>0</Deducible>
+				<Prima>835.78</Prima>
+			</Coberturas>
+			<Coberturas NoCobertura="55">
+				<SumaAsegurada>436560</SumaAsegurada>
+				<TipoSuma>2</TipoSuma>
+				<Deducible>0</Deducible>
+				<Prima>1899.12</Prima>
+			</Coberturas>
+			<ConsideracionesAdicionalesDV NoConsideracion="39">
+				<TipoRegla>0</TipoRegla>
+				<ValorRegla>N|S</ValorRegla>
+			</ConsideracionesAdicionalesDV>
+		</DatosVehiculo>
+		<DatosGenerales>
+			<FechaEmision>2026-10-22</FechaEmision>
+			<FechaInicio>2026-11-01</FechaInicio>
+			<FechaTermino>2027-11-01</FechaTermino>
+			<Moneda>0</Moneda>
+			<Agente>55946</Agente>
+			<FormaPago>MV</FormaPago>
+			<TarifaValores>2607</TarifaValores>
+			<TarifaCuotas>2607</TarifaCuotas>
+			<TarifaDerechos>2607</TarifaDerechos>
+			<Plazo />
+			<Agencia />
+			<Contrato />
+			<PorcentajeDescuento>67.83</PorcentajeDescuento>
+			<ConsideracionesAdicionalesDG NoConsideracion="4">
+				<TipoRegla>1</TipoRegla>
+				<ValorRegla>0</ValorRegla>
+			</ConsideracionesAdicionalesDG>
+			<ConsideracionesAdicionalesDG NoConsideracion="1">
+				<TipoRegla>1</TipoRegla>
+				<ValorRegla>4</ValorRegla>
+			</ConsideracionesAdicionalesDG>
+			<ConsideracionesAdicionalesDG NoConsideracion="84">
+				<TipoRegla />
+				<ValorRegla>5349</ValorRegla>
+			</ConsideracionesAdicionalesDG>
+			<ConsideracionesAdicionalesDG NoConsideracion="31">
+				<TipoRegla>1</TipoRegla>
+				<ValorRegla />
+			</ConsideracionesAdicionalesDG>
+			<ConsideracionesAdicionalesDG NoConsideracion="13">
+				<TipoRegla>1</TipoRegla>
+				<ValorRegla>S</ValorRegla>
+			</ConsideracionesAdicionalesDG>
+			<ConsideracionesAdicionalesDG NoConsideracion="35">
+				<TipoRegla>86105</TipoRegla>
+				<ValorRegla>8</ValorRegla>
+			</ConsideracionesAdicionalesDG>
+			<ConsideracionesAdicionalesDG NoConsideracion="34">
+				<TipoRegla>5</TipoRegla>
+				<ValorRegla />
+			</ConsideracionesAdicionalesDG>
+			<ConsideracionesAdicionalesDG NoConsideracion="55">
+				<TipoRegla />
+				<ValorRegla />
+			</ConsideracionesAdicionalesDG>
+		</DatosGenerales>
+		<Primas>
+			<PrimaNeta>10763.07</PrimaNeta>
+			<Derecho>500</Derecho>
+			<Recargo>0</Recargo>
+			<Impuesto>1664.32</Impuesto>
+			<PrimaTotal>12066.34</PrimaTotal>
+			<Comision>7</Comision>
+		</Primas>
+		<Recibos NoRecibo="1">
+			<FechaInicio>2026-11-01</FechaInicio>
+			<FechaTermino>2026-12-01</FechaTermino>
+			<PrimaNeta>896.95</PrimaNeta>
+			<Derecho>41.63</Derecho>
+			<Recargo>0</Recargo>
+			<Impuesto>138.73</Impuesto>
+			<PrimaTotal>1005.51</PrimaTotal>
+			<Comision>62.78</Comision>
+		</Recibos>
+		<Recibos NoRecibo="2">
+			<FechaInicio>2026-12-01</FechaInicio>
+			<FechaTermino>2027-01-01</FechaTermino>
+			<PrimaNeta>896.92</PrimaNeta>
+			<Derecho>41.67</Derecho>
+			<Recargo>0</Recargo>
+			<Impuesto>138.69</Impuesto>
+			<PrimaTotal>1005.53</PrimaTotal>
+			<Comision>62.78</Comision>
+		</Recibos>
+		<Recibos NoRecibo="3">
+			<FechaInicio>2027-01-01</FechaInicio>
+			<FechaTermino>2027-02-01</FechaTermino>
+			<PrimaNeta>896.92</PrimaNeta>
+			<Derecho>41.67</Derecho>
+			<Recargo>0</Recargo>
+			<Impuesto>138.69</Impuesto>
+			<PrimaTotal>1005.53</PrimaTotal>
+			<Comision>62.78</Comision>
+		</Recibos>
+		<Recibos NoRecibo="4">
+			<FechaInicio>2027-02-01</FechaInicio>
+			<FechaTermino>2027-03-01</FechaTermino>
+			<PrimaNeta>896.92</PrimaNeta>
+			<Derecho>41.67</Derecho>
+			<Recargo>0</Recargo>
+			<Impuesto>138.69</Impuesto>
+			<PrimaTotal>1005.53</PrimaTotal>
+			<Comision>62.78</Comision>
+		</Recibos>
+		<Recibos NoRecibo="5">
+			<FechaInicio>2027-03-01</FechaInicio>
+			<FechaTermino>2027-04-01</FechaTermino>
+			<PrimaNeta>896.92</PrimaNeta>
+			<Derecho>41.67</Derecho>
+			<Recargo>0</Recargo>
+			<Impuesto>138.69</Impuesto>
+			<PrimaTotal>1005.53</PrimaTotal>
+			<Comision>62.78</Comision>
+		</Recibos>
+		<Recibos NoRecibo="6">
+			<FechaInicio>2027-04-01</FechaInicio>
+			<FechaTermino>2027-05-01</FechaTermino>
+			<PrimaNeta>896.92</PrimaNeta>
+			<Derecho>41.67</Derecho>
+			<Recargo>0</Recargo>
+			<Impuesto>138.69</Impuesto>
+			<PrimaTotal>1005.53</PrimaTotal>
+			<Comision>62.78</Comision>
+		</Recibos>
+		<Recibos NoRecibo="7">
+			<FechaInicio>2027-05-01</FechaInicio>
+			<FechaTermino>2027-06-01</FechaTermino>
+			<PrimaNeta>896.92</PrimaNeta>
+			<Derecho>41.67</Derecho>
+			<Recargo>0</Recargo>
+			<Impuesto>138.69</Impuesto>
+			<PrimaTotal>1005.53</PrimaTotal>
+			<Comision>62.78</Comision>
+		</Recibos>
+		<Recibos NoRecibo="8">
+			<FechaInicio>2027-06-01</FechaInicio>
+			<FechaTermino>2027-07-01</FechaTermino>
+			<PrimaNeta>896.92</PrimaNeta>
+			<Derecho>41.67</Derecho>
+			<Recargo>0</Recargo>
+			<Impuesto>138.69</Impuesto>
+			<PrimaTotal>1005.53</PrimaTotal>
+			<Comision>62.78</Comision>
+		</Recibos>
+		<Recibos NoRecibo="9">
+			<FechaInicio>2027-07-01</FechaInicio>
+			<FechaTermino>2027-08-01</FechaTermino>
+			<PrimaNeta>896.92</PrimaNeta>
+			<Derecho>41.67</Derecho>
+			<Recargo>0</Recargo>
+			<Impuesto>138.69</Impuesto>
+			<PrimaTotal>1005.53</PrimaTotal>
+			<Comision>62.78</Comision>
+		</Recibos>
+		<Recibos NoRecibo="10">
+			<FechaInicio>2027-08-01</FechaInicio>
+			<FechaTermino>2027-09-01</FechaTermino>
+			<PrimaNeta>896.92</PrimaNeta>
+			<Derecho>41.67</Derecho>
+			<Recargo>0</Recargo>
+			<Impuesto>138.69</Impuesto>
+			<PrimaTotal>1005.53</PrimaTotal>
+			<Comision>62.78</Comision>
+		</Recibos>
+		<Recibos NoRecibo="11">
+			<FechaInicio>2027-09-01</FechaInicio>
+			<FechaTermino>2027-10-01</FechaTermino>
+			<PrimaNeta>896.92</PrimaNeta>
+			<Derecho>41.67</Derecho>
+			<Recargo>0</Recargo>
+			<Impuesto>138.69</Impuesto>
+			<PrimaTotal>1005.53</PrimaTotal>
+			<Comision>62.78</Comision>
+		</Recibos>
+		<Recibos NoRecibo="12">
+			<FechaInicio>2027-10-01</FechaInicio>
+			<FechaTermino>2027-11-01</FechaTermino>
+			<PrimaNeta>896.92</PrimaNeta>
+			<Derecho>41.67</Derecho>
+			<Recargo>0</Recargo>
+			<Impuesto>138.69</Impuesto>
+			<PrimaTotal>1005.53</PrimaTotal>
+			<Comision>62.78</Comision>
+		</Recibos>
+		<CodigoError />
+	</Movimiento>
+</Movimientos>
