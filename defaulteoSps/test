@@ -1,3 +1,36 @@
+/* Empresa 1829: desactivar duplicado anterior. */
+UPDATE dbo.ff_CargaMasivaOperacionEmpresa
+SET CEIdEstatus = 2,
+    CEUsuarioDel = 4649,
+    CEFechaDel = GETDATE(),
+    CEUsuarioUMod = 4649,
+    CEFechaUMod = GETDATE()
+WHERE CEIdOperacionEmpresa = 3516
+  AND CEIdEmpresa = 1829;
+
+/* Migrar la configuracion vigente a BF3. */
+UPDATE dbo.ff_CargaMasivaOperacionEmpresa
+SET CEIdPlantilla = 12062,
+    CEStoredProc = 'ff_XCMTitularesAltaCMM_BF3',
+    CEStoredProcAtributos = 3,
+    CEUsuarioUMod = 4649,
+    CEFechaUMod = GETDATE()
+WHERE CEIdOperacionEmpresa = 12363
+  AND CEIdEmpresa = 1829
+  AND CEIdEstatus = 1;
+
+SELECT
+    CEIdOperacionEmpresa,
+    CEIdEmpresa,
+    CEIdPlantilla,
+    CEStoredProc,
+    CEIdEstatus
+FROM dbo.ff_CargaMasivaOperacionEmpresa
+WHERE CEIdEmpresa = 1829
+  AND CEIdOperacion = 2;
+
+
+
 Hola equipo. Les comparto el set de pruebas y el nuevo extracto.
 
 Confirmamos que la cadena nueva no funciona con la plantilla anterior `153`, porque espera un layout diferente. Con la plantilla `12062/BF3` sí procesa correctamente y el alta se refleja en el reporte de titulares activos.
