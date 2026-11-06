@@ -3,13 +3,13 @@
 
     @Aplicar = 0: solo consulta.
     @Aplicar = 1: inserta faltantes.
-    @Migrar153 = 1: ademas cambia la plantilla 153 a 12062.
+    La migracion 153 a 12062/BF3 esta habilitada.
 */
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
 DECLARE @Aplicar BIT = 0;
-DECLARE @Migrar153 BIT = 0;
+DECLARE @Migrar153 BIT = 1;
 DECLARE @Usuario INT = 5;
 
 DECLARE @Solicitadas TABLE (IdEmpresa INT PRIMARY KEY);
