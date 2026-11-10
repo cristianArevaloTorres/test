@@ -1,0 +1,64 @@
+﻿3818388,11358,Amplia,1,1,Daños materiales,2,0,0,1,,"Daños Materiales "
+3818388,11358,Amplia,3,3,Robo Total,2,0,0,2,,"Robo Total "
+3818388,11358,Amplia,4,4,Responsabilidad Civil,5,5000000,5000000,3,,Responsabilidad Civil LUC
+3818388,11358,Amplia,5,5,Gastos Médicos,6,100000,100000,5,,Gastos Médicos
+3818388,11358,Amplia,6,6,Muerte Accidental al Conductor,5,100000,100000,8,,Accidentes al Conductor
+3818388,11358,Amplia,8,7,Gastos Legales,5,0,0,6,,Gastos Legales
+3818388,11358,Amplia,12,11,Extensión de Responsabilidad Civil,5,0,0,10,,Extensión de RC
+3818388,11358,Amplia,13,12,Exención de Deducible por Pérdida Total Daños Materiales,5,0,0,11,,Eliminación de Deducible Pérdida Total Daños Materiales
+3818388,11358,Amplia,19,17,Gastos de Transporte por Pérdida Total,5,20000,20000,15,,Gastos de Transporte por Pérdida Total Daños Materiales o Robo Total
+3818388,11358,Amplia,22,47|14,Responsabilidad Civil Catastrófica,5,5000000,5000000,4,,Responsabilidad Civil Fallecimiento
+3818388,11358,Amplia,24,22,Responsabilidad Civil Ocupantes,5,1000000,1000000,18,,Responsabilidad Civil Ocupantes
+3818388,11358,Amplia,30,28|15,Gastos de Transporte por Pérdida Parcial 15 Días,5,650,650,16,,Gastos de Transporte por Pérdida Parcial Daños Materiales
+3818388,11358,Amplia,40,47|15,Responsabilidad Cruzada,5,0,0,19,,Responsabilidad Cruzada
+3818388,11358,Amplia,45,55,Auto Agencia,4,0,0,17,,Reparación en Agencia
+3818388,11358,Amplia,94,34,Responsabilidad Civil en el Extranjero,5,0,0,9,,Responsabilidad Civil en el Extranjero
+3818388,11358,Amplia,200,14,Asistencia Vial Plus,5,0,0,NULL,NULL,NULL
+3818389,11360,Plus,1,1,Daños materiales,2,0,0,1,,"Daños Materiales "
+3818389,11360,Plus,3,3,Robo Total,2,0,0,2,,"Robo Total "
+3818389,11360,Plus,4,4,Responsabilidad Civil,5,5000000,5000000,3,,Responsabilidad Civil LUC
+3818389,11360,Plus,5,5,Gastos Médicos,6,100000,100000,5,,Gastos Médicos
+3818389,11360,Plus,6,6,Muerte Accidental al Conductor,5,100000,100000,8,,Accidentes al Conductor
+3818389,11360,Plus,8,7,Gastos Legales,5,0,0,6,,Gastos Legales
+3818389,11360,Plus,12,11,Extensión de Responsabilidad Civil,5,0,0,10,,Extensión de RC
+3818389,11360,Plus,13,12,Exención de Deducible por Pérdida Total Daños Materiales,5,0,0,11,,Eliminación de Deducible Pérdida Total Daños Materiales
+3818389,11360,Plus,15,14,Asistencia Vial,5,0,0,7,,Asistencia Vial
+3818389,11360,Plus,17,15,Robo Parcial,5,0,0,13,,Robo Parcial
+3818389,11360,Plus,19,17,Gastos de Transporte por Pérdida Total,5,20000,20000,15,,Gastos de Transporte por Pérdida Total Daños Materiales o Robo Total
+3818389,11360,Plus,22,47|14,Responsabilidad Civil Catastrófica,5,5000000,5000000,4,,Responsabilidad Civil Fallecimiento
+3818389,11360,Plus,24,22,Responsabilidad Civil Ocupantes,5,1000000,1000000,18,,Responsabilidad Civil Ocupantes
+3818389,11360,Plus,30,28|15,Gastos de Transporte por Pérdida Parcial 15 Días,5,650,650,16,,Gastos de Transporte por Pérdida Parcial Daños Materiales
+3818389,11360,Plus,40,47|15,Responsabilidad Cruzada,5,0,0,19,,Responsabilidad Cruzada
+3818389,11360,Plus,42,43,Llantas,5,0,0,20,,Llantas y Rines
+3818389,11360,Plus,43,44,Rines,5,0,0,20,,Llantas y Rines
+3818389,11360,Plus,45,55,Auto Agencia,4,0,0,17,,Reparación en Agencia
+3818389,11360,Plus,94,34,Responsabilidad Civil en el Extranjero,5,0,0,9,,Responsabilidad Civil en el Extranjero
+3818390,11367,Total,1,1,Daños materiales,2,0,0,1,,"Daños Materiales "
+3818390,11367,Total,3,3,Robo Total,2,0,0,2,,"Robo Total "
+3818390,11367,Total,4,4,Responsabilidad Civil,5,5000000,5000000,3,,Responsabilidad Civil LUC
+3818390,11367,Total,5,5,Gastos Médicos,6,100000,100000,5,,Gastos Médicos
+3818390,11367,Total,6,6,Muerte Accidental al Conductor,5,100000,100000,8,,Accidentes al Conductor
+3818390,11367,Total,8,7,Gastos Legales,5,0,0,6,,Gastos Legales
+3818390,11367,Total,12,11,Extensión de Responsabilidad Civil,5,0,0,10,,Extensión de RC
+3818390,11367,Total,13,12,Exención de Deducible por Pérdida Total Daños Materiales,5,0,0,11,,Eliminación de Deducible Pérdida Total Daños Materiales
+3818390,11367,Total,15,14,Asistencia Vial,5,0,0,7,,Asistencia Vial
+3818390,11367,Total,17,15,Robo Parcial,5,0,0,13,,Robo Parcial
+3818390,11367,Total,19,17,Gastos de Transporte por Pérdida Total,5,20000,20000,15,,Gastos de Transporte por Pérdida Total Daños Materiales o Robo Total
+3818390,11367,Total,22,47|14,Responsabilidad Civil Catastrófica,5,5000000,5000000,4,,Responsabilidad Civil Fallecimiento
+3818390,11367,Total,24,22,Responsabilidad Civil Ocupantes,5,1000000,1000000,18,,Responsabilidad Civil Ocupantes
+3818390,11367,Total,30,28|15,Gastos de Transporte por Pérdida Parcial 15 Días,5,650,650,16,,Gastos de Transporte por Pérdida Parcial Daños Materiales
+3818390,11367,Total,40,47|15,Responsabilidad Cruzada,5,0,0,19,,Responsabilidad Cruzada
+3818390,11367,Total,45,55,Auto Agencia,4,0,0,17,,Reparación en Agencia
+3818390,11367,Total,94,34,Responsabilidad Civil en el Extranjero,5,0,0,9,,Responsabilidad Civil en el Extranjero
+3818391,11492,Amplia Light,1,1,Daños materiales,1,0,0,1,,"Daños Materiales "
+3818391,11492,Amplia Light,3,3,Robo Total,1,0,0,2,,"Robo Total "
+3818391,11492,Amplia Light,4,4,Responsabilidad Civil,5,5000000,5000000,3,,Responsabilidad Civil LUC
+3818391,11492,Amplia Light,5,5,Gastos Médicos,6,100000,100000,5,,Gastos Médicos
+3818391,11492,Amplia Light,6,6,Muerte Accidental al Conductor,5,100000,100000,8,,Accidentes al Conductor
+3818391,11492,Amplia Light,8,7,Gastos Legales,5,0,0,6,,Gastos Legales
+3818391,11492,Amplia Light,12,11,Extensión de Responsabilidad Civil,5,0,0,10,,Extensión de RC
+3818391,11492,Amplia Light,22,47|14,Responsabilidad Civil Catastrófica,5,5000000,5000000,4,,Responsabilidad Civil Fallecimiento
+3818391,11492,Amplia Light,24,22,Responsabilidad Civil Ocupantes,5,1000000,1000000,18,,Responsabilidad Civil Ocupantes
+3818391,11492,Amplia Light,40,47|15,Responsabilidad Cruzada,5,0,0,19,,Responsabilidad Cruzada
+3818391,11492,Amplia Light,94,34,Responsabilidad Civil en el Extranjero,5,0,0,9,,Responsabilidad Civil en el Extranjero
+3818391,11492,Amplia Light,200,14,Asistencia Vial Plus,5,0,0,NULL,NULL,NULL
