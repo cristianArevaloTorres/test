@@ -1,0 +1,49 @@
+﻿3819443,10800,Plus / Integral,1,1,Daños materiales,1,0,0,1,,"Daños Materiales "
+3819443,10800,Plus / Integral,3,3,Robo Total,1,0,0,2,,"Robo Total "
+3819443,10800,Plus / Integral,4,4,Responsabilidad Civil,5,5000000,5000000,3,,Responsabilidad Civil LUC
+3819443,10800,Plus / Integral,5,5,Gastos Médicos,6,200000,200000,5,,Gastos Médicos
+3819443,10800,Plus / Integral,6,6,Muerte Accidental al Conductor,5,200000,200000,8,,Accidentes al Conductor
+3819443,10800,Plus / Integral,8,7,Gastos Legales,5,0,0,6,,Gastos Legales
+3819443,10800,Plus / Integral,12,11,Extensión de Responsabilidad Civil,5,0,0,10,,Extensión de RC
+3819443,10800,Plus / Integral,15,14,Asistencia Vial,5,0,0,7,,Asistencia Vial
+3819443,10800,Plus / Integral,17,15,Robo Parcial,5,0,0,13,,Robo Parcial
+3819443,10800,Plus / Integral,19,17,Gastos de Transporte por Pérdida Total,5,20000,20000,15,,Gastos de Transporte por Pérdida Total Daños Materiales o Robo Total
+3819443,10800,Plus / Integral,22,47|14,Responsabilidad Civil Catastrófica,5,5000000,5000000,4,,Responsabilidad Civil Fallecimiento
+3819443,10800,Plus / Integral,24,22,Responsabilidad Civil Ocupantes,5,2000000,2000000,18,,Responsabilidad Civil Ocupantes
+3819443,10800,Plus / Integral,30,28|15,Gastos de Transporte por Pérdida Parcial 15 Días,5,650,650,16,,Gastos de Transporte por Pérdida Parcial Daños Materiales
+3819443,10800,Plus / Integral,40,47|15,Responsabilidad Cruzada,5,0,0,19,,Responsabilidad Cruzada
+3819443,10800,Plus / Integral,41,26,Cancelación de deducible por Daños de Materiales,5,0,0,22,,Cancelación De Deducible Por Daños De Materiales
+3819443,10800,Plus / Integral,45,55,Auto Agencia,4,0,0,17,,Reparación en Agencia
+3819443,10800,Plus / Integral,94,34,Responsabilidad Civil en el Extranjero,5,0,0,9,,Responsabilidad Civil en el Extranjero
+3819444,10845,Plus / Integral,62,1,Daños Materiales,9,0,0,1,,"Daños Materiales "
+3819444,10845,Plus / Integral,63,2,Robo Total,9,0,0,2,,"Robo Total "
+3819444,10845,Plus / Integral,64,3,Responsabilidad Civil,18,5000000,5000000,3,,Responsabilidad Civil LUC
+3819444,10845,Plus / Integral,65,4,Gastos Médicos a Ocupantes,18,200000,200000,5,,Gastos Médicos
+3819444,10845,Plus / Integral,68,22,Robo Parcial,18,30000,30000,13,,Robo Parcial
+3819444,10845,Plus / Integral,70,41,Extensión de Responsabilidad Civil,18,0,0,10,,Extensión de RC
+3819444,10845,Plus / Integral,74,47,RC Ocupantes,18,2000000,2000000,18,,Responsabilidad Civil Ocupantes
+3819444,10845,Plus / Integral,75,49,Accidentes al conductor,18,200000,200000,8,,Accidentes al Conductor
+3819444,10845,Plus / Integral,86,473,RC por Fallecimiento,18,5000000,5000000,4,,Responsabilidad Civil Fallecimiento
+3819444,10845,Plus / Integral,90,552,RESPONSABILIDAD CIVIL USA ACE,18,0,0,9,,Responsabilidad Civil en el Extranjero
+3819444,10845,Plus / Integral,92,561,RESPONSABILIDAD CIVIL PERSONAS,18,0,0,NULL,NULL,NULL
+3819444,10845,Plus / Integral,106,800,RESPONSABILIDAD CIVIL BIENES,18,0,0,NULL,NULL,NULL
+3819444,10845,Plus / Integral,108,549,REPARACION EN AGENCIA,18,0,0,17,,Reparación en Agencia
+3819444,10845,Plus / Integral,162,472,CEROCIBLE,18,0,0,26,,Cerocible
+3819444,10845,Plus / Integral,178,856,ASISTENCIA EN VIAJE CDS,18,0,0,7,,Asistencia Vial
+3819444,10845,Plus / Integral,196,858,ASISTENCIA LEGAL CDS,18,0,0,6,,Gastos Legales
+3819444,10845,Plus / Integral,197,864,AUTO RELEVO PLUS CDS,18,0,0,14,,Auto Sustituto Pérdida Parcial y Pérdida Total
+3819445,10865,Plus / Integral,110,1,Daños Materiales,32,0,0,1,,"Daños Materiales "
+3819445,10865,Plus / Integral,111,2,Robo Total,32,0,0,2,,"Robo Total "
+3819445,10865,Plus / Integral,112,3,Responsabilidad Civil (Luc),34,5000000,5000000,3,,Responsabilidad Civil LUC
+3819445,10865,Plus / Integral,113,4,Gastos Médicos Ocupantes (Luc),34,600000,600000,5,,Gastos Médicos
+3819445,10865,Plus / Integral,114,34,Asistencia Legal,34,5000000,5000000,6,,Gastos Legales
+3819445,10865,Plus / Integral,115,33,Asistencia en Viajes,34,0,0,7,,Asistencia Vial
+3819445,10865,Plus / Integral,125,48,Accidentes Automovilísticos al Conductor,34,200000,200000,8,,Accidentes al Conductor
+3819445,10865,Plus / Integral,127,87,RC Ocupantes,34,2000000,2000000,18,,Responsabilidad Civil Ocupantes
+3819445,10865,Plus / Integral,128,96,Responsabilidad Civil Catastrófica por Fallecimiento,34,5000000,5000000,4,,Responsabilidad Civil Fallecimiento
+3819445,10865,Plus / Integral,129,112,Atlas Extension de Reparación en Agencia,34,0,0,17,,Reparación en Agencia
+3819445,10865,Plus / Integral,143,58,Atlas Cero Plus por PT de DM,34,0,0,11,,Eliminación de Deducible Pérdida Total Daños Materiales
+3819445,10865,Plus / Integral,145,82,Extencion de Coberturas,34,0,0,10,,Extensión de RC
+3819445,10865,Plus / Integral,152,94,Auto Sustituto Integral,34,0,0,14,,Auto Sustituto Pérdida Parcial y Pérdida Total
+3819445,10865,Plus / Integral,173,103,ROBO PARCIAL ATLAS,34,30000,30000,13,,Robo Parcial
+3819445,10865,Plus / Integral,258,0,Responsabilidad Civil en el Extranjero,34,0,0,9,,Responsabilidad Civil en el Extranjero
