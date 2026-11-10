@@ -1,3 +1,21 @@
+Mens. 207, Nivel 16, Estado 1, Línea 727
+Invalid column name 'CCIdCorporativo'.
+Mens. 207, Nivel 16, Estado 1, Línea 727
+Invalid column name 'CCIdEmpresaPerfil'.
+Mens. 207, Nivel 16, Estado 1, Línea 727
+Invalid column name 'CCIdCorporativo'.
+Mens. 207, Nivel 16, Estado 1, Línea 727
+Invalid column name 'CCIdEmpresaPerfil'.
+Mens. 207, Nivel 16, Estado 1, Línea 727
+Invalid column name 'IdPlan'.
+Mens. 207, Nivel 16, Estado 1, Línea 727
+Invalid column name 'IdPlan'.
+Mens. 207, Nivel 16, Estado 1, Línea 727
+Invalid column name 'IdPlan'.
+
+  
+
+
 USE [FlexiForbesv2];
 GO
 
