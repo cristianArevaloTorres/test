@@ -1,25 +1,31 @@
-Mens. 468, Nivel 16, Estado 9, Línea 443
-Cannot resolve the collation conflict between "SQL_Latin1_General_CP1_CI_AS" and "Modern_Spanish_CI_AI" in the equal to operation.
-Mens. 468, Nivel 16, Estado 9, Línea 468
-Cannot resolve the collation conflict between "SQL_Latin1_General_CP1_CI_AS" and "Modern_Spanish_CI_AI" in the equal to operation.
-Mens. 468, Nivel 16, Estado 9, Línea 1532
-Cannot resolve the collation conflict between "Modern_Spanish_CI_AI" and "SQL_Latin1_General_CP1_CI_AS" in the equal to operation.
-Mens. 468, Nivel 16, Estado 9, Línea 1681
-Cannot resolve the collation conflict between "Modern_Spanish_CI_AI" and "SQL_Latin1_General_CP1_CI_AS" in the equal to operation.
-
-Hora de finalización: 2026-11-09T23:01:34.3830098-06:00
-
-
-  
-
-
 USE [FlexiForbesv2];
 GO
+
+/*
+  ARCHIVO_FINAL_CORREGIDO: 2026-11-09_2301
+  CORRECCION: homologa las comparaciones de texto con COLLATE DATABASE_DEFAULT.
+*/
 
 SET NOCOUNT ON;
 SET TEXTSIZE 2147483647;
 SET LOCK_TIMEOUT 30000;
 SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+/* Permite volver a ejecutar el archivo en la misma ventana de SSMS. */
+DROP TABLE IF EXISTS #Exportacion;
+DROP TABLE IF EXISTS #Compensaciones;
+DROP TABLE IF EXISTS #Tarifas;
+DROP TABLE IF EXISTS #Planes;
+DROP TABLE IF EXISTS #Opciones;
+DROP TABLE IF EXISTS #Condiciones;
+DROP TABLE IF EXISTS #Vigencias;
+DROP TABLE IF EXISTS #Perfiles;
+DROP TABLE IF EXISTS #Solicitudes;
+DROP TABLE IF EXISTS #Familia;
+DROP TABLE IF EXISTS #FamiliaCaso;
+DROP TABLE IF EXISTS #Empresas;
+DROP TABLE IF EXISTS #LotesEspeciales;
+DROP TABLE IF EXISTS #Casos;
 
 /*
   EXTRACCION PORTABLE DE N CASOS REALES PARA PRUEBAS
@@ -64,7 +70,7 @@ IF ISNULL(@CantidadCambiosCalificados, 0) < 0
           ISNULL(@CantidadCambiosCalificados, 0) = 0
           AND ISNULL(@CantidadCasosEspeciales, 0) = 0
       )
-BEGIN                                                       
+BEGIN
     SELECT
         'ERROR' AS tipoRegistro,
         0 AS ordenCarga,
@@ -79,8 +85,8 @@ END;
 CREATE TABLE #Casos
 (
     CasoId INT IDENTITY(1, 1) NOT NULL PRIMARY KEY,
-    Origen VARCHAR(40) NOT NULL,
-    NivelCerteza VARCHAR(20) NOT NULL,
+    Origen VARCHAR(40) COLLATE DATABASE_DEFAULT NOT NULL,
+    NivelCerteza VARCHAR(20) COLLATE DATABASE_DEFAULT NOT NULL,
     IdReferencia INT NULL,
     IdLog INT NULL,
     SolicitudSemilla INT NULL,
@@ -88,7 +94,7 @@ CREATE TABLE #Casos
     IdEmpresa INT NOT NULL,
     IdCorporativo INT NULL,
     IdConfiguracion INT NULL,
-    NumeroEmpleado VARCHAR(50) NULL,
+    NumeroEmpleado VARCHAR(50) COLLATE DATABASE_DEFAULT NULL,
     FechaSolicitud DATETIME NULL
 );
 
@@ -105,7 +111,11 @@ CREATE TABLE #Casos
         S.SOIdEmpresa AS IdEmpresa,
         EMP.EMIdCorporativo AS IdCorporativo,
         EMP.EMIdConfiguracion AS IdConfiguracion,
-        COALESCE(NULLIF(E.EMNumeroEmpleado, ''), S.SONumEmpleado)
+        COALESCE
+        (
+            NULLIF(E.EMNumeroEmpleado COLLATE DATABASE_DEFAULT, ''),
+            S.SONumEmpleado COLLATE DATABASE_DEFAULT
+        )
             AS NumeroEmpleado,
         COALESCE(S.SOFechaUMod, S.SOFechaAdd, S.SOFechaEstatus)
             AS FechaSolicitud,
@@ -196,7 +206,7 @@ CREATE TABLE #LotesEspeciales
     LDIdAdmin INT NOT NULL,
     LDFechaInicio DATETIME NOT NULL,
     LDFechaFin DATETIME NULL,
-    LDOrigen VARCHAR(20) NOT NULL
+    LDOrigen VARCHAR(20) COLLATE DATABASE_DEFAULT NOT NULL
 );
 
 INSERT INTO #LotesEspeciales
@@ -239,7 +249,11 @@ ORDER BY L.LDFechaInicio DESC, L.LDId DESC;
         S.SOIdEmpresa AS IdEmpresa,
         EMP.EMIdCorporativo AS IdCorporativo,
         EMP.EMIdConfiguracion AS IdConfiguracion,
-        COALESCE(NULLIF(E.EMNumeroEmpleado, ''), S.SONumEmpleado)
+        COALESCE
+        (
+            NULLIF(E.EMNumeroEmpleado COLLATE DATABASE_DEFAULT, ''),
+            S.SONumEmpleado COLLATE DATABASE_DEFAULT
+        )
             AS NumeroEmpleado,
         COALESCE(S.SOFechaUMod, S.SOFechaAdd, S.SOFechaEstatus)
             AS FechaSolicitud,
@@ -278,7 +292,11 @@ EspecialesProbables AS
         S.SOIdEmpresa AS IdEmpresa,
         EMP.EMIdCorporativo AS IdCorporativo,
         EMP.EMIdConfiguracion AS IdConfiguracion,
-        COALESCE(NULLIF(E.EMNumeroEmpleado, ''), S.SONumEmpleado)
+        COALESCE
+        (
+            NULLIF(E.EMNumeroEmpleado COLLATE DATABASE_DEFAULT, ''),
+            S.SONumEmpleado COLLATE DATABASE_DEFAULT
+        )
             AS NumeroEmpleado,
         COALESCE(S.SOFechaUMod, S.SOFechaAdd, S.SOFechaEstatus)
             AS FechaSolicitud,
@@ -324,7 +342,7 @@ EspecialesEventos AS
         E.EMIdEmpresa AS IdEmpresa,
         EMP.EMIdCorporativo AS IdCorporativo,
         EMP.EMIdConfiguracion AS IdConfiguracion,
-        E.EMNumeroEmpleado AS NumeroEmpleado,
+        E.EMNumeroEmpleado COLLATE DATABASE_DEFAULT AS NumeroEmpleado,
         LED.LEDFechaAdd AS FechaSolicitud,
         L.LDId AS IdLog,
         LED.LEDId AS IdReferencia,
@@ -345,7 +363,8 @@ EspecialesEventos AS
           AND
               (
                   S.SOIdEmpleado = E.Id
-                  OR S.SONumEmpleado = E.EMNumeroEmpleado
+                  OR S.SONumEmpleado COLLATE DATABASE_DEFAULT
+                     = E.EMNumeroEmpleado COLLATE DATABASE_DEFAULT
               )
         ORDER BY
             ABS(DATEDIFF(SECOND, S.SOFechaAdd, LED.LEDFechaAdd)),
@@ -455,7 +474,8 @@ INNER JOIN dbo.ff_Empleado E
       (
           E.Id = C.IdTitular
           OR E.EMIdTitular = C.IdTitular
-          OR E.EMNumeroEmpleado = C.NumeroEmpleado
+          OR E.EMNumeroEmpleado COLLATE DATABASE_DEFAULT
+             = C.NumeroEmpleado COLLATE DATABASE_DEFAULT
       );
 
 CREATE TABLE #Familia
@@ -480,7 +500,8 @@ INNER JOIN #Casos C
    AND
       (
           S.SOIdEmpleado = C.IdTitular
-          OR S.SONumEmpleado = C.NumeroEmpleado
+          OR S.SONumEmpleado COLLATE DATABASE_DEFAULT
+             = C.NumeroEmpleado COLLATE DATABASE_DEFAULT
           OR EXISTS
              (
                  SELECT 1
@@ -594,7 +615,8 @@ WHERE T.POIdPlanOpcion IS NOT NULL
                  SELECT 1
                  FROM #Casos C
                  WHERE C.IdEmpresa = T.POIdEmpresa
-                   AND C.NumeroEmpleado = T.PONumeroEmpleado
+                   AND C.NumeroEmpleado COLLATE DATABASE_DEFAULT
+                       = T.PONumeroEmpleado COLLATE DATABASE_DEFAULT
              )
       );
 
@@ -902,9 +924,9 @@ WHERE X.IdCompensacion IS NOT NULL;
 CREATE TABLE #Exportacion
 (
     OrdenCarga INT NOT NULL,
-    Tabla SYSNAME NOT NULL,
-    Clave NVARCHAR(400) NULL,
-    FilaJson NVARCHAR(MAX) NOT NULL,
+    Tabla SYSNAME COLLATE DATABASE_DEFAULT NOT NULL,
+    Clave NVARCHAR(400) COLLATE DATABASE_DEFAULT NULL,
+    FilaJson NVARCHAR(MAX) COLLATE DATABASE_DEFAULT NOT NULL,
     EsDatoDerivado BIT NOT NULL
 );
 
@@ -1427,7 +1449,8 @@ WHERE T.IdSolicitud IN (SELECT S.IdSolicitud FROM #Solicitudes S)
           (
               SELECT 1
               FROM #Casos C
-              WHERE C.NumeroEmpleado = T.NumEmpleado
+              WHERE C.NumeroEmpleado COLLATE DATABASE_DEFAULT
+                    = T.NumEmpleado COLLATE DATABASE_DEFAULT
           );
 
 /* 400-499: tarifas actuales, historicas y por perfil. */
@@ -1544,7 +1567,8 @@ WHERE EXISTS
           SELECT 1
           FROM #Casos C
           WHERE C.IdEmpresa = T.ESIdEmpresa
-            AND C.NumeroEmpleado = T.ESNumeroEmpleado
+            AND C.NumeroEmpleado COLLATE DATABASE_DEFAULT
+                = T.ESNumeroEmpleado COLLATE DATABASE_DEFAULT
       );
 
 /* 700-799: familia, historial y staging que alimentan PlanEspejo. */
@@ -1585,7 +1609,8 @@ WHERE T.POIdEmpleado IN (SELECT F.IdEmpleado FROM #Familia F)
           SELECT 1
           FROM #Casos C
           WHERE C.IdEmpresa = T.POIdEmpresa
-            AND C.NumeroEmpleado = T.PONumeroEmpleado
+            AND C.NumeroEmpleado COLLATE DATABASE_DEFAULT
+                = T.PONumeroEmpleado COLLATE DATABASE_DEFAULT
       );
 
 INSERT INTO #Exportacion
@@ -1693,7 +1718,8 @@ WHERE EXISTS
           WHERE C.IdEmpresa = T.PCIdEmpresa
             AND
                (
-                   C.NumeroEmpleado = T.PCNumeroEmpleado
+                   C.NumeroEmpleado COLLATE DATABASE_DEFAULT
+                   = T.PCNumeroEmpleado COLLATE DATABASE_DEFAULT
                    OR EXISTS
                       (
                           SELECT 1
