@@ -1,27 +1,12 @@
-Mens. 207, Nivel 16, Estado 1, Línea 727
-Invalid column name 'CCIdCorporativo'.
-Mens. 207, Nivel 16, Estado 1, Línea 727
-Invalid column name 'CCIdEmpresaPerfil'.
-Mens. 207, Nivel 16, Estado 1, Línea 727
-Invalid column name 'CCIdCorporativo'.
-Mens. 207, Nivel 16, Estado 1, Línea 727
-Invalid column name 'CCIdEmpresaPerfil'.
-Mens. 207, Nivel 16, Estado 1, Línea 727
-Invalid column name 'IdPlan'.
-Mens. 207, Nivel 16, Estado 1, Línea 727
-Invalid column name 'IdPlan'.
-Mens. 207, Nivel 16, Estado 1, Línea 727
-Invalid column name 'IdPlan'.
-
-  
-
-
 USE [FlexiForbesv2];
 GO
 
 /*
-  ARCHIVO_FINAL_CORREGIDO: 2026-11-09_2301
-  CORRECCION: homologa las comparaciones de texto con COLLATE DATABASE_DEFAULT.
+  ARCHIVO_FINAL_CORREGIDO: 2026-11-09_2315
+  CORRECCIONES:
+    - Homologa comparaciones de texto con COLLATE DATABASE_DEFAULT.
+    - Tolera versiones de ff_CompensacionConfiguracion sin las columnas
+      CCIdCorporativo y CCIdEmpresaPerfil.
 */
 
 SET NOCOUNT ON;
@@ -36,6 +21,7 @@ DROP TABLE IF EXISTS #Tarifas;
 DROP TABLE IF EXISTS #Planes;
 DROP TABLE IF EXISTS #Opciones;
 DROP TABLE IF EXISTS #Condiciones;
+DROP TABLE IF EXISTS #CompensacionConfiguraciones;
 DROP TABLE IF EXISTS #Vigencias;
 DROP TABLE IF EXISTS #Perfiles;
 DROP TABLE IF EXISTS #Solicitudes;
@@ -255,6 +241,9 @@ WHERE L.LDOrigen = 'CASOS_ESPECIALES'
        OR L.LDIdEmpresa = @IdEmpresaFiltro)
 ORDER BY L.LDFechaInicio DESC, L.LDId DESC;
 
+IF @CantidadCasosEspeciales > 0
+   AND EXISTS (SELECT 1 FROM #LotesEspeciales)
+BEGIN
 ;WITH EspecialesConfirmados AS
 (
     SELECT
@@ -446,6 +435,7 @@ FROM
              ISNULL(X.SolicitudSemilla, 0) DESC
 ) C
 OPTION (RECOMPILE, MAXDOP 1);
+END;
 
 IF NOT EXISTS (SELECT 1 FROM #Casos)
 BEGIN
@@ -606,6 +596,65 @@ FROM dbo.ff_CondicionPlan C
 WHERE C.CPIdEmpresa IN (SELECT X.IdEmpresa FROM #Casos X)
    OR C.CPIdPerfil IN (SELECT P.IdPerfil FROM #Perfiles P);
 
+/*
+  Las columnas CCIdCorporativo y CCIdEmpresaPerfil no existen en todas las
+  versiones de ff_CompensacionConfiguracion. Las condiciones comunes se
+  resuelven directamente y las columnas opcionales solo se consultan si
+  realmente existen en el ambiente.
+*/
+CREATE TABLE #CompensacionConfiguraciones
+(
+    IdCompensacionConfiguracion INT NOT NULL PRIMARY KEY
+);
+
+INSERT INTO #CompensacionConfiguraciones (IdCompensacionConfiguracion)
+SELECT DISTINCT C.CCIdCompensacionConfiguracion
+FROM dbo.ff_CompensacionConfiguracion C
+WHERE C.CCIdPerfil IN (SELECT P.IdPerfil FROM #Perfiles P)
+   OR C.CCIdVigencia IN (SELECT V.IdVigencia FROM #Vigencias V);
+
+IF COL_LENGTH(N'dbo.ff_CompensacionConfiguracion', N'CCIdCorporativo')
+   IS NOT NULL
+BEGIN
+    EXEC sys.sp_executesql N'
+        INSERT INTO #CompensacionConfiguraciones
+            (IdCompensacionConfiguracion)
+        SELECT DISTINCT C.CCIdCompensacionConfiguracion
+        FROM dbo.ff_CompensacionConfiguracion C
+        WHERE C.CCIdCorporativo IN
+              (
+                  SELECT X.IdCorporativo
+                  FROM #Casos X
+                  WHERE X.IdCorporativo IS NOT NULL
+              )
+          AND NOT EXISTS
+              (
+                  SELECT 1
+                  FROM #CompensacionConfiguraciones S
+                  WHERE S.IdCompensacionConfiguracion =
+                        C.CCIdCompensacionConfiguracion
+              );';
+END;
+
+IF COL_LENGTH(N'dbo.ff_CompensacionConfiguracion', N'CCIdEmpresaPerfil')
+   IS NOT NULL
+BEGIN
+    EXEC sys.sp_executesql N'
+        INSERT INTO #CompensacionConfiguraciones
+            (IdCompensacionConfiguracion)
+        SELECT DISTINCT C.CCIdCompensacionConfiguracion
+        FROM dbo.ff_CompensacionConfiguracion C
+        WHERE C.CCIdEmpresaPerfil IN
+              (SELECT X.IdEmpresa FROM #Casos X)
+          AND NOT EXISTS
+              (
+                  SELECT 1
+                  FROM #CompensacionConfiguraciones S
+                  WHERE S.IdCompensacionConfiguracion =
+                        C.CCIdCompensacionConfiguracion
+              );';
+END;
+
 CREATE TABLE #Opciones
 (
     IdOpcion INT NOT NULL PRIMARY KEY
@@ -760,19 +809,13 @@ FROM
     UNION
     SELECT C.CCIdPlan
     FROM dbo.ff_CompensacionConfiguracion C
-    WHERE C.CCIdPerfil IN (SELECT P.IdPerfil FROM #Perfiles P)
-       OR C.CCIdVigencia IN (SELECT V.IdVigencia FROM #Vigencias V)
-       OR C.CCIdCorporativo IN
-          (SELECT X.IdCorporativo FROM #Casos X WHERE X.IdCorporativo IS NOT NULL)
-       OR C.CCIdEmpresaPerfil IN (SELECT X.IdEmpresa FROM #Casos X)
+    INNER JOIN #CompensacionConfiguraciones S
+        ON S.IdCompensacionConfiguracion = C.CCIdCompensacionConfiguracion
     UNION
     SELECT C.CCIdPlanDistribucion
     FROM dbo.ff_CompensacionConfiguracion C
-    WHERE C.CCIdPerfil IN (SELECT P.IdPerfil FROM #Perfiles P)
-       OR C.CCIdVigencia IN (SELECT V.IdVigencia FROM #Vigencias V)
-       OR C.CCIdCorporativo IN
-          (SELECT X.IdCorporativo FROM #Casos X WHERE X.IdCorporativo IS NOT NULL)
-       OR C.CCIdEmpresaPerfil IN (SELECT X.IdEmpresa FROM #Casos X)
+    INNER JOIN #CompensacionConfiguraciones S
+        ON S.IdCompensacionConfiguracion = C.CCIdCompensacionConfiguracion
     UNION
     SELECT B.bpIdPlan
     FROM dbo.bf_BeneficiarioPlan B
@@ -796,7 +839,7 @@ FROM
     FROM dbo.bf_BeneficiarioSustituto B
     WHERE B.BSIdEmpleado IN (SELECT F.IdEmpleado FROM #Familia F)
        OR B.BSIdSolicitud IN (SELECT S.IdSolicitud FROM #Solicitudes S)
-) X
+) X (IdPlan)
 WHERE X.IdPlan IS NOT NULL
   AND NOT EXISTS (SELECT 1 FROM #Planes P WHERE P.IdPlan = X.IdPlan);
 
@@ -923,11 +966,8 @@ FROM
     UNION
     SELECT C.CCIdCompensacion
     FROM dbo.ff_CompensacionConfiguracion C
-    WHERE C.CCIdPerfil IN (SELECT P.IdPerfil FROM #Perfiles P)
-       OR C.CCIdVigencia IN (SELECT V.IdVigencia FROM #Vigencias V)
-       OR C.CCIdCorporativo IN
-          (SELECT X.IdCorporativo FROM #Casos X WHERE X.IdCorporativo IS NOT NULL)
-       OR C.CCIdEmpresaPerfil IN (SELECT X.IdEmpresa FROM #Casos X)
+    INNER JOIN #CompensacionConfiguraciones S
+        ON S.IdCompensacionConfiguracion = C.CCIdCompensacionConfiguracion
     UNION
     SELECT E.CEIdCompensacion
     FROM dbo.ff_CompensacionEmpleado E
@@ -936,7 +976,7 @@ FROM
     SELECT O.CPIdCompensacion
     FROM dbo.ff_CompensacionPlanOpcion O
     WHERE O.CPIdPlanOpcion IN (SELECT P.IdOpcion FROM #Opciones P)
-) X
+) X (IdCompensacion)
 WHERE X.IdCompensacion IS NOT NULL;
 
 CREATE TABLE #Exportacion
@@ -1523,7 +1563,12 @@ INSERT INTO #Exportacion
 SELECT 501, 'dbo.ff_CompensacionConfiguracion', CONVERT(NVARCHAR(100), T.CCIdCompensacionConfiguracion),
        (SELECT T.* FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES), 0
 FROM dbo.ff_CompensacionConfiguracion T
-WHERE T.CCIdCompensacion IN (SELECT C.IdCompensacion FROM #Compensaciones C)
+WHERE T.CCIdCompensacionConfiguracion IN
+      (
+          SELECT S.IdCompensacionConfiguracion
+          FROM #CompensacionConfiguraciones S
+      )
+   OR T.CCIdCompensacion IN (SELECT C.IdCompensacion FROM #Compensaciones C)
    OR T.CCIdPerfil IN (SELECT P.IdPerfil FROM #Perfiles P)
    OR T.CCIdVigencia IN (SELECT V.IdVigencia FROM #Vigencias V);
 
