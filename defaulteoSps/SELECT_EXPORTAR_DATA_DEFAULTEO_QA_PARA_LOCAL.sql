@@ -1,8 +1,3 @@
-Mens. 468, Nivel 16, Estado 9, Línea 432
-Cannot resolve the collation conflict between "SQL_Latin1_General_CP1_CI_AS" and "Modern_Spanish_CI_AI" in the equal to operation.
-
-Hora de finalización: 2026-11-09T21:48:28.3841891-06:00
-
 USE [FlexiForbesv2];
 GO
 
@@ -54,7 +49,7 @@ IF ISNULL(@CantidadCambiosCalificados, 0) < 0
           ISNULL(@CantidadCambiosCalificados, 0) = 0
           AND ISNULL(@CantidadCasosEspeciales, 0) = 0
       )
-BEGIN
+BEGIN                                                       
     SELECT
         'ERROR' AS tipoRegistro,
         0 AS ordenCarga,
