@@ -1,3 +1,12 @@
+Mens. 468, Nivel 16, Estado 9, Línea 443
+Cannot resolve the collation conflict between "SQL_Latin1_General_CP1_CI_AS" and "Modern_Spanish_CI_AI" in the equal to operation.
+Mens. 468, Nivel 16, Estado 9, Línea 468
+Cannot resolve the collation conflict between "SQL_Latin1_General_CP1_CI_AS" and "Modern_Spanish_CI_AI" in the equal to operation.
+Mens. 468, Nivel 16, Estado 9, Línea 1532
+Cannot resolve the collation conflict between "Modern_Spanish_CI_AI" and "SQL_Latin1_General_CP1_CI_AS" in the equal to operation.
+Mens. 468, Nivel 16, Estado 9, Línea 1681
+Cannot resolve the collation conflict between "Modern_Spanish_CI_AI" and "SQL_Latin1_General_CP1_CI_AS" in the equal to operation.
+
 USE [FlexiForbesv2];
 GO
 
