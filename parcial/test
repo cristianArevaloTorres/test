@@ -1,3 +1,92 @@
+DECLARE @Dias INT = 7;
+DECLARE @Cantidad INT = 500;
+
+;WITH UltimasQualitas AS
+(
+    SELECT TOP (@Cantidad)
+        cd.Id AS IdCotizacionDetalle,
+        cd.IdCotizacion,
+        cd.FechaSolicitud,
+        cd.IdPaqueteConvenio,
+        cd.Paquete,
+        cd.PrimaTotalAnual,
+        TRY_CONVERT(XML, cd.XMLSolicitud) AS SolicitudXML,
+        TRY_CONVERT(XML, cd.XMLRecepcion) AS RespuestaXML
+    FROM dbo.CotizacionDetalle cd
+    INNER JOIN dbo.Aseguradora a
+        ON a.Id = cd.IdAseguradora
+    WHERE
+        cd.FechaSolicitud >= DATEADD(DAY, -@Dias, GETDATE())
+        AND (
+            cd.IdAseguradora = 1
+            OR UPPER(a.Nombre) LIKE '%QUALITAS%'
+            OR UPPER(a.Nombre) LIKE '%QUÁLITAS%'
+        )
+    ORDER BY cd.FechaSolicitud DESC
+)
+SELECT
+    IdCotizacionDetalle,
+    IdCotizacion,
+    FechaSolicitud,
+    IdPaqueteConvenio,
+    Paquete,
+    PrimaTotalAnual,
+
+    CASE
+        WHEN SolicitudXML.exist(
+            '/Movimientos/Movimiento/DatosVehiculo/Coberturas[@NoCobertura="28"]'
+        ) = 1 THEN 'SI'
+        ELSE 'NO'
+    END AS SeEnvioCobertura28,
+
+    SolicitudXML.value(
+        '(/Movimientos/Movimiento/DatosVehiculo/Coberturas[@NoCobertura="28"]/TipoSuma/text())[1]',
+        'VARCHAR(10)'
+    ) AS TipoSumaEnviado,
+
+    SolicitudXML.value(
+        '(/Movimientos/Movimiento/DatosVehiculo/Coberturas[@NoCobertura="28"]/SumaAsegurada/text())[1]',
+        'VARCHAR(30)'
+    ) AS SumaEnviada,
+
+    CASE
+        WHEN RespuestaXML.exist(
+            '/Movimientos/Movimiento/DatosVehiculo/Coberturas[@NoCobertura="28"]'
+        ) = 1 THEN 'SI'
+        ELSE 'NO'
+    END AS RegresoCobertura28,
+
+    RespuestaXML.value(
+        '(/Movimientos/Movimiento/DatosVehiculo/Coberturas[@NoCobertura="28"]/TipoSuma/text())[1]',
+        'VARCHAR(10)'
+    ) AS TipoSumaRecibido,
+
+    RespuestaXML.value(
+        '(/Movimientos/Movimiento/DatosVehiculo/Coberturas[@NoCobertura="28"]/SumaAsegurada/text())[1]',
+        'VARCHAR(30)'
+    ) AS SumaRecibida,
+
+    RespuestaXML.value(
+        '(/Movimientos/Movimiento/@NoCotizacion)[1]',
+        'VARCHAR(50)'
+    ) AS NumeroCotizacionQualitas,
+
+    RespuestaXML.value(
+        '(/Movimientos/Movimiento/CodigoError/text())[1]',
+        'VARCHAR(500)'
+    ) AS ErrorQualitas
+
+FROM UltimasQualitas
+ORDER BY FechaSolicitud DESC;
+
+
+
+-------------------
+
+
+
+
+
 DECLARE @IdCotizacion INT = 12345;
 
 SELECT
