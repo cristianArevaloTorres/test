@@ -90,6 +90,107 @@ WHERE cd.IdCotizacion = @IdCotizacion
   AND UPPER(a.ClaveHomologado) = 'QUALITAS'
   AND (c.Clave = '28' OR c.Clave LIKE '28|%')
 ORDER BY c.Clave;
+
+
+--------------------------------
+
+
+
+
+
+
+DECLARE @IdCotizacion INT = 12345;
+
+SELECT
+    cd.Id AS IdCotizacionDetalle,
+    cd.IdCotizacion,
+    cd.FechaSolicitud,
+    a.Nombre AS Aseguradora,
+    a.ClaveHomologado,
+    cd.IdConvenio,
+    cd.IdPaqueteConvenio,
+    cd.AMIS,
+    cd.Paquete,
+    cd.PrimaTotalAnual,
+    x.XmlRespuesta.value(
+        'string((/Movimientos/Movimiento/CodigoError)[1])',
+        'nvarchar(4000)'
+    ) AS CodigoError,
+    cd.XMLSolicitud,
+    cd.XMLRecepcion
+FROM CotizacionDetalle cd
+INNER JOIN Aseguradora a
+    ON a.Id = cd.IdAseguradora
+OUTER APPLY (
+    SELECT TRY_CONVERT(xml, cd.XMLRecepcion) AS XmlRespuesta
+) x
+WHERE cd.IdCotizacion = @IdCotizacion
+  AND UPPER(a.ClaveHomologado) = 'QUALITAS'
+ORDER BY cd.FechaSolicitud DESC;
+Necesito especialmente XMLSolicitud y XMLRecepcion.
+2. Cómo quedó guardada la cobertura 28
+DECLARE @IdCotizacion INT = 12345;
+
+;WITH UltimaRespuesta AS
+(
+    SELECT TOP (1)
+        cd.Id,
+        cd.XMLRecepcion
+    FROM CotizacionDetalle cd
+    INNER JOIN Aseguradora a
+        ON a.Id = cd.IdAseguradora
+    WHERE cd.IdCotizacion = @IdCotizacion
+      AND UPPER(a.ClaveHomologado) = 'QUALITAS'
+    ORDER BY cd.FechaSolicitud DESC
+)
+SELECT
+    u.Id AS IdCotizacionDetalle,
+    n.c.value('@NoCobertura', 'varchar(10)') AS NoCobertura,
+    n.c.value('(SumaAsegurada/text())[1]', 'varchar(50)') AS SumaAsegurada,
+    n.c.value('(TipoSuma/text())[1]', 'varchar(10)') AS TipoSuma,
+    n.c.value('(Deducible/text())[1]', 'varchar(50)') AS Deducible,
+    n.c.value('(Prima/text())[1]', 'varchar(50)') AS Prima
+FROM UltimaRespuesta u
+CROSS APPLY (
+    SELECT TRY_CONVERT(xml, u.XMLRecepcion) AS XmlRespuesta
+) x
+CROSS APPLY x.XmlRespuesta.nodes(
+    '/Movimientos/Movimiento/DatosVehiculo/Coberturas'
+) n(c)
+WHERE n.c.value('@NoCobertura', 'varchar(10)') = '28';
+3. Parametrización del paquete y cobertura
+DECLARE @IdCotizacion INT = 12345;
+
+SELECT DISTINCT
+    cd.Id AS IdCotizacionDetalle,
+    cd.IdPaqueteConvenio,
+    pc.NombrePaquete,
+    c.Id AS IdCobertura,
+    c.Clave AS ClaveCobertura,
+    c.Descripcion,
+    pd.TipoSumaAsegurada,
+    pd.SumaAsegurada,
+    pd.SumaAseguradaHomologada,
+    cr.IdCoberturaBase,
+    cb.Clave AS ClaveCoberturaBase,
+    cb.Descripcion AS CoberturaBase
+FROM CotizacionDetalle cd
+INNER JOIN Aseguradora a
+    ON a.Id = cd.IdAseguradora
+LEFT JOIN PaqueteConvenio pc
+    ON pc.Id = cd.IdPaqueteConvenio
+LEFT JOIN PaqueteDetalle pd
+    ON pd.IdPaqueteConvenio = pc.Id
+LEFT JOIN Cobertura c
+    ON c.Id = pd.IdCobertura
+LEFT JOIN CoberturaRelacion cr
+    ON cr.IdCobertura = c.Id
+LEFT JOIN CoberturaBase cb
+    ON cb.Id = cr.IdCoberturaBase
+WHERE cd.IdCotizacion = @IdCotizacion
+  AND UPPER(a.ClaveHomologado) = 'QUALITAS'
+  AND (c.Clave = '28' OR c.Clave LIKE '28|%')
+ORDER BY c.Clave;
 De: Pita, Ramiro <Ramiro.Pita@lockton.com> 
 Enviado el: lunes, 26 de octubre de 2026 09:54 a. m.
 Para: Arlen Fermin [ejec. de cuenta sr.] <afermin@qualitas.com.mx>; Erik Lopez [ejec. de cuenta sr.] <erlopez@qualitas.com.mx>; Marco Tecuatl [ejec. cuenta jr.] <mtecuatl@qualitas.com.mx>
