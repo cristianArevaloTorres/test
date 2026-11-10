@@ -1,0 +1,66 @@
+﻿3819478,9762,AMPLIA I,1,1,Daños materiales,1,0,0,1,,"Daños Materiales "
+3819479,9763,AMPLIA III,1,1,Daños materiales,1,0,0,1,,"Daños Materiales "
+3819482,9771,AMPLIA II,1,1,Daños materiales,1,0,0,1,,"Daños Materiales "
+3819478,9762,AMPLIA I,12,11,Extensión de Responsabilidad Civil,5,0,0,10,,Extensión de RC
+3819479,9763,AMPLIA III,12,11,Extensión de Responsabilidad Civil,5,0,0,10,,Extensión de RC
+3819480,9764,LIMITADA,12,11,Extensión de Responsabilidad Civil,5,0,0,10,,Extensión de RC
+3819481,9765,RESPONSABILIDAD CIVIL,12,11,Extensión de Responsabilidad Civil,5,0,0,10,,Extensión de RC
+3819482,9771,AMPLIA II,12,11,Extensión de Responsabilidad Civil,5,0,0,10,,Extensión de RC
+3819479,9763,AMPLIA III,13,12,Exención de Deducible por Pérdida Total Daños Materiales,5,0,0,11,,Eliminación de Deducible Pérdida Total Daños Materiales
+3819482,9771,AMPLIA II,13,12,Exención de Deducible por Pérdida Total Daños Materiales,5,0,0,11,,Eliminación de Deducible Pérdida Total Daños Materiales
+3819478,9762,AMPLIA I,15,14,Asistencia Vial,5,0,0,7,,Asistencia Vial
+3819479,9763,AMPLIA III,15,14,Asistencia Vial,5,0,0,7,,Asistencia Vial
+3819480,9764,LIMITADA,15,14,Asistencia Vial,5,0,0,7,,Asistencia Vial
+3819481,9765,RESPONSABILIDAD CIVIL,15,14,Asistencia Vial,5,0,0,7,,Asistencia Vial
+3819482,9771,AMPLIA II,15,14,Asistencia Vial,5,0,0,7,,Asistencia Vial
+3819479,9763,AMPLIA III,17,15,Robo Parcial,5,0,0,13,,Robo Parcial
+3819482,9771,AMPLIA II,17,15,Robo Parcial,5,0,0,13,,Robo Parcial
+3819479,9763,AMPLIA III,19,17,Gastos de Transporte por Pérdida Total,5,20000,20000,15,,Gastos de Transporte por Pérdida Total Daños Materiales o Robo Total
+3819482,9771,AMPLIA II,19,17,Gastos de Transporte por Pérdida Total,5,20000,20000,15,,Gastos de Transporte por Pérdida Total Daños Materiales o Robo Total
+3819478,9762,AMPLIA I,24,22,Responsabilidad Civil Ocupantes,5,1000000,1000000,18,,Responsabilidad Civil Ocupantes
+3819479,9763,AMPLIA III,24,22,Responsabilidad Civil Ocupantes,5,1000000,1000000,18,,Responsabilidad Civil Ocupantes
+3819480,9764,LIMITADA,24,22,Responsabilidad Civil Ocupantes,5,1000000,1000000,18,,Responsabilidad Civil Ocupantes
+3819481,9765,RESPONSABILIDAD CIVIL,24,22,Responsabilidad Civil Ocupantes,5,1000000,1000000,18,,Responsabilidad Civil Ocupantes
+3819482,9771,AMPLIA II,24,22,Responsabilidad Civil Ocupantes,5,1000000,1000000,18,,Responsabilidad Civil Ocupantes
+3819478,9762,AMPLIA I,3,3,Robo Total,1,0,0,2,,"Robo Total "
+3819479,9763,AMPLIA III,3,3,Robo Total,1,0,0,2,,"Robo Total "
+3819480,9764,LIMITADA,3,3,Robo Total,1,0,0,2,,"Robo Total "
+3819482,9771,AMPLIA II,3,3,Robo Total,1,0,0,2,,"Robo Total "
+3819478,9762,AMPLIA I,94,34,Responsabilidad Civil en el Extranjero,5,0,0,9,,Responsabilidad Civil en el Extranjero
+3819479,9763,AMPLIA III,94,34,Responsabilidad Civil en el Extranjero,5,0,0,9,,Responsabilidad Civil en el Extranjero
+3819480,9764,LIMITADA,94,34,Responsabilidad Civil en el Extranjero,5,0,0,9,,Responsabilidad Civil en el Extranjero
+3819481,9765,RESPONSABILIDAD CIVIL,94,34,Responsabilidad Civil en el Extranjero,5,0,0,9,,Responsabilidad Civil en el Extranjero
+3819482,9771,AMPLIA II,94,34,Responsabilidad Civil en el Extranjero,5,0,0,9,,Responsabilidad Civil en el Extranjero
+3819478,9762,AMPLIA I,4,4,Responsabilidad Civil,5,3000000,3000000,3,,Responsabilidad Civil LUC
+3819479,9763,AMPLIA III,4,4,Responsabilidad Civil,5,4000000,4000000,3,,Responsabilidad Civil LUC
+3819480,9764,LIMITADA,4,4,Responsabilidad Civil,5,3000000,3000000,3,,Responsabilidad Civil LUC
+3819481,9765,RESPONSABILIDAD CIVIL,4,4,Responsabilidad Civil,5,3000000,3000000,3,,Responsabilidad Civil LUC
+3819482,9771,AMPLIA II,4,4,Responsabilidad Civil,5,4000000,4000000,3,,Responsabilidad Civil LUC
+3819479,9763,AMPLIA III,44,40,Exención de deducible RT,5,0,0,12,,Eliminación de Deducible Pérdida Total  de Robo Total
+3819482,9771,AMPLIA II,44,40,Exención de deducible RT,5,0,0,12,,Eliminación de Deducible Pérdida Total  de Robo Total
+3819479,9763,AMPLIA III,42,43,Llantas,5,0,0,20,,Llantas y Rines
+3819479,9763,AMPLIA III,43,44,Rines,5,0,0,20,,Llantas y Rines
+3819478,9762,AMPLIA I,22,47|14,Responsabilidad Civil Catastrófica,5,3000000,3000000,4,,Responsabilidad Civil Fallecimiento
+3819479,9763,AMPLIA III,22,47|14,Responsabilidad Civil Catastrófica,5,4500000,4500000,4,,Responsabilidad Civil Fallecimiento
+3819480,9764,LIMITADA,22,47|14,Responsabilidad Civil Catastrófica,5,3000000,3000000,4,,Responsabilidad Civil Fallecimiento
+3819481,9765,RESPONSABILIDAD CIVIL,22,47|14,Responsabilidad Civil Catastrófica,5,4500000,4500000,4,,Responsabilidad Civil Fallecimiento
+3819482,9771,AMPLIA II,22,47|14,Responsabilidad Civil Catastrófica,5,4500000,4500000,4,,Responsabilidad Civil Fallecimiento
+3819478,9762,AMPLIA I,40,47|15,Responsabilidad Cruzada,5,0,0,19,,Responsabilidad Cruzada
+3819479,9763,AMPLIA III,40,47|15,Responsabilidad Cruzada,5,0,0,19,,Responsabilidad Cruzada
+3819480,9764,LIMITADA,40,47|15,Responsabilidad Cruzada,5,0,0,19,,Responsabilidad Cruzada
+3819481,9765,RESPONSABILIDAD CIVIL,40,47|15,Responsabilidad Cruzada,5,0,0,19,,Responsabilidad Cruzada
+3819482,9771,AMPLIA II,40,47|15,Responsabilidad Cruzada,5,0,0,19,,Responsabilidad Cruzada
+3819478,9762,AMPLIA I,5,5,Gastos Médicos,7,350000,350000,5,,Gastos Médicos
+3819479,9763,AMPLIA III,5,5,Gastos Médicos,7,500000,500000,5,,Gastos Médicos
+3819480,9764,LIMITADA,5,5,Gastos Médicos,7,350000,350000,5,,Gastos Médicos
+3819481,9765,RESPONSABILIDAD CIVIL,5,5,Gastos Médicos,7,350000,350000,5,,Gastos Médicos
+3819482,9771,AMPLIA II,5,5,Gastos Médicos,7,500000,500000,5,,Gastos Médicos
+3819479,9763,AMPLIA III,45,55,Auto Agencia,4,0,0,17,,Reparación en Agencia
+3819479,9763,AMPLIA III,6,6,Muerte Accidental al Conductor,5,200000,200000,8,,Accidentes al Conductor
+3819482,9771,AMPLIA II,6,6,Muerte Accidental al Conductor,5,200000,200000,8,,Accidentes al Conductor
+3819479,9763,AMPLIA III,230,65,AUTO SUSTITUTO POR PERDIDA PARCIAL Y TOTAL,1,0,0,14,,Auto Sustituto Pérdida Parcial y Pérdida Total
+3819478,9762,AMPLIA I,8,7,Gastos Legales,5,0,0,6,,Gastos Legales
+3819479,9763,AMPLIA III,8,7,Gastos Legales,5,0,0,6,,Gastos Legales
+3819480,9764,LIMITADA,8,7,Gastos Legales,5,0,0,6,,Gastos Legales
+3819481,9765,RESPONSABILIDAD CIVIL,8,7,Gastos Legales,5,0,0,6,,Gastos Legales
+3819482,9771,AMPLIA II,8,7,Gastos Legales,5,0,0,6,,Gastos Legales
